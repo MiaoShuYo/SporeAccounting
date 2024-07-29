@@ -1,0 +1,6 @@
+@SporeAccounting_HostAddress = http://localhost:5279
+
+GET {{SporeAccounting_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
