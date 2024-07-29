@@ -8,7 +8,7 @@ namespace SporeAccounting;
 /// </summary>
 public class SporeAccountingDBContext : DbContext
 {
-    private DbSet<User>
+    private DbSet<SysUser> SysUsers { get; set; }
 
     IConfiguration _dbConfig;
     public SporeAccountingDBContext(IConfiguration dbConfig)
