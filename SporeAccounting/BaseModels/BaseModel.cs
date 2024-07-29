@@ -57,5 +57,5 @@ public class BaseModel
     /// </summary>
     [Required]
     [Column(TypeName = "bool")]
-    public bool IsDeleted { get; set; }
+    public bool IsDeleted { get; set; }=false;
 }
