@@ -1,6 +1,6 @@
 ﻿using System.Net;
 
-namespace SporeAccounting.Comm;
+namespace SporeAccounting.BaseModels;
 
 /// <summary>
 /// 返回给客户端的响应封装
