@@ -1,6 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-using Microsoft.AspNetCore.Mvc;
 
 namespace SporeAccounting.BaseModels;
 
@@ -21,37 +20,35 @@ public class BaseModel
     /// </summary>
     [Required]
     [Column(TypeName = "datetime")]
-    public DateTime CreateDateTime { get; set; }
+    public DateTime CreateDateTime { get; set; }= DateTime.Now;
     /// <summary>
     /// 创建用户
     /// </summary>
     [Required]
     [Column(TypeName = "nvarchar(36)")]
-    public DateTime CreateUserId { get; set; }
+    public string CreateUserId { get; set; }
     /// <summary>
     /// 修改时间
     /// </summary>
     [Required]
     [Column(TypeName = "datetime")]
-    public DateTime UpdateDateTime { get; set; }
+    public DateTime UpdateDateTime { get; set; } = DateTime.Now;
     /// <summary>
     /// 修改用户
     /// </summary>
     [Required]
     [Column(TypeName = "nvarchar(36)")]
-    public DateTime UpdateUserId { get; set; }
+    public string UpdateUserId { get; set; }
     /// <summary>
     /// 删除时间
     /// </summary>
-    [Required]
     [Column(TypeName = "datetime")]
-    public DateTime DeleteDateTime { get; set; }
+    public DateTime DeleteDateTime { get; set; } = DateTime.Now;
     /// <summary>
     /// 删除用户
     /// </summary>
-    [Required]
     [Column(TypeName = "nvarchar(36)")]
-    public DateTime DeleteUserId { get; set; }
+    public string DeleteUserId { get; set; }
     /// <summary>
     /// 是否删除（物理删除）
     /// </summary>
