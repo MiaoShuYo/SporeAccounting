@@ -87,7 +87,6 @@ namespace SporeAccounting
 
                     // 统一返回格式
                     var result = new ResponseData<string>(HttpStatusCode.BadRequest, string.Join("\r\n", errors.ToArray()), "");
-
                     return new BadRequestObjectResult(result);
                 };
             });

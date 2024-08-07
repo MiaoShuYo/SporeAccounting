@@ -1,0 +1,163 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>SporeAccounting</name>
+    </assembly>
+    <members>
+        <member name="T:SporeAccounting.BaseModels.BaseModel">
+            <summary>
+            数据库映射类基类
+            </summary>
+        </member>
+        <member name="P:SporeAccounting.BaseModels.BaseModel.Id">
+            <summary>
+            表数据唯一值
+            </summary>
+        </member>
+        <member name="P:SporeAccounting.BaseModels.BaseModel.CreateDateTime">
+            <summary>
+            创建时间
+            </summary>
+        </member>
+        <member name="P:SporeAccounting.BaseModels.BaseModel.CreateUserId">
+            <summary>
+            创建用户
+            </summary>
+        </member>
+        <member name="P:SporeAccounting.BaseModels.BaseModel.UpdateDateTime">
+            <summary>
+            修改时间
+            </summary>
+        </member>
+        <member name="P:SporeAccounting.BaseModels.BaseModel.UpdateUserId">
+            <summary>
+            修改用户
+            </summary>
+        </member>
+        <member name="P:SporeAccounting.BaseModels.BaseModel.DeleteDateTime">
+            <summary>
+            删除时间
+            </summary>
+        </member>
+        <member name="P:SporeAccounting.BaseModels.BaseModel.DeleteUserId">
+            <summary>
+            删除用户
+            </summary>
+        </member>
+        <member name="P:SporeAccounting.BaseModels.BaseModel.IsDeleted">
+            <summary>
+            是否删除（物理删除）
+            </summary>
+        </member>
+        <member name="T:SporeAccounting.BaseModels.ResponseData`1">
+            <summary>
+            返回给客户端的响应封装
+            </summary>
+        </member>
+        <member name="M:SporeAccounting.BaseModels.ResponseData`1.#ctor(System.Net.HttpStatusCode,System.String,`0)">
+            <summary>
+            返回给客户端的响应封装
+            </summary>
+            <param name="statusCode">http 状态码</param>
+            <param name="errorMessage">错误信息</param>
+            <param name="data">返回数据</param>
+        </member>
+        <member name="P:SporeAccounting.BaseModels.ResponseData`1.StatusCode">
+            <summary>
+            响应的Code
+            </summary>
+        </member>
+        <member name="P:SporeAccounting.BaseModels.ResponseData`1.ErrorMessage">
+            <summary>
+            错误信息
+            </summary>
+        </member>
+        <member name="P:SporeAccounting.BaseModels.ResponseData`1.Data">
+            <summary>
+            数据
+            </summary>
+        </member>
+        <member name="T:SporeAccounting.BaseModels.ViewModel.Request.PageRequestViewModel">
+            <summary>
+            分页查询请求基类
+            </summary>
+        </member>
+        <member name="P:SporeAccounting.BaseModels.ViewModel.Request.PageRequestViewModel.PageNumber">
+            <summary>
+            请求的页码
+            </summary>
+        </member>
+        <member name="P:SporeAccounting.BaseModels.ViewModel.Request.PageRequestViewModel.PageSize">
+            <summary>
+            每页大小
+            </summary>
+        </member>
+        <member name="T:SporeAccounting.BaseModels.ViewModel.Response.PageResponseViewModel`1">
+            <summary>
+            分页查询响应基类
+            </summary>
+        </member>
+        <member name="P:SporeAccounting.BaseModels.ViewModel.Response.PageResponseViewModel`1.PageCount">
+            <summary>
+            总页数
+            </summary>
+        </member>
+        <member name="P:SporeAccounting.BaseModels.ViewModel.Response.PageResponseViewModel`1.RowCount">
+            <summary>
+            总行数
+            </summary>
+        </member>
+        <member name="P:SporeAccounting.BaseModels.ViewModel.Response.PageResponseViewModel`1.Data">
+            <summary>
+            返回的数据集合
+            </summary>
+        </member>
+        <member name="T:SporeAccounting.Migrations.InitSysUser">
+            <inheritdoc />
+        </member>
+        <member name="M:SporeAccounting.Migrations.InitSysUser.Up(Microsoft.EntityFrameworkCore.Migrations.MigrationBuilder)">
+            <inheritdoc />
+        </member>
+        <member name="M:SporeAccounting.Migrations.InitSysUser.Down(Microsoft.EntityFrameworkCore.Migrations.MigrationBuilder)">
+            <inheritdoc />
+        </member>
+        <member name="M:SporeAccounting.Migrations.InitSysUser.BuildTargetModel(Microsoft.EntityFrameworkCore.ModelBuilder)">
+            <inheritdoc />
+        </member>
+        <member name="T:SporeAccounting.Models.SysUser">
+            <summary>
+            用户表自定义属性类
+            </summary>
+        </member>
+        <member name="P:SporeAccounting.Models.SysUser.UserName">
+            <summary>
+            用户名
+            </summary>
+        </member>
+        <member name="P:SporeAccounting.Models.SysUser.Password">
+            <summary>
+            加密后的密码
+            </summary>
+        </member>
+        <member name="P:SporeAccounting.Models.SysUser.Salt">
+            <summary>
+            加密用的盐
+            </summary>
+        </member>
+        <member name="P:SporeAccounting.Models.SysUser.Email">
+            <summary>
+            邮箱
+            </summary>
+        </member>
+        <member name="P:SporeAccounting.Models.SysUser.PhoneNumber">
+            <summary>
+            手机号
+            </summary>
+        </member>
+        <member name="T:SporeAccounting.SporeAccountingDBContext">
+            <summary>
+            数据库连接上下文
+            </summary>
+        </member>
+    </members>
+</doc>

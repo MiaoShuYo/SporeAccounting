@@ -53,6 +53,6 @@ public class BaseModel
     /// 是否删除（物理删除）
     /// </summary>
     [Required]
-    [Column(TypeName = "bool")]
+    [Column(TypeName = "tinyint(1)")]
     public bool IsDeleted { get; set; }=false;
 }

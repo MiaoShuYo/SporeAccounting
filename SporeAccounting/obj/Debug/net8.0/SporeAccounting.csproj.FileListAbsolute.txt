@@ -112,3 +112,5 @@ D:\在线教学\SporeAccounting\SporeAccounting\obj\Debug\net8.0\refint\SporeAcc
 D:\在线教学\SporeAccounting\SporeAccounting\obj\Debug\net8.0\SporeAccounting.pdb
 D:\在线教学\SporeAccounting\SporeAccounting\obj\Debug\net8.0\SporeAccounting.genruntimeconfig.cache
 D:\在线教学\SporeAccounting\SporeAccounting\obj\Debug\net8.0\ref\SporeAccounting.dll
+D:\在线教学\SporeAccounting\SporeAccounting\bin\Debug\net8.0\SporeAccounting.xml
+D:\在线教学\SporeAccounting\SporeAccounting\obj\Debug\net8.0\SporeAccounting.xml
