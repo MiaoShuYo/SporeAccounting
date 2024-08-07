@@ -1,0 +1,14 @@
+﻿using SporeAccounting.Models;
+
+namespace SporeAccounting.Server.Interface;
+
+/// <summary>
+/// 用户接口
+/// </summary>
+public interface ISysUserServer
+{
+    /// <summary>
+    /// 新增用户
+    /// </summary>
+    void Add(SysUser sysUser);
+}

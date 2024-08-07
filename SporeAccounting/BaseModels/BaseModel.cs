@@ -14,7 +14,7 @@ public class BaseModel
     [Key]
     [Column(TypeName = "nvarchar(36)")]
     [Required]
-    public string Id { get; set; }
+    public string Id { get; set; }= Guid.NewGuid().ToString();
     /// <summary>
     /// 创建时间
     /// </summary>

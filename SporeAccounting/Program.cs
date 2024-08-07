@@ -8,6 +8,8 @@ using Microsoft.OpenApi.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using SporeAccounting.BaseModels;
+using SporeAccounting.Server;
+using SporeAccounting.Server.Interface;
 
 namespace SporeAccounting
 {
@@ -90,6 +92,8 @@ namespace SporeAccounting
                     return new BadRequestObjectResult(result);
                 };
             });
+            builder.Services.AddDbContext<SporeAccountingDBContext>(ServiceLifetime.Scoped);
+            builder.Services.AddScoped(typeof(ISysUserServer), typeof(SysUserImp));
 
             var app = builder.Build();
 

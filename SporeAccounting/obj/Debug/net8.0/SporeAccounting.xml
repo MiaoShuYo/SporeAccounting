@@ -154,6 +154,47 @@
             手机号
             </summary>
         </member>
+        <member name="P:SporeAccounting.Models.ViewModels.SysUserViewModel.UserName">
+            <summary>
+            用户名
+            </summary>
+        </member>
+        <member name="P:SporeAccounting.Models.ViewModels.SysUserViewModel.Password">
+            <summary>
+            密码
+            </summary>
+        </member>
+        <member name="P:SporeAccounting.Models.ViewModels.SysUserViewModel.Email">
+            <summary>
+            邮箱
+            </summary>
+        </member>
+        <member name="P:SporeAccounting.Models.ViewModels.SysUserViewModel.PhoneNumber">
+            <summary>
+            手机号
+            </summary>
+        </member>
+        <member name="T:SporeAccounting.Server.Interface.ISysUserServer">
+            <summary>
+            用户接口
+            </summary>
+        </member>
+        <member name="M:SporeAccounting.Server.Interface.ISysUserServer.Add(SporeAccounting.Models.SysUser)">
+            <summary>
+            新增用户
+            </summary>
+        </member>
+        <member name="T:SporeAccounting.Server.SysUserImp">
+            <summary>
+            用户实现类
+            </summary>
+        </member>
+        <member name="M:SporeAccounting.Server.SysUserImp.Add(SporeAccounting.Models.SysUser)">
+            <summary>
+            新增用户
+            </summary>
+            <param name="sysUser">用户实体</param>
+        </member>
         <member name="T:SporeAccounting.SporeAccountingDBContext">
             <summary>
             数据库连接上下文
