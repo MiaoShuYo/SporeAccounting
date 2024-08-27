@@ -86,6 +86,41 @@ namespace SporeAccounting.Controllers
                 return Ok(new ResponseData<bool>(HttpStatusCode.InternalServerError, "服务端异常", false));
             }
         }
+        
+        /// <summary>
+        /// 找回密码
+        /// </summary>
+        /// <param name="userName"></param>
+        /// <param name="password"></param>
+        /// <returns></returns>
+        [HttpGet]
+        [Route("RetrievePassword/{userName}/{email}")]
+        public ActionResult<ResponseData<string>> RetrievePassword([FromRoute] string userName, [FromRoute] string email)
+        {
+            try
+            {
+                //验证用户是否存在
+                SysUser sysUser = _sysUserServer.Get(userName);
+                if (sysUser == null)
+                {
+                    return Ok(new ResponseData<bool>(HttpStatusCode.BadRequest, "用户不存在！", false));
+                }
+                if (sysUser.Email != email)
+                {
+                    return Ok(new ResponseData<bool>(HttpStatusCode.BadRequest, "邮箱不正确！", false));
+                }
+                //生成12位随机密码
+                string newPassword = GenerateRandomPassword(12);
+                sysUser.Password= HashPasswordWithSalt(newPassword,sysUser.Salt);
+                _sysUserServer.Update(sysUser);
+
+                return Ok(new ResponseData<string>(HttpStatusCode.OK, data: newPassword));
+            }
+            catch (Exception ex)
+            {
+                return Ok(new ResponseData<bool>(HttpStatusCode.InternalServerError, "服务端异常", false));
+            }
+        }
 
         private static string HashPasswordWithSalt(string password, string salt)
         {
@@ -133,6 +168,27 @@ namespace SporeAccounting.Controllers
                 rng.GetBytes(randomNumber);
                 return Convert.ToBase64String(randomNumber);
             }
+        }
+        /// <summary>
+        /// 随机密码生成
+        /// </summary>
+        /// <param name="length"></param>
+        /// <returns></returns>
+        private string GenerateRandomPassword(int length)
+        {
+            const string validChars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890!@#$%^&*()";
+            StringBuilder password = new StringBuilder();
+            using (RNGCryptoServiceProvider rng = new RNGCryptoServiceProvider())
+            {
+                byte[] buffer = new byte[sizeof(uint)];
+                while (password.Length < length)
+                {
+                    rng.GetBytes(buffer);
+                    uint num = BitConverter.ToUInt32(buffer, 0);
+                    password.Append(validChars[(int)(num % (uint)validChars.Length)]);
+                }
+            }
+            return password.ToString();
         }
 
 

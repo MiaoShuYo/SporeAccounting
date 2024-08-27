@@ -46,4 +46,21 @@ public class SysUserImp : ISysUserServer
             throw ex;
         }
     }
+
+    /// <summary>
+    /// 修改用户
+    /// </summary>
+    /// <param name="sysUser"></param>
+    public void Update(SysUser sysUser)
+    {
+        try
+        {
+            _dbContext.SysUsers.Update(sysUser);
+            _dbContext.SaveChanges();
+        }
+        catch (Exception ex)
+        {
+            throw ex;
+        }
+    }
 }

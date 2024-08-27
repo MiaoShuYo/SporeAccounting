@@ -119,6 +119,22 @@
             <param name="sysUserViewModel"></param>
             <returns></returns>
         </member>
+        <member name="M:SporeAccounting.Controllers.SysUserController.Login(System.String,System.String)">
+            <summary>
+            登录
+            </summary>
+            <param name="userName"></param>
+            <param name="password"></param>
+            <returns></returns>
+        </member>
+        <member name="M:SporeAccounting.Controllers.SysUserController.RetrievePassword(System.String,System.String)">
+            <summary>
+            找回密码
+            </summary>
+            <param name="userName"></param>
+            <param name="password"></param>
+            <returns></returns>
+        </member>
         <member name="M:SporeAccounting.Controllers.SysUserController.GenerateToken(System.String)">
             <summary>
             生成Token
@@ -131,6 +147,13 @@
             生成刷新Token
             </summary>
             <param name="token"></param>
+            <returns></returns>
+        </member>
+        <member name="M:SporeAccounting.Controllers.SysUserController.GenerateRandomPassword(System.Int32)">
+            <summary>
+            随机密码生成
+            </summary>
+            <param name="length"></param>
             <returns></returns>
         </member>
         <member name="T:SporeAccounting.Migrations.InitSysUser">
@@ -238,6 +261,12 @@
             </summary>
             <param name="sysUser"></param>
         </member>
+        <member name="M:SporeAccounting.Server.Interface.ISysUserServer.Update(SporeAccounting.Models.SysUser)">
+            <summary>
+            修改用户
+            </summary>
+            <param name="sysUser"></param>
+        </member>
         <member name="T:SporeAccounting.Server.SysUserImp">
             <summary>
             用户实现类
@@ -255,6 +284,12 @@
             </summary>
             <param name="userName"></param>
             <returns></returns>
+        </member>
+        <member name="M:SporeAccounting.Server.SysUserImp.Update(SporeAccounting.Models.SysUser)">
+            <summary>
+            修改用户
+            </summary>
+            <param name="sysUser"></param>
         </member>
         <member name="T:SporeAccounting.SporeAccountingDBContext">
             <summary>

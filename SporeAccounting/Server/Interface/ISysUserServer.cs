@@ -16,4 +16,9 @@ public interface ISysUserServer
     /// </summary>
     /// <param name="sysUser"></param>
     SysUser Get(string userName);
+    /// <summary>
+    /// 修改用户
+    /// </summary>
+    /// <param name="sysUser"></param>
+    void Update(SysUser sysUser);
 }
