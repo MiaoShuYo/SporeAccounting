@@ -30,25 +30,23 @@ public class BaseModel
     /// <summary>
     /// 修改时间
     /// </summary>
-    [Required]
     [Column(TypeName = "datetime")]
-    public DateTime UpdateDateTime { get; set; } = DateTime.Now;
+    public DateTime? UpdateDateTime { get; set; }
     /// <summary>
     /// 修改用户
     /// </summary>
-    [Required]
     [Column(TypeName = "nvarchar(36)")]
-    public string UpdateUserId { get; set; }
+    public string? UpdateUserId { get; set; }
     /// <summary>
     /// 删除时间
     /// </summary>
     [Column(TypeName = "datetime")]
-    public DateTime DeleteDateTime { get; set; } = DateTime.Now;
+    public DateTime? DeleteDateTime { get; set; }
     /// <summary>
     /// 删除用户
     /// </summary>
     [Column(TypeName = "nvarchar(36)")]
-    public string DeleteUserId { get; set; }
+    public string? DeleteUserId { get; set; }
     /// <summary>
     /// 是否删除（物理删除）
     /// </summary>

@@ -13,7 +13,7 @@ public class ResponseData<T>
     /// <param name="statusCode">http 状态码</param>
     /// <param name="errorMessage">错误信息</param>
     /// <param name="data">返回数据</param>
-    public ResponseData(HttpStatusCode statusCode, string errorMessage, T data)
+    public ResponseData(HttpStatusCode statusCode, string errorMessage="", T data=default(T))
     {
         StatusCode = statusCode;
         ErrorMessage = errorMessage;

@@ -29,4 +29,21 @@ public class SysUserImp : ISysUserServer
             throw ex;
         }
     }
+    /// <summary>
+    /// 根据用户名获取用户
+    /// </summary>
+    /// <param name="userName"></param>
+    /// <returns></returns>
+    public SysUser Get(string userName)
+    {
+        try
+        {
+           SysUser sysUser= _dbContext.SysUsers.FirstOrDefault(p=>p.UserName==userName);
+           return sysUser;
+        }
+        catch (Exception ex)
+        {
+            throw ex;
+        }
+    }
 }

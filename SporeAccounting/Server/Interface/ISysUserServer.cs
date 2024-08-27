@@ -11,4 +11,9 @@ public interface ISysUserServer
     /// 新增用户
     /// </summary>
     void Add(SysUser sysUser);
+    /// <summary>
+    /// 根据用户名获取用户
+    /// </summary>
+    /// <param name="sysUser"></param>
+    SysUser Get(string userName);
 }

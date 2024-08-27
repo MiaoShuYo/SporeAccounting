@@ -9,11 +9,11 @@
       "SporeAccounting/1.0.0": {
         "dependencies": {
           "AutoMapper": "13.0.1",
-          "Microsoft.AspNetCore.Authentication.JwtBearer": "8.0.7",
-          "Microsoft.EntityFrameworkCore": "8.0.7",
-          "Microsoft.EntityFrameworkCore.Tools": "8.0.7",
+          "Microsoft.AspNetCore.Authentication.JwtBearer": "8.0.8",
+          "Microsoft.EntityFrameworkCore": "8.0.8",
+          "Microsoft.EntityFrameworkCore.Tools": "8.0.8",
           "Pomelo.EntityFrameworkCore.MySql": "8.0.2",
-          "Swashbuckle.AspNetCore": "6.4.0"
+          "Swashbuckle.AspNetCore": "6.7.3"
         },
         "runtime": {
           "SporeAccounting.dll": {}
@@ -38,14 +38,14 @@
           }
         }
       },
-      "Microsoft.AspNetCore.Authentication.JwtBearer/8.0.7": {
+      "Microsoft.AspNetCore.Authentication.JwtBearer/8.0.8": {
         "dependencies": {
           "Microsoft.IdentityModel.Protocols.OpenIdConnect": "7.1.2"
         },
         "runtime": {
           "lib/net8.0/Microsoft.AspNetCore.Authentication.JwtBearer.dll": {
-            "assemblyVersion": "8.0.7.0",
-            "fileVersion": "8.0.724.31402"
+            "assemblyVersion": "8.0.8.0",
+            "fileVersion": "8.0.824.36908"
           }
         }
       },
@@ -278,59 +278,59 @@
           }
         }
       },
-      "Microsoft.EntityFrameworkCore/8.0.7": {
+      "Microsoft.EntityFrameworkCore/8.0.8": {
         "dependencies": {
-          "Microsoft.EntityFrameworkCore.Abstractions": "8.0.7",
-          "Microsoft.EntityFrameworkCore.Analyzers": "8.0.7",
+          "Microsoft.EntityFrameworkCore.Abstractions": "8.0.8",
+          "Microsoft.EntityFrameworkCore.Analyzers": "8.0.8",
           "Microsoft.Extensions.Caching.Memory": "8.0.0",
           "Microsoft.Extensions.Logging": "8.0.0"
         },
         "runtime": {
           "lib/net8.0/Microsoft.EntityFrameworkCore.dll": {
-            "assemblyVersion": "8.0.7.0",
-            "fileVersion": "8.0.724.31404"
+            "assemblyVersion": "8.0.8.0",
+            "fileVersion": "8.0.824.36704"
           }
         }
       },
-      "Microsoft.EntityFrameworkCore.Abstractions/8.0.7": {
+      "Microsoft.EntityFrameworkCore.Abstractions/8.0.8": {
         "runtime": {
           "lib/net8.0/Microsoft.EntityFrameworkCore.Abstractions.dll": {
-            "assemblyVersion": "8.0.7.0",
-            "fileVersion": "8.0.724.31404"
+            "assemblyVersion": "8.0.8.0",
+            "fileVersion": "8.0.824.36704"
           }
         }
       },
-      "Microsoft.EntityFrameworkCore.Analyzers/8.0.7": {},
-      "Microsoft.EntityFrameworkCore.Design/8.0.7": {
+      "Microsoft.EntityFrameworkCore.Analyzers/8.0.8": {},
+      "Microsoft.EntityFrameworkCore.Design/8.0.8": {
         "dependencies": {
           "Humanizer.Core": "2.14.1",
           "Microsoft.CodeAnalysis.CSharp.Workspaces": "4.5.0",
-          "Microsoft.EntityFrameworkCore.Relational": "8.0.7",
+          "Microsoft.EntityFrameworkCore.Relational": "8.0.8",
           "Microsoft.Extensions.DependencyModel": "8.0.1",
           "Mono.TextTemplating": "2.2.1"
         },
         "runtime": {
           "lib/net8.0/Microsoft.EntityFrameworkCore.Design.dll": {
-            "assemblyVersion": "8.0.7.0",
-            "fileVersion": "8.0.724.31404"
+            "assemblyVersion": "8.0.8.0",
+            "fileVersion": "8.0.824.36704"
           }
         }
       },
-      "Microsoft.EntityFrameworkCore.Relational/8.0.7": {
+      "Microsoft.EntityFrameworkCore.Relational/8.0.8": {
         "dependencies": {
-          "Microsoft.EntityFrameworkCore": "8.0.7",
+          "Microsoft.EntityFrameworkCore": "8.0.8",
           "Microsoft.Extensions.Configuration.Abstractions": "8.0.0"
         },
         "runtime": {
           "lib/net8.0/Microsoft.EntityFrameworkCore.Relational.dll": {
-            "assemblyVersion": "8.0.7.0",
-            "fileVersion": "8.0.724.31404"
+            "assemblyVersion": "8.0.8.0",
+            "fileVersion": "8.0.824.36704"
           }
         }
       },
-      "Microsoft.EntityFrameworkCore.Tools/8.0.7": {
+      "Microsoft.EntityFrameworkCore.Tools/8.0.8": {
         "dependencies": {
-          "Microsoft.EntityFrameworkCore.Design": "8.0.7"
+          "Microsoft.EntityFrameworkCore.Design": "8.0.8"
         }
       },
       "Microsoft.Extensions.ApiDescription.Server/6.0.5": {},
@@ -455,11 +455,11 @@
           }
         }
       },
-      "Microsoft.OpenApi/1.2.3": {
+      "Microsoft.OpenApi/1.6.14": {
         "runtime": {
           "lib/netstandard2.0/Microsoft.OpenApi.dll": {
-            "assemblyVersion": "1.2.3.0",
-            "fileVersion": "1.2.3.0"
+            "assemblyVersion": "1.6.14.0",
+            "fileVersion": "1.6.14.0"
           }
         }
       },
@@ -487,7 +487,7 @@
       },
       "Pomelo.EntityFrameworkCore.MySql/8.0.2": {
         "dependencies": {
-          "Microsoft.EntityFrameworkCore.Relational": "8.0.7",
+          "Microsoft.EntityFrameworkCore.Relational": "8.0.8",
           "MySqlConnector": "2.3.5"
         },
         "runtime": {
@@ -497,41 +497,41 @@
           }
         }
       },
-      "Swashbuckle.AspNetCore/6.4.0": {
+      "Swashbuckle.AspNetCore/6.7.3": {
         "dependencies": {
           "Microsoft.Extensions.ApiDescription.Server": "6.0.5",
-          "Swashbuckle.AspNetCore.Swagger": "6.4.0",
-          "Swashbuckle.AspNetCore.SwaggerGen": "6.4.0",
-          "Swashbuckle.AspNetCore.SwaggerUI": "6.4.0"
+          "Swashbuckle.AspNetCore.Swagger": "6.7.3",
+          "Swashbuckle.AspNetCore.SwaggerGen": "6.7.3",
+          "Swashbuckle.AspNetCore.SwaggerUI": "6.7.3"
         }
       },
-      "Swashbuckle.AspNetCore.Swagger/6.4.0": {
+      "Swashbuckle.AspNetCore.Swagger/6.7.3": {
         "dependencies": {
-          "Microsoft.OpenApi": "1.2.3"
+          "Microsoft.OpenApi": "1.6.14"
         },
         "runtime": {
-          "lib/net6.0/Swashbuckle.AspNetCore.Swagger.dll": {
-            "assemblyVersion": "6.4.0.0",
-            "fileVersion": "6.4.0.0"
+          "lib/net8.0/Swashbuckle.AspNetCore.Swagger.dll": {
+            "assemblyVersion": "6.7.3.0",
+            "fileVersion": "6.7.3.685"
           }
         }
       },
-      "Swashbuckle.AspNetCore.SwaggerGen/6.4.0": {
+      "Swashbuckle.AspNetCore.SwaggerGen/6.7.3": {
         "dependencies": {
-          "Swashbuckle.AspNetCore.Swagger": "6.4.0"
+          "Swashbuckle.AspNetCore.Swagger": "6.7.3"
         },
         "runtime": {
-          "lib/net6.0/Swashbuckle.AspNetCore.SwaggerGen.dll": {
-            "assemblyVersion": "6.4.0.0",
-            "fileVersion": "6.4.0.0"
+          "lib/net8.0/Swashbuckle.AspNetCore.SwaggerGen.dll": {
+            "assemblyVersion": "6.7.3.0",
+            "fileVersion": "6.7.3.685"
           }
         }
       },
-      "Swashbuckle.AspNetCore.SwaggerUI/6.4.0": {
+      "Swashbuckle.AspNetCore.SwaggerUI/6.7.3": {
         "runtime": {
-          "lib/net6.0/Swashbuckle.AspNetCore.SwaggerUI.dll": {
-            "assemblyVersion": "6.4.0.0",
-            "fileVersion": "6.4.0.0"
+          "lib/net8.0/Swashbuckle.AspNetCore.SwaggerUI.dll": {
+            "assemblyVersion": "6.7.3.0",
+            "fileVersion": "6.7.3.685"
           }
         }
       },
@@ -661,12 +661,12 @@
       "path": "humanizer.core/2.14.1",
       "hashPath": "humanizer.core.2.14.1.nupkg.sha512"
     },
-    "Microsoft.AspNetCore.Authentication.JwtBearer/8.0.7": {
+    "Microsoft.AspNetCore.Authentication.JwtBearer/8.0.8": {
       "type": "package",
       "serviceable": true,
-      "sha512": "sha512-HXcmJizLBx9mP2XtHZZgvi3GZCrGg98PMQ9AozrF1/RqSffp9CqCiTdrz7TaFLqOUph/S4hqx/IJD18Al+zE+w==",
-      "path": "microsoft.aspnetcore.authentication.jwtbearer/8.0.7",
-      "hashPath": "microsoft.aspnetcore.authentication.jwtbearer.8.0.7.nupkg.sha512"
+      "sha512": "sha512-J145j2LgD4kkkNkrf5DW/pKzithZRKN5EFY+KAO3SqweMyDfv4cgKgtOIsv2bhrOLGqPJixuZkZte7LfK1seYQ==",
+      "path": "microsoft.aspnetcore.authentication.jwtbearer/8.0.8",
+      "hashPath": "microsoft.aspnetcore.authentication.jwtbearer.8.0.8.nupkg.sha512"
     },
     "Microsoft.Bcl.AsyncInterfaces/6.0.0": {
       "type": "package",
@@ -710,47 +710,47 @@
       "path": "microsoft.codeanalysis.workspaces.common/4.5.0",
       "hashPath": "microsoft.codeanalysis.workspaces.common.4.5.0.nupkg.sha512"
     },
-    "Microsoft.EntityFrameworkCore/8.0.7": {
+    "Microsoft.EntityFrameworkCore/8.0.8": {
       "type": "package",
       "serviceable": true,
-      "sha512": "sha512-UOyPNAgyzw/E4hUCurqvZxi0WWVLQAGZuntFPzkTXtvJLTqRjKvokvhv+XazAUSODLsU1DZ67GjZ4mT9d82+0g==",
-      "path": "microsoft.entityframeworkcore/8.0.7",
-      "hashPath": "microsoft.entityframeworkcore.8.0.7.nupkg.sha512"
+      "sha512": "sha512-iK+jrJzkfbIxutB7or808BPmJtjUEi5O+eSM7cLDwsyde6+3iOujCSfWnrHrLxY3u+EQrJD+aD8DJ6ogPA2Rtw==",
+      "path": "microsoft.entityframeworkcore/8.0.8",
+      "hashPath": "microsoft.entityframeworkcore.8.0.8.nupkg.sha512"
     },
-    "Microsoft.EntityFrameworkCore.Abstractions/8.0.7": {
+    "Microsoft.EntityFrameworkCore.Abstractions/8.0.8": {
       "type": "package",
       "serviceable": true,
-      "sha512": "sha512-DHX6nxcg4/tpWfTjAleKrXveDiNFY/OGOK6nm27GipUXNI2Uofev9cH5SYXmtGIgHWxlvfn754TXN4WnrixOwg==",
-      "path": "microsoft.entityframeworkcore.abstractions/8.0.7",
-      "hashPath": "microsoft.entityframeworkcore.abstractions.8.0.7.nupkg.sha512"
+      "sha512": "sha512-9mMQkZsfL1c2iifBD8MWRmwy59rvsVtR9NOezJj7+g1j4P7g49MJHd8k8faC/v7d5KuHkQ6KOQiSItvoRt9PXA==",
+      "path": "microsoft.entityframeworkcore.abstractions/8.0.8",
+      "hashPath": "microsoft.entityframeworkcore.abstractions.8.0.8.nupkg.sha512"
     },
-    "Microsoft.EntityFrameworkCore.Analyzers/8.0.7": {
+    "Microsoft.EntityFrameworkCore.Analyzers/8.0.8": {
       "type": "package",
       "serviceable": true,
-      "sha512": "sha512-nerD0vEOYJVhVapamRVH9DrUYbDNMJ5bPfWze4SibDDaDaekzgwQqBht97/tV+8pgdKoPAXmtiJsB+lDajwVrQ==",
-      "path": "microsoft.entityframeworkcore.analyzers/8.0.7",
-      "hashPath": "microsoft.entityframeworkcore.analyzers.8.0.7.nupkg.sha512"
+      "sha512": "sha512-OlAXMU+VQgLz5y5/SBkLvAa9VeiR3dlJqgIebEEH2M2NGA3evm68/Tv7SLWmSxwnEAtA3nmDEZF2pacK6eXh4Q==",
+      "path": "microsoft.entityframeworkcore.analyzers/8.0.8",
+      "hashPath": "microsoft.entityframeworkcore.analyzers.8.0.8.nupkg.sha512"
     },
-    "Microsoft.EntityFrameworkCore.Design/8.0.7": {
+    "Microsoft.EntityFrameworkCore.Design/8.0.8": {
       "type": "package",
       "serviceable": true,
-      "sha512": "sha512-EUPY49Hi5BbpnkiX9ik/2fD9GPEbvKx6wvDmDNZTHZGlXAg1kcR9vt2QA2af1mIoa7gG1wqEvyQRWf9/A8gWqQ==",
-      "path": "microsoft.entityframeworkcore.design/8.0.7",
-      "hashPath": "microsoft.entityframeworkcore.design.8.0.7.nupkg.sha512"
+      "sha512": "sha512-MmQAMHdjZR8Iyn/FVQrh9weJQTn0HqtKa3vELS9ffQJat/qXgnTam9M9jqvePphjkYp5Scee+Hy+EJR4nmWmOA==",
+      "path": "microsoft.entityframeworkcore.design/8.0.8",
+      "hashPath": "microsoft.entityframeworkcore.design.8.0.8.nupkg.sha512"
     },
-    "Microsoft.EntityFrameworkCore.Relational/8.0.7": {
+    "Microsoft.EntityFrameworkCore.Relational/8.0.8": {
       "type": "package",
       "serviceable": true,
-      "sha512": "sha512-Hn86yScnW+VXb+A2LGrVGkGmjsQ9KLWR0T8GQBEcESWk8u9JYhBiRtdxz76Aq0ir82Ei48sLEZTN4VE0sJ3yIg==",
-      "path": "microsoft.entityframeworkcore.relational/8.0.7",
-      "hashPath": "microsoft.entityframeworkcore.relational.8.0.7.nupkg.sha512"
+      "sha512": "sha512-3WnrwdXxKg4L98cDx0lNEEau8U2lsfuBJCs0Yzht+5XVTmahboM7MukKfQHAzVsHUPszm6ci929S7Qas0WfVHA==",
+      "path": "microsoft.entityframeworkcore.relational/8.0.8",
+      "hashPath": "microsoft.entityframeworkcore.relational.8.0.8.nupkg.sha512"
     },
-    "Microsoft.EntityFrameworkCore.Tools/8.0.7": {
+    "Microsoft.EntityFrameworkCore.Tools/8.0.8": {
       "type": "package",
       "serviceable": true,
-      "sha512": "sha512-i85BNsjYGjAkvvga9uALKREHq/hsp/y7QOGuliczDSnUN6YIQXgx989XBg8iSkb5tZJqU/NLev1mU4XmirAvOw==",
-      "path": "microsoft.entityframeworkcore.tools/8.0.7",
-      "hashPath": "microsoft.entityframeworkcore.tools.8.0.7.nupkg.sha512"
+      "sha512": "sha512-wjDNbLJk86QpZt2JxJuNVzpBKIbEQsgcJYHGeIFTBuK6NEgvJvyxgneg059HfSJmTVdInZ61lTO4sJGCfFr7+w==",
+      "path": "microsoft.entityframeworkcore.tools/8.0.8",
+      "hashPath": "microsoft.entityframeworkcore.tools.8.0.8.nupkg.sha512"
     },
     "Microsoft.Extensions.ApiDescription.Server/6.0.5": {
       "type": "package",
@@ -871,12 +871,12 @@
       "path": "microsoft.identitymodel.tokens/7.1.2",
       "hashPath": "microsoft.identitymodel.tokens.7.1.2.nupkg.sha512"
     },
-    "Microsoft.OpenApi/1.2.3": {
+    "Microsoft.OpenApi/1.6.14": {
       "type": "package",
       "serviceable": true,
-      "sha512": "sha512-Nug3rO+7Kl5/SBAadzSMAVgqDlfGjJZ0GenQrLywJ84XGKO0uRqkunz5Wyl0SDwcR71bAATXvSdbdzPrYRYKGw==",
-      "path": "microsoft.openapi/1.2.3",
-      "hashPath": "microsoft.openapi.1.2.3.nupkg.sha512"
+      "sha512": "sha512-tTaBT8qjk3xINfESyOPE2rIellPvB7qpVqiWiyA/lACVvz+xOGiXhFUfohcx82NLbi5avzLW0lx+s6oAqQijfw==",
+      "path": "microsoft.openapi/1.6.14",
+      "hashPath": "microsoft.openapi.1.6.14.nupkg.sha512"
     },
     "Mono.TextTemplating/2.2.1": {
       "type": "package",
@@ -899,33 +899,33 @@
       "path": "pomelo.entityframeworkcore.mysql/8.0.2",
       "hashPath": "pomelo.entityframeworkcore.mysql.8.0.2.nupkg.sha512"
     },
-    "Swashbuckle.AspNetCore/6.4.0": {
+    "Swashbuckle.AspNetCore/6.7.3": {
       "type": "package",
       "serviceable": true,
-      "sha512": "sha512-eUBr4TW0up6oKDA5Xwkul289uqSMgY0xGN4pnbOIBqCcN9VKGGaPvHX3vWaG/hvocfGDP+MGzMA0bBBKz2fkmQ==",
-      "path": "swashbuckle.aspnetcore/6.4.0",
-      "hashPath": "swashbuckle.aspnetcore.6.4.0.nupkg.sha512"
+      "sha512": "sha512-PYTm/M5YrkEUHmguhj6vF1DshG2deKMMcsnhKet1BkcKzZHNX/VVQady0T/jNpXrtxhLR3vB10hWhONF1Nbglw==",
+      "path": "swashbuckle.aspnetcore/6.7.3",
+      "hashPath": "swashbuckle.aspnetcore.6.7.3.nupkg.sha512"
     },
-    "Swashbuckle.AspNetCore.Swagger/6.4.0": {
+    "Swashbuckle.AspNetCore.Swagger/6.7.3": {
       "type": "package",
       "serviceable": true,
-      "sha512": "sha512-nl4SBgGM+cmthUcpwO/w1lUjevdDHAqRvfUoe4Xp/Uvuzt9mzGUwyFCqa3ODBAcZYBiFoKvrYwz0rabslJvSmQ==",
-      "path": "swashbuckle.aspnetcore.swagger/6.4.0",
-      "hashPath": "swashbuckle.aspnetcore.swagger.6.4.0.nupkg.sha512"
+      "sha512": "sha512-plNVrOpup/UCIP0aSE5cznIzXMC17EOOqIceWqhP829evEAUwTomCc+1TPy2xK2E+OilYcYEdUus3rOUMjjm/g==",
+      "path": "swashbuckle.aspnetcore.swagger/6.7.3",
+      "hashPath": "swashbuckle.aspnetcore.swagger.6.7.3.nupkg.sha512"
     },
-    "Swashbuckle.AspNetCore.SwaggerGen/6.4.0": {
+    "Swashbuckle.AspNetCore.SwaggerGen/6.7.3": {
       "type": "package",
       "serviceable": true,
-      "sha512": "sha512-lXhcUBVqKrPFAQF7e/ZeDfb5PMgE8n5t6L5B6/BQSpiwxgHzmBcx8Msu42zLYFTvR5PIqE9Q9lZvSQAcwCxJjw==",
-      "path": "swashbuckle.aspnetcore.swaggergen/6.4.0",
-      "hashPath": "swashbuckle.aspnetcore.swaggergen.6.4.0.nupkg.sha512"
+      "sha512": "sha512-kvjGd+g85YFZqyEQZSBUCPtEDDCZsiPPYcjgBN6si3C3oik2c9d7Zlq4PIm07pgY/QmBMgyFOVEzHbks6a398w==",
+      "path": "swashbuckle.aspnetcore.swaggergen/6.7.3",
+      "hashPath": "swashbuckle.aspnetcore.swaggergen.6.7.3.nupkg.sha512"
     },
-    "Swashbuckle.AspNetCore.SwaggerUI/6.4.0": {
+    "Swashbuckle.AspNetCore.SwaggerUI/6.7.3": {
       "type": "package",
       "serviceable": true,
-      "sha512": "sha512-1Hh3atb3pi8c+v7n4/3N80Jj8RvLOXgWxzix6w3OZhB7zBGRwsy7FWr4e3hwgPweSBpwfElqj4V4nkjYabH9nQ==",
-      "path": "swashbuckle.aspnetcore.swaggerui/6.4.0",
-      "hashPath": "swashbuckle.aspnetcore.swaggerui.6.4.0.nupkg.sha512"
+      "sha512": "sha512-exXUT9h++OU70jTCfQALiHzeBthqL7c5IFQm+aa67Hi/6X945t32NtOMO16TaRn44xFXdqMZ2CyMbgnTmx+w2A==",
+      "path": "swashbuckle.aspnetcore.swaggerui/6.7.3",
+      "hashPath": "swashbuckle.aspnetcore.swaggerui.6.7.3.nupkg.sha512"
     },
     "System.CodeDom/4.4.0": {
       "type": "package",

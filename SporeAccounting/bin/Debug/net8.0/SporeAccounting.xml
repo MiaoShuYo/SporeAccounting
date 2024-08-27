@@ -112,6 +112,27 @@
             返回的数据集合
             </summary>
         </member>
+        <member name="M:SporeAccounting.Controllers.SysUserController.Register(SporeAccounting.Models.ViewModels.SysUserViewModel)">
+            <summary>
+            注册
+            </summary>
+            <param name="sysUserViewModel"></param>
+            <returns></returns>
+        </member>
+        <member name="M:SporeAccounting.Controllers.SysUserController.GenerateToken(System.String)">
+            <summary>
+            生成Token
+            </summary>
+            <param name="userId"></param>
+            <returns></returns>
+        </member>
+        <member name="M:SporeAccounting.Controllers.SysUserController.GenerateRefreshToken">
+            <summary>
+            生成刷新Token
+            </summary>
+            <param name="token"></param>
+            <returns></returns>
+        </member>
         <member name="T:SporeAccounting.Migrations.InitSysUser">
             <inheritdoc />
         </member>
@@ -122,6 +143,18 @@
             <inheritdoc />
         </member>
         <member name="M:SporeAccounting.Migrations.InitSysUser.BuildTargetModel(Microsoft.EntityFrameworkCore.ModelBuilder)">
+            <inheritdoc />
+        </member>
+        <member name="T:SporeAccounting.Migrations.UpdateColumnIsNull">
+            <inheritdoc />
+        </member>
+        <member name="M:SporeAccounting.Migrations.UpdateColumnIsNull.Up(Microsoft.EntityFrameworkCore.Migrations.MigrationBuilder)">
+            <inheritdoc />
+        </member>
+        <member name="M:SporeAccounting.Migrations.UpdateColumnIsNull.Down(Microsoft.EntityFrameworkCore.Migrations.MigrationBuilder)">
+            <inheritdoc />
+        </member>
+        <member name="M:SporeAccounting.Migrations.UpdateColumnIsNull.BuildTargetModel(Microsoft.EntityFrameworkCore.ModelBuilder)">
             <inheritdoc />
         </member>
         <member name="T:SporeAccounting.Models.SysUser">
@@ -154,6 +187,21 @@
             手机号
             </summary>
         </member>
+        <member name="T:SporeAccounting.Models.ViewModels.ResponseTokenViewModel">
+            <summary>
+            token
+            </summary>
+        </member>
+        <member name="P:SporeAccounting.Models.ViewModels.ResponseTokenViewModel.Token">
+            <summary>
+            JWT Token
+            </summary>
+        </member>
+        <member name="P:SporeAccounting.Models.ViewModels.ResponseTokenViewModel.RefresToken">
+            <summary>
+            用于刷新token的RefresToken
+            </summary>
+        </member>
         <member name="P:SporeAccounting.Models.ViewModels.SysUserViewModel.UserName">
             <summary>
             用户名
@@ -184,6 +232,12 @@
             新增用户
             </summary>
         </member>
+        <member name="M:SporeAccounting.Server.Interface.ISysUserServer.Get(System.String)">
+            <summary>
+            根据用户名获取用户
+            </summary>
+            <param name="sysUser"></param>
+        </member>
         <member name="T:SporeAccounting.Server.SysUserImp">
             <summary>
             用户实现类
@@ -194,6 +248,13 @@
             新增用户
             </summary>
             <param name="sysUser">用户实体</param>
+        </member>
+        <member name="M:SporeAccounting.Server.SysUserImp.Get(System.String)">
+            <summary>
+            根据用户名获取用户
+            </summary>
+            <param name="userName"></param>
+            <returns></returns>
         </member>
         <member name="T:SporeAccounting.SporeAccountingDBContext">
             <summary>

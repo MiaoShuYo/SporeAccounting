@@ -1,9 +1,12 @@
-﻿using System.Net;
+﻿using System.IdentityModel.Tokens.Jwt;
+using System.Net;
+using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
 using AutoMapper;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.IdentityModel.Tokens;
 using SporeAccounting.BaseModels;
 using SporeAccounting.Models;
 using SporeAccounting.Models.ViewModels;
@@ -11,19 +14,25 @@ using SporeAccounting.Server.Interface;
 
 namespace SporeAccounting.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("api/[controller]/")]
     [ApiController]
     public class SysUserController : ControllerBase
     {
         private readonly ISysUserServer _sysUserServer;
         private readonly IMapper _mapper;
+        private readonly IConfiguration _config;
 
-        public SysUserController(ISysUserServer sysUserServer, IMapper mapper)
+        public SysUserController(ISysUserServer sysUserServer, IMapper mapper, IConfiguration config)
         {
             _sysUserServer = sysUserServer;
             _mapper = mapper;
+            _config = config;
         }
-
+        /// <summary>
+        /// 注册
+        /// </summary>
+        /// <param name="sysUserViewModel"></param>
+        /// <returns></returns>
         [HttpPost]
         [Route("Register")]
         public ActionResult<ResponseData<bool>> Register(SysUserViewModel sysUserViewModel)
@@ -35,11 +44,46 @@ namespace SporeAccounting.Controllers
                 sysUser.Password = HashPasswordWithSalt(sysUser.Password, sysUser.Salt);
                 sysUser.CreateUserId = sysUser.Id;
                 _sysUserServer.Add(sysUser);
-                return new ResponseData<bool>(HttpStatusCode.OK, "", false);
+                return Ok(new ResponseData<bool>(HttpStatusCode.OK, "", false));
             }
             catch (Exception ex)
             {
-                return new ResponseData<bool>(HttpStatusCode.InternalServerError, "服务端异常", false);
+                return Ok(new ResponseData<bool>(HttpStatusCode.InternalServerError, "服务端异常", false));
+            }
+        }
+        /// <summary>
+        /// 登录
+        /// </summary>
+        /// <param name="userName"></param>
+        /// <param name="password"></param>
+        /// <returns></returns>
+        [HttpGet]
+        [Route("Login/{userName}/{password}")]
+        public ActionResult<ResponseData<ResponseTokenViewModel>> Login([FromRoute] string userName, [FromRoute] string password)
+        {
+            try
+            {
+                //验证用户
+                SysUser sysUser = _sysUserServer.Get(userName);
+                if (sysUser == null)
+                {
+                    return Ok(new ResponseData<bool>(HttpStatusCode.BadRequest, "用户或密码错误！", false));
+                }
+                string passwordHash = HashPasswordWithSalt(password, sysUser.Salt);
+                //验证密码
+                if (sysUser.Password != passwordHash)
+                {
+                    return Ok(new ResponseData<bool>(HttpStatusCode.OK, "用户或密码错误！", false));
+                }
+                //生成Token和刷新Token
+                ResponseTokenViewModel sysToken = new ResponseTokenViewModel();
+                sysToken.Token= GenerateToken(sysUser.Id);
+                sysToken.RefresToken = GenerateRefreshToken();
+                return Ok(new ResponseData<ResponseTokenViewModel>(HttpStatusCode.OK,data: sysToken));
+            }
+            catch (Exception ex)
+            {
+                return Ok(new ResponseData<bool>(HttpStatusCode.InternalServerError, "服务端异常", false));
             }
         }
 
@@ -53,5 +97,44 @@ namespace SporeAccounting.Controllers
                 return Convert.ToBase64String(hashBytes);
             }
         }
+        /// <summary>
+        /// 生成Token
+        /// </summary>
+        /// <param name="userId"></param>
+        /// <returns></returns>
+        private string GenerateToken(string userId)
+        {
+            var claims = new[]
+            {
+                new Claim(JwtRegisteredClaimNames.Sub, userId),
+                new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
+            };
+            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_config["JWT:IssuerSigningKey"]));
+            var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
+            int tokenExpirces =int.Parse(_config["JWT:Expirces"]);
+            var token = new JwtSecurityToken(
+                issuer: _config["JWT:ValidIssuer"],
+                audience: _config["JWT:ValidAudience"],
+                claims: claims,
+                expires: DateTime.Now.AddMinutes(tokenExpirces), // Token 有效期
+                signingCredentials: creds);
+            return new JwtSecurityTokenHandler().WriteToken(token);
+        }
+        /// <summary>
+        /// 生成刷新Token
+        /// </summary>
+        /// <param name="token"></param>
+        /// <returns></returns>
+        private string GenerateRefreshToken()
+        {
+            var randomNumber = new byte[32];
+            using (var rng = RandomNumberGenerator.Create())
+            {
+                rng.GetBytes(randomNumber);
+                return Convert.ToBase64String(randomNumber);
+            }
+        }
+
+
     }
 }
