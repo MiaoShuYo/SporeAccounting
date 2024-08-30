@@ -132,14 +132,22 @@
             找回密码
             </summary>
             <param name="userName"></param>
-            <param name="password"></param>
+            <param name="email"></param>
             <returns></returns>
         </member>
-        <member name="M:SporeAccounting.Controllers.SysUserController.GenerateToken(System.String)">
+        <member name="M:SporeAccounting.Controllers.SysUserController.RefreshToken(System.String)">
+            <summary>
+            刷新token
+            </summary>
+            <param name="refreshToken"></param>
+            <returns></returns>
+        </member>
+        <member name="M:SporeAccounting.Controllers.SysUserController.GenerateToken(System.String,System.String)">
             <summary>
             生成Token
             </summary>
             <param name="userId"></param>
+            <param name="refreshToken"></param>
             <returns></returns>
         </member>
         <member name="M:SporeAccounting.Controllers.SysUserController.GenerateRefreshToken">
@@ -155,6 +163,14 @@
             </summary>
             <param name="length"></param>
             <returns></returns>
+        </member>
+        <member name="M:SporeAccounting.Controllers.SysUserController.GetTokenInfo(System.String)">
+            <summary>
+            获取token中的userid
+            </summary>
+            <param name="token"></param>
+            <returns></returns>
+            <exception cref="T:System.ArgumentException"></exception>
         </member>
         <member name="T:SporeAccounting.Migrations.InitSysUser">
             <inheritdoc />
@@ -220,9 +236,9 @@
             JWT Token
             </summary>
         </member>
-        <member name="P:SporeAccounting.Models.ViewModels.ResponseTokenViewModel.RefresToken">
+        <member name="P:SporeAccounting.Models.ViewModels.ResponseTokenViewModel.RefreshToken">
             <summary>
-            用于刷新token的RefresToken
+            用于刷新token的RefreshToken
             </summary>
         </member>
         <member name="P:SporeAccounting.Models.ViewModels.SysUserViewModel.UserName">
@@ -255,11 +271,18 @@
             新增用户
             </summary>
         </member>
-        <member name="M:SporeAccounting.Server.Interface.ISysUserServer.Get(System.String)">
+        <member name="M:SporeAccounting.Server.Interface.ISysUserServer.GetByUserName(System.String)">
             <summary>
             根据用户名获取用户
             </summary>
-            <param name="sysUser"></param>
+            <param name="userName"></param>
+        </member>
+        <member name="M:SporeAccounting.Server.Interface.ISysUserServer.GetById(System.String)">
+            <summary>
+            根据用户id获取用户
+            </summary>
+            <param name="userId"></param>
+            <returns></returns>
         </member>
         <member name="M:SporeAccounting.Server.Interface.ISysUserServer.Update(SporeAccounting.Models.SysUser)">
             <summary>
@@ -278,11 +301,18 @@
             </summary>
             <param name="sysUser">用户实体</param>
         </member>
-        <member name="M:SporeAccounting.Server.SysUserImp.Get(System.String)">
+        <member name="M:SporeAccounting.Server.SysUserImp.GetByUserName(System.String)">
             <summary>
             根据用户名获取用户
             </summary>
             <param name="userName"></param>
+            <returns></returns>
+        </member>
+        <member name="M:SporeAccounting.Server.SysUserImp.GetById(System.String)">
+            <summary>
+            根据用户Id获取用户
+            </summary>
+            <param name="userId"></param>
             <returns></returns>
         </member>
         <member name="M:SporeAccounting.Server.SysUserImp.Update(SporeAccounting.Models.SysUser)">

@@ -14,8 +14,15 @@ public interface ISysUserServer
     /// <summary>
     /// 根据用户名获取用户
     /// </summary>
-    /// <param name="sysUser"></param>
-    SysUser Get(string userName);
+    /// <param name="userName"></param>
+    SysUser GetByUserName(string userName);
+
+    /// <summary>
+    /// 根据用户id获取用户
+    /// </summary>
+    /// <param name="userId"></param>
+    /// <returns></returns>
+    SysUser GetById(string userId);
     /// <summary>
     /// 修改用户
     /// </summary>

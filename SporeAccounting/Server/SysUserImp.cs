@@ -34,7 +34,7 @@ public class SysUserImp : ISysUserServer
     /// </summary>
     /// <param name="userName"></param>
     /// <returns></returns>
-    public SysUser Get(string userName)
+    public SysUser GetByUserName(string userName)
     {
         try
         {
@@ -46,6 +46,24 @@ public class SysUserImp : ISysUserServer
             throw ex;
         }
     }
+    /// <summary>
+    /// 根据用户Id获取用户
+    /// </summary>
+    /// <param name="userId"></param>
+    /// <returns></returns>
+    public SysUser GetById(string userId)
+    {
+        try
+        {
+            SysUser sysUser = _dbContext.SysUsers.FirstOrDefault(p => p.Id == userId);
+            return sysUser;
+        }
+        catch (Exception ex)
+        {
+            throw ex;
+        }
+    }
+
 
     /// <summary>
     /// 修改用户

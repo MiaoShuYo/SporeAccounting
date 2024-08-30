@@ -11,7 +11,7 @@ public class ResponseTokenViewModel
     public string Token { get; set; }
 
     /// <summary>
-    /// 用于刷新token的RefresToken
+    /// 用于刷新token的RefreshToken
     /// </summary>
-    public string RefresToken { get; set; }
+    public string RefreshToken { get; set; }
 }
