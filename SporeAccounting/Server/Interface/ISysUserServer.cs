@@ -1,4 +1,6 @@
-﻿using SporeAccounting.Models;
+﻿using SporeAccounting.BaseModels.ViewModel.Response;
+using SporeAccounting.Models;
+using SporeAccounting.Models.ViewModels;
 
 namespace SporeAccounting.Server.Interface;
 
@@ -22,10 +24,20 @@ public interface ISysUserServer
     /// </summary>
     /// <param name="userId"></param>
     /// <returns></returns>
-    SysUser GetById(string userId);
+    SysUser? GetById(string userId);
     /// <summary>
     /// 修改用户
     /// </summary>
     /// <param name="sysUser"></param>
     void Update(SysUser sysUser);
+    /// <summary>
+    /// 分页查询用户
+    /// </summary>
+    /// <param name="userPage"></param>
+    (int rowCount, int pageCount, List<SysUser> sysUsers) GetByPage(UserPageViewModel userPage);
+    /// <summary>
+    /// 删除用户
+    /// </summary>
+    /// <param name="userId"></param>
+    void Delete(string userId);
 }

@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
 using SporeAccounting.BaseModels;
+using SporeAccounting.BaseModels.ViewModel.Response;
 using SporeAccounting.Models;
 using SporeAccounting.Models.ViewModels;
 using SporeAccounting.Server.Interface;
@@ -59,7 +60,7 @@ namespace SporeAccounting.Controllers
         /// <returns></returns>
         [HttpGet]
         [Route("Login/{userName}/{password}")]
-        public ActionResult<ResponseData<ResponseTokenViewModel>> Login([FromRoute] string userName, [FromRoute] string password)
+        public ActionResult<ResponseData<TokenViewModel>> Login([FromRoute] string userName, [FromRoute] string password)
         {
             try
             {
@@ -76,10 +77,10 @@ namespace SporeAccounting.Controllers
                     return Ok(new ResponseData<bool>(HttpStatusCode.OK, "用户或密码错误！", false));
                 }
                 //生成Token和刷新Token
-                ResponseTokenViewModel sysToken = new ResponseTokenViewModel();
+                TokenViewModel sysToken = new TokenViewModel();
                 sysToken.RefreshToken = GenerateRefreshToken();
                 sysToken.Token = GenerateToken(sysUser.Id, sysToken.RefreshToken);
-                return Ok(new ResponseData<ResponseTokenViewModel>(HttpStatusCode.OK, data: sysToken));
+                return Ok(new ResponseData<TokenViewModel>(HttpStatusCode.OK, data: sysToken));
             }
             catch (Exception ex)
             {
@@ -155,6 +156,91 @@ namespace SporeAccounting.Controllers
                 return Ok(new ResponseData<bool>(HttpStatusCode.InternalServerError, "服务端异常", false));
             }
         }
+        /// <summary>
+        /// 查询用户
+        /// </summary>
+        /// <param name="userPage"></param>
+        /// <returns></returns>
+        [HttpPost]
+        [Route("Query")]
+        public ActionResult<ResponseData<PageResponseViewModel<SysUserViewModel>>> Query([FromBody] UserPageViewModel userPage)
+        {
+            try
+            {
+                (int rowCount, int pageCount, List<SysUser> sysUsers) = _sysUserServer.GetByPage(userPage);
+                List<SysUserViewModel> sysUsersView = _mapper.Map<List<SysUserViewModel>>(sysUsers);
+                PageResponseViewModel<SysUserViewModel>
+                    pageResponseView = new PageResponseViewModel<SysUserViewModel>();
+                pageResponseView.Data = sysUsersView;
+                pageResponseView.PageCount = pageCount;
+                pageResponseView.RowCount = rowCount;
+                return Ok(new ResponseData<PageResponseViewModel<SysUserViewModel>>(HttpStatusCode.OK, data: pageResponseView));
+
+            }
+            catch (Exception ex)
+            {
+                return Ok(new ResponseData<bool>(HttpStatusCode.InternalServerError, "服务端异常", false));
+            }
+        }
+        /// <summary>
+        /// 删除用户（逻辑删除）
+        /// </summary>
+        /// <param name="userId"></param>
+        /// <returns></returns>
+        [HttpDelete]
+        [Route("Remove/{userId}")]
+        public ActionResult<ResponseData<bool>> Remove([FromRoute] string userId)
+        {
+            try
+            {
+                bool exist = UserExist(userId);
+                if (exist)
+                {
+                    _sysUserServer.Delete(userId);
+                    return Ok(new ResponseData<bool>(HttpStatusCode.OK, data: true));
+                }
+                else
+                {
+                    return Ok(new ResponseData<bool>(HttpStatusCode.NotFound, $"用户 {userId} 不存在", false));
+                }
+            }
+            catch (Exception ex)
+            {
+                return Ok(new ResponseData<bool>(HttpStatusCode.InternalServerError, "服务器异常", false));
+            }
+        }
+        /// <summary>
+        /// 修改用户信息
+        /// </summary>
+        /// <param name="sysUserEditView"></param>
+        /// <returns></returns>
+        [HttpPut]
+        [Route("Edit")]
+        public ActionResult<ResponseData<bool>> Edit([FromBody] SysUserEditViewModel sysUserEditView)
+        {
+            try
+            {
+                bool exist = UserExist(sysUserEditView.Id);
+                if (exist)
+                {
+                    SysUser sysUser = _sysUserServer.GetById(sysUserEditView.Id);
+                    sysUser.Email = sysUserEditView.Email;
+                    sysUser.PhoneNumber = sysUserEditView.PhoneNumber;
+                    sysUser.UserName = sysUserEditView.UserName;
+                    _sysUserServer.Update(sysUser);
+                    return Ok(new ResponseData<bool>(HttpStatusCode.NotFound, data: true));
+                }
+                else
+                {
+                    return Ok(new ResponseData<bool>(HttpStatusCode.NotFound, $"用户 {sysUserEditView.Id} 不存在", false));
+                }
+            }
+            catch (Exception ex)
+            {
+                return Ok(new ResponseData<bool>(HttpStatusCode.InternalServerError, "服务器异常", false));
+            }
+        }
+
         private static string HashPasswordWithSalt(string password, string salt)
         {
             using (var sha256 = SHA256.Create())
@@ -246,6 +332,23 @@ namespace SporeAccounting.Controllers
             var jtiClaim = jwtToken.Claims.FirstOrDefault(claim => claim.Type == "jti");
             var refreshTokenClaim = jwtToken.Claims.FirstOrDefault(claim => claim.Type == "refreshToken");
             return (userIdClaim?.Value, jtiClaim.Value, refreshTokenClaim.Value);
+        }
+        /// <summary>
+        /// //判断用户是否存在
+        /// </summary>
+        /// <returns></returns>
+
+        private bool UserExist(string userId)
+        {
+            try
+            {
+                bool exist = _sysUserServer.GetById(userId) == null;
+                return exist;
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
         }
     }
 }

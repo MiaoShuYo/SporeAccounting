@@ -3,7 +3,7 @@
 /// <summary>
 /// token
 /// </summary>
-public class ResponseTokenViewModel
+public class TokenViewModel
 {
     /// <summary>
     /// JWT Token
