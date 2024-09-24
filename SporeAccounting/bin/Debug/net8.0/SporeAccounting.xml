@@ -112,6 +112,11 @@
             返回的数据集合
             </summary>
         </member>
+        <member name="T:SporeAccounting.Controllers.SysRoleController">
+            <summary>
+            角色接口
+            </summary>
+        </member>
         <member name="M:SporeAccounting.Controllers.SysUserController.Register(SporeAccounting.Models.ViewModels.SysUserViewModel)">
             <summary>
             注册
@@ -140,6 +145,27 @@
             刷新token
             </summary>
             <param name="refreshToken"></param>
+            <returns></returns>
+        </member>
+        <member name="M:SporeAccounting.Controllers.SysUserController.Query(SporeAccounting.Models.ViewModels.UserPageViewModel)">
+            <summary>
+            查询用户
+            </summary>
+            <param name="userPage"></param>
+            <returns></returns>
+        </member>
+        <member name="M:SporeAccounting.Controllers.SysUserController.Remove(System.String)">
+            <summary>
+            删除用户（逻辑删除）
+            </summary>
+            <param name="userId"></param>
+            <returns></returns>
+        </member>
+        <member name="M:SporeAccounting.Controllers.SysUserController.Edit(SporeAccounting.Models.ViewModels.SysUserEditViewModel)">
+            <summary>
+            修改用户信息
+            </summary>
+            <param name="sysUserEditView"></param>
             <returns></returns>
         </member>
         <member name="M:SporeAccounting.Controllers.SysUserController.GenerateToken(System.String,System.String)">
@@ -172,6 +198,12 @@
             <returns></returns>
             <exception cref="T:System.ArgumentException"></exception>
         </member>
+        <member name="M:SporeAccounting.Controllers.SysUserController.UserExist(System.String)">
+            <summary>
+            //判断用户是否存在
+            </summary>
+            <returns></returns>
+        </member>
         <member name="T:SporeAccounting.Migrations.InitSysUser">
             <inheritdoc />
         </member>
@@ -184,17 +216,32 @@
         <member name="M:SporeAccounting.Migrations.InitSysUser.BuildTargetModel(Microsoft.EntityFrameworkCore.ModelBuilder)">
             <inheritdoc />
         </member>
-        <member name="T:SporeAccounting.Migrations.UpdateColumnIsNull">
+        <member name="T:SporeAccounting.Migrations.InitSysRole">
             <inheritdoc />
         </member>
-        <member name="M:SporeAccounting.Migrations.UpdateColumnIsNull.Up(Microsoft.EntityFrameworkCore.Migrations.MigrationBuilder)">
+        <member name="M:SporeAccounting.Migrations.InitSysRole.Up(Microsoft.EntityFrameworkCore.Migrations.MigrationBuilder)">
             <inheritdoc />
         </member>
-        <member name="M:SporeAccounting.Migrations.UpdateColumnIsNull.Down(Microsoft.EntityFrameworkCore.Migrations.MigrationBuilder)">
+        <member name="M:SporeAccounting.Migrations.InitSysRole.Down(Microsoft.EntityFrameworkCore.Migrations.MigrationBuilder)">
             <inheritdoc />
         </member>
-        <member name="M:SporeAccounting.Migrations.UpdateColumnIsNull.BuildTargetModel(Microsoft.EntityFrameworkCore.ModelBuilder)">
+        <member name="M:SporeAccounting.Migrations.InitSysRole.BuildTargetModel(Microsoft.EntityFrameworkCore.ModelBuilder)">
             <inheritdoc />
+        </member>
+        <member name="T:SporeAccounting.Models.SysRole">
+            <summary>
+            角色
+            </summary>
+        </member>
+        <member name="P:SporeAccounting.Models.SysRole.RoleName">
+            <summary>
+            角色名称
+            </summary>
+        </member>
+        <member name="P:SporeAccounting.Models.SysRole.User">
+            <summary>
+            导航属性
+            </summary>
         </member>
         <member name="T:SporeAccounting.Models.SysUser">
             <summary>
@@ -226,19 +273,59 @@
             手机号
             </summary>
         </member>
-        <member name="T:SporeAccounting.Models.ViewModels.ResponseTokenViewModel">
+        <member name="P:SporeAccounting.Models.SysUser.Roles">
             <summary>
-            token
+            导航属性
             </summary>
         </member>
-        <member name="P:SporeAccounting.Models.ViewModels.ResponseTokenViewModel.Token">
+        <member name="P:SporeAccounting.Models.ViewModels.SysUserEditViewModel.Id">
             <summary>
-            JWT Token
+            用户Id
             </summary>
         </member>
-        <member name="P:SporeAccounting.Models.ViewModels.ResponseTokenViewModel.RefreshToken">
+        <member name="P:SporeAccounting.Models.ViewModels.SysUserEditViewModel.UserName">
             <summary>
-            用于刷新token的RefreshToken
+            用户名
+            </summary>
+        </member>
+        <member name="P:SporeAccounting.Models.ViewModels.SysUserEditViewModel.Email">
+            <summary>
+            邮箱
+            </summary>
+        </member>
+        <member name="P:SporeAccounting.Models.ViewModels.SysUserEditViewModel.PhoneNumber">
+            <summary>
+            手机号
+            </summary>
+        </member>
+        <member name="T:SporeAccounting.Models.ViewModels.SysUserQueryViewModel">
+            <summary>
+            用户查询视图类
+            </summary>
+        </member>
+        <member name="P:SporeAccounting.Models.ViewModels.SysUserQueryViewModel.Id">
+            <summary>
+            用户Id
+            </summary>
+        </member>
+        <member name="P:SporeAccounting.Models.ViewModels.SysUserQueryViewModel.UserName">
+            <summary>
+            用户名
+            </summary>
+        </member>
+        <member name="P:SporeAccounting.Models.ViewModels.SysUserQueryViewModel.Email">
+            <summary>
+            邮箱
+            </summary>
+        </member>
+        <member name="P:SporeAccounting.Models.ViewModels.SysUserQueryViewModel.PhoneNumber">
+            <summary>
+            手机号
+            </summary>
+        </member>
+        <member name="P:SporeAccounting.Models.ViewModels.SysUserQueryViewModel.CreateDateTime">
+            <summary>
+            创建时间
             </summary>
         </member>
         <member name="P:SporeAccounting.Models.ViewModels.SysUserViewModel.UserName">
@@ -259,6 +346,26 @@
         <member name="P:SporeAccounting.Models.ViewModels.SysUserViewModel.PhoneNumber">
             <summary>
             手机号
+            </summary>
+        </member>
+        <member name="T:SporeAccounting.Models.ViewModels.TokenViewModel">
+            <summary>
+            token
+            </summary>
+        </member>
+        <member name="P:SporeAccounting.Models.ViewModels.TokenViewModel.Token">
+            <summary>
+            JWT Token
+            </summary>
+        </member>
+        <member name="P:SporeAccounting.Models.ViewModels.TokenViewModel.RefreshToken">
+            <summary>
+            用于刷新token的RefreshToken
+            </summary>
+        </member>
+        <member name="P:SporeAccounting.Models.ViewModels.UserPageViewModel.UserName">
+            <summary>
+            用户名
             </summary>
         </member>
         <member name="T:SporeAccounting.Server.Interface.ISysUserServer">
@@ -289,6 +396,18 @@
             修改用户
             </summary>
             <param name="sysUser"></param>
+        </member>
+        <member name="M:SporeAccounting.Server.Interface.ISysUserServer.GetByPage(SporeAccounting.Models.ViewModels.UserPageViewModel)">
+            <summary>
+            分页查询用户
+            </summary>
+            <param name="userPage"></param>
+        </member>
+        <member name="M:SporeAccounting.Server.Interface.ISysUserServer.Delete(System.String)">
+            <summary>
+            删除用户
+            </summary>
+            <param name="userId"></param>
         </member>
         <member name="T:SporeAccounting.Server.SysUserImp">
             <summary>
@@ -321,9 +440,32 @@
             </summary>
             <param name="sysUser"></param>
         </member>
+        <member name="M:SporeAccounting.Server.SysUserImp.GetByPage(SporeAccounting.Models.ViewModels.UserPageViewModel)">
+            <summary>
+            分页查询用户
+            </summary>
+            <param name="userPage"></param>
+            <returns></returns>
+        </member>
+        <member name="M:SporeAccounting.Server.SysUserImp.Delete(System.String)">
+            <summary>
+            删除用户（逻辑删除）
+            </summary>
+            <param name="userId"></param>
+        </member>
         <member name="T:SporeAccounting.SporeAccountingDBContext">
             <summary>
             数据库连接上下文
+            </summary>
+        </member>
+        <member name="P:SporeAccounting.SporeAccountingDBContext.SysUsers">
+            <summary>
+            用户表
+            </summary>
+        </member>
+        <member name="P:SporeAccounting.SporeAccountingDBContext.SysRoles">
+            <summary>
+            角色表
             </summary>
         </member>
     </members>

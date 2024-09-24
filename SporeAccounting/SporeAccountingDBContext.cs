@@ -1,5 +1,9 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using SporeAccounting.BaseModels;
 using SporeAccounting.Models;
+using System.Reflection.Metadata;
+using System.Security.Cryptography;
+using System.Text;
 
 namespace SporeAccounting;
 
@@ -8,12 +12,52 @@ namespace SporeAccounting;
 /// </summary>
 public class SporeAccountingDBContext : DbContext
 {
+    /// <summary>
+    /// 用户表
+    /// </summary>
     public DbSet<SysUser> SysUsers { get; set; }
+    /// <summary>
+    /// 角色表
+    /// </summary>
+    public DbSet<SysRole> SysRoles { get; set; }
 
     IConfiguration _dbConfig;
     public SporeAccountingDBContext(IConfiguration dbConfig)
     {
         _dbConfig = dbConfig;
+    }
+
+    protected override void OnModelCreating(ModelBuilder modelBuilder)
+    {
+        string adminUserId= Guid.NewGuid().ToString();
+        string salt = Guid.NewGuid().ToString("N");
+        modelBuilder.Entity<SysUser>().HasData(
+            new SysUser
+            {
+                Id = adminUserId,
+                UserName = "admin",
+                Email = "admin@miaoshu.xyz",
+                PhoneNumber = "",
+                IsDeleted = false,
+                CreateUserId = adminUserId,
+                Salt = salt,
+                Password = HashPasswordWithSalt("123asdasd", salt),
+            }
+        );
+        modelBuilder.Entity<SysRole>().HasData(new List<SysRole>()
+        {
+            new SysRole()
+            {
+                RoleName = "Administrator",
+                CreateUserId = adminUserId
+            },
+            new SysRole()
+            {
+                RoleName = "Consumer",
+                CreateUserId =adminUserId
+            }
+        });
+        base.OnModelCreating(modelBuilder);
     }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
@@ -26,5 +70,16 @@ public class SporeAccountingDBContext : DbContext
             builder.AddConsole();
         }));
 
+    }
+
+    private static string HashPasswordWithSalt(string password, string salt)
+    {
+        using (var sha256 = SHA256.Create())
+        {
+            string saltedPassword = password + salt;
+            byte[] saltedPasswordBytes = Encoding.UTF8.GetBytes(saltedPassword);
+            byte[] hashBytes = sha256.ComputeHash(saltedPasswordBytes);
+            return Convert.ToBase64String(hashBytes);
+        }
     }
 }

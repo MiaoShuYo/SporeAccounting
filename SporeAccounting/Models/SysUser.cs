@@ -38,5 +38,8 @@ public class SysUser:BaseModel
     /// </summary>
     [Column(TypeName = "nvarchar(11)")]
     public string PhoneNumber { get; set; }
-
+    /// <summary>
+    /// 导航属性
+    /// </summary>
+    public ICollection<SysRole> Roles { get; set; }
 }

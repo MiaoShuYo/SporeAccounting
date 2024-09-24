@@ -37,6 +37,7 @@ public class BaseModel
     /// </summary>
     [Column(TypeName = "nvarchar(36)")]
     public string? UpdateUserId { get; set; }
+
     /// <summary>
     /// 删除时间
     /// </summary>

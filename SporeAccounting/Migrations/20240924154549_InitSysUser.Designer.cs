@@ -12,15 +12,15 @@ using SporeAccounting;
 namespace SporeAccounting.Migrations
 {
     [DbContext(typeof(SporeAccountingDBContext))]
-    [Migration("20240812135923_UpdateColumnIsNull")]
-    partial class UpdateColumnIsNull
+    [Migration("20240924154549_InitSysUser")]
+    partial class InitSysUser
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "8.0.7")
+                .HasAnnotation("ProductVersion", "8.0.8")
                 .HasAnnotation("Relational:MaxIdentifierLength", 64);
 
             MySqlModelBuilderExtensions.AutoIncrementColumns(modelBuilder);
@@ -75,6 +75,20 @@ namespace SporeAccounting.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("SysUser");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = "e2ba96c0-e294-4fd5-b05d-f8710ed098a9",
+                            CreateDateTime = new DateTime(2024, 9, 24, 23, 45, 49, 13, DateTimeKind.Local).AddTicks(8841),
+                            CreateUserId = "e2ba96c0-e294-4fd5-b05d-f8710ed098a9",
+                            Email = "admin@miaoshu.xyz",
+                            IsDeleted = false,
+                            Password = "MOlo57MRoO6ARMhWLy+HG+YP7zB+Xdi+9s6c/6GB+7Q=",
+                            PhoneNumber = "",
+                            Salt = "a36f25484ef64f4db492ce717eebe229",
+                            UserName = "admin"
+                        });
                 });
 #pragma warning restore 612, 618
         }
