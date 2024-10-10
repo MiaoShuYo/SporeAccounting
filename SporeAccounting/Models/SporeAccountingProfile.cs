@@ -19,5 +19,15 @@ public class SporeAccountingProfile : Profile
                 opt.MapFrom(s => s.Email))
             .ForMember(d => d.PhoneNumber, opt =>
                 opt.MapFrom(s => s.PhoneNumber));
+
+        CreateMap<SysRoleViewModel, SysRole>()
+            .ForMember(d => d.RoleName, opt =>
+                opt.MapFrom(s => s.RoleName));
+        CreateMap<SysRoleEditViewModel, SysRole>()
+            .ForMember(d => d.RoleName, opt =>
+                opt.MapFrom(s => s.RoleName));
+        CreateMap<SysRole, SysRoleQueryViewModel>()
+            .ForMember(d => d.RoleName, opt =>
+                opt.MapFrom(s => s.RoleName));
     }
 }
