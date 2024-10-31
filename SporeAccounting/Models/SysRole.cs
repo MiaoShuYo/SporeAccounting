@@ -19,5 +19,9 @@ public class SysRole : BaseModel
     /// <summary>
     /// 导航属性
     /// </summary>
-    public SysUser User { get; set; }
+    public ICollection<SysUser> Users { get; set; }
+    /// <summary>
+    /// 导航属性
+    /// </summary>
+    public ICollection<SysRoleUrl> RoleUrls { get; set; }
 }

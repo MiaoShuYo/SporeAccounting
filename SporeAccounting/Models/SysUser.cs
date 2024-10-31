@@ -39,7 +39,14 @@ public class SysUser:BaseModel
     [Column(TypeName = "nvarchar(11)")]
     public string PhoneNumber { get; set; }
     /// <summary>
+    /// 角色id
+    /// </summary>
+    [Column(TypeName = "nvarchar(36)")]
+    [ForeignKey("FK_SysUser_RoleId")]
+    [Required]
+    public string RoleId { get; set; }
+    /// <summary>
     /// 导航属性
     /// </summary>
-    public ICollection<SysRole> Roles { get; set; }
+    public SysRole Role { get; set; }
 }

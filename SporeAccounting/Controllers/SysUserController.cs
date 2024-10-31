@@ -15,6 +15,9 @@ using SporeAccounting.Server.Interface;
 
 namespace SporeAccounting.Controllers
 {
+    /// <summary>
+    /// 用户接口
+    /// </summary>
     [Route("api/[controller]/")]
     [ApiController]
     public class SysUserController : ControllerBase
@@ -22,7 +25,12 @@ namespace SporeAccounting.Controllers
         private readonly ISysUserServer _sysUserServer;
         private readonly IMapper _mapper;
         private readonly IConfiguration _config;
-
+        /// <summary>
+        /// 用户构造函数
+        /// </summary>
+        /// <param name="sysUserServer"></param>
+        /// <param name="mapper"></param>
+        /// <param name="config"></param>
         public SysUserController(ISysUserServer sysUserServer, IMapper mapper, IConfiguration config)
         {
             _sysUserServer = sysUserServer;

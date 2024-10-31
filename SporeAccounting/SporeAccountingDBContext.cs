@@ -20,6 +20,10 @@ public class SporeAccountingDBContext : DbContext
     /// 角色表
     /// </summary>
     public DbSet<SysRole> SysRoles { get; set; }
+    /// <summary>
+    /// 角色可访问径表
+    /// </summary>
+    public DbSet<SysRoleUrl> RoleUrls { get; set; }
 
     IConfiguration _dbConfig;
     public SporeAccountingDBContext(IConfiguration dbConfig)
@@ -31,6 +35,7 @@ public class SporeAccountingDBContext : DbContext
     {
         string adminUserId= Guid.NewGuid().ToString();
         string salt = Guid.NewGuid().ToString("N");
+        string adminId = Guid.NewGuid().ToString();
         modelBuilder.Entity<SysUser>().HasData(
             new SysUser
             {
@@ -38,6 +43,7 @@ public class SporeAccountingDBContext : DbContext
                 UserName = "admin",
                 Email = "admin@miaoshu.xyz",
                 PhoneNumber = "",
+                RoleId = adminId,
                 IsDeleted = false,
                 CreateUserId = adminUserId,
                 Salt = salt,
@@ -48,6 +54,7 @@ public class SporeAccountingDBContext : DbContext
         {
             new SysRole()
             {
+                Id=adminId,
                 RoleName = "Administrator",
                 CreateUserId = adminUserId
             },

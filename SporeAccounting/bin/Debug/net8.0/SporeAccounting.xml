@@ -117,6 +117,47 @@
             角色接口
             </summary>
         </member>
+        <member name="M:SporeAccounting.Controllers.SysRoleController.Add(SporeAccounting.Models.ViewModels.SysRoleViewModel)">
+            <summary>
+            新增角色
+            </summary>
+            <param name="role"></param>
+            <returns></returns>
+        </member>
+        <member name="M:SporeAccounting.Controllers.SysRoleController.Remove(System.String)">
+            <summary>
+            删除角色（逻辑删除）
+            </summary>
+            <param name="roleId"></param>
+            <returns></returns>
+        </member>
+        <member name="M:SporeAccounting.Controllers.SysRoleController.Edit(SporeAccounting.Models.ViewModels.SysRoleEditViewModel)">
+            <summary>
+            修改角色
+            </summary>
+            <param name="roleView"></param>
+            <returns></returns>
+        </member>
+        <member name="M:SporeAccounting.Controllers.SysRoleController.Query(System.String)">
+            <summary>
+            根据角色名查询
+            </summary>
+            <param name="roleName"></param>
+            <returns></returns>
+        </member>
+        <member name="T:SporeAccounting.Controllers.SysUserController">
+            <summary>
+            用户接口
+            </summary>
+        </member>
+        <member name="M:SporeAccounting.Controllers.SysUserController.#ctor(SporeAccounting.Server.Interface.ISysUserServer,AutoMapper.IMapper,Microsoft.Extensions.Configuration.IConfiguration)">
+            <summary>
+            用户构造函数
+            </summary>
+            <param name="sysUserServer"></param>
+            <param name="mapper"></param>
+            <param name="config"></param>
+        </member>
         <member name="M:SporeAccounting.Controllers.SysUserController.Register(SporeAccounting.Models.ViewModels.SysUserViewModel)">
             <summary>
             注册
@@ -228,6 +269,18 @@
         <member name="M:SporeAccounting.Migrations.InitSysRole.BuildTargetModel(Microsoft.EntityFrameworkCore.ModelBuilder)">
             <inheritdoc />
         </member>
+        <member name="T:SporeAccounting.Migrations.InitSysRoleUrl">
+            <inheritdoc />
+        </member>
+        <member name="M:SporeAccounting.Migrations.InitSysRoleUrl.Up(Microsoft.EntityFrameworkCore.Migrations.MigrationBuilder)">
+            <inheritdoc />
+        </member>
+        <member name="M:SporeAccounting.Migrations.InitSysRoleUrl.Down(Microsoft.EntityFrameworkCore.Migrations.MigrationBuilder)">
+            <inheritdoc />
+        </member>
+        <member name="M:SporeAccounting.Migrations.InitSysRoleUrl.BuildTargetModel(Microsoft.EntityFrameworkCore.ModelBuilder)">
+            <inheritdoc />
+        </member>
         <member name="T:SporeAccounting.Models.SysRole">
             <summary>
             角色
@@ -238,7 +291,32 @@
             角色名称
             </summary>
         </member>
-        <member name="P:SporeAccounting.Models.SysRole.User">
+        <member name="P:SporeAccounting.Models.SysRole.Users">
+            <summary>
+            导航属性
+            </summary>
+        </member>
+        <member name="P:SporeAccounting.Models.SysRole.RoleUrls">
+            <summary>
+            导航属性
+            </summary>
+        </member>
+        <member name="T:SporeAccounting.Models.SysRoleUrl">
+            <summary>
+            角色可访问的URL
+            </summary>
+        </member>
+        <member name="P:SporeAccounting.Models.SysRoleUrl.RoleId">
+            <summary>
+            角色Id
+            </summary>
+        </member>
+        <member name="P:SporeAccounting.Models.SysRoleUrl.Url">
+            <summary>
+            接口路径
+            </summary>
+        </member>
+        <member name="P:SporeAccounting.Models.SysRoleUrl.Roles">
             <summary>
             导航属性
             </summary>
@@ -273,9 +351,49 @@
             手机号
             </summary>
         </member>
-        <member name="P:SporeAccounting.Models.SysUser.Roles">
+        <member name="P:SporeAccounting.Models.SysUser.RoleId">
+            <summary>
+            角色id
+            </summary>
+        </member>
+        <member name="P:SporeAccounting.Models.SysUser.Role">
             <summary>
             导航属性
+            </summary>
+        </member>
+        <member name="T:SporeAccounting.Models.ViewModels.SysRoleEditViewModel">
+            <summary>
+            修改角色视图类
+            </summary>
+        </member>
+        <member name="P:SporeAccounting.Models.ViewModels.SysRoleEditViewModel.RoleId">
+            <summary>
+            角色id
+            </summary>
+        </member>
+        <member name="P:SporeAccounting.Models.ViewModels.SysRoleEditViewModel.RoleName">
+            <summary>
+            角色名称
+            </summary>
+        </member>
+        <member name="P:SporeAccounting.Models.ViewModels.SysRoleQueryViewModel.RoleId">
+            <summary>
+            角色id
+            </summary>
+        </member>
+        <member name="P:SporeAccounting.Models.ViewModels.SysRoleQueryViewModel.RoleName">
+            <summary>
+            角色名
+            </summary>
+        </member>
+        <member name="T:SporeAccounting.Models.ViewModels.SysRoleViewModel">
+            <summary>
+            角色视图模型
+            </summary>
+        </member>
+        <member name="P:SporeAccounting.Models.ViewModels.SysRoleViewModel.RoleName">
+            <summary>
+            角色名称
             </summary>
         </member>
         <member name="P:SporeAccounting.Models.ViewModels.SysUserEditViewModel.Id">
@@ -368,6 +486,58 @@
             用户名
             </summary>
         </member>
+        <member name="T:SporeAccounting.Server.Interface.ISysRoleServer">
+            <summary>
+            角色数据库操作接口
+            </summary>
+        </member>
+        <member name="M:SporeAccounting.Server.Interface.ISysRoleServer.Add(SporeAccounting.Models.SysRole)">
+            <summary>
+            新增角色
+            </summary>
+            <param name="role"></param>
+        </member>
+        <member name="M:SporeAccounting.Server.Interface.ISysRoleServer.Delete(System.String,System.String)">
+            <summary>
+            删除角色（逻辑）
+            </summary>
+            <param name="roleId"></param>
+            <param name="userId"></param>
+        </member>
+        <member name="M:SporeAccounting.Server.Interface.ISysRoleServer.Update(SporeAccounting.Models.SysRole)">
+            <summary>
+            修改角色
+            </summary>
+            <param name="role"></param>
+        </member>
+        <member name="M:SporeAccounting.Server.Interface.ISysRoleServer.Query(System.String)">
+            <summary>
+            查询角色
+            </summary>
+            <param name="roleName"></param>
+        </member>
+        <member name="M:SporeAccounting.Server.Interface.ISysRoleServer.IsExistByRoleName(System.String)">
+            <summary>
+            角色是否存在
+            </summary>
+            <param name="roleName"></param>
+            <returns></returns>
+        </member>
+        <member name="M:SporeAccounting.Server.Interface.ISysRoleServer.IsExistById(System.String)">
+            <summary>
+            角色是否存在
+            </summary>
+            <param name="roleId"></param>
+            <returns></returns>
+        </member>
+        <member name="M:SporeAccounting.Server.Interface.ISysRoleServer.IsRepeat(System.String,System.String)">
+            <summary>
+            角色是否重复
+            </summary>
+            <param name="roleId"></param>
+            <param name="roleName"></param>
+            <returns></returns>
+        </member>
         <member name="T:SporeAccounting.Server.Interface.ISysUserServer">
             <summary>
             用户接口
@@ -408,6 +578,53 @@
             删除用户
             </summary>
             <param name="userId"></param>
+        </member>
+        <member name="M:SporeAccounting.Server.SysRoleImp.Add(SporeAccounting.Models.SysRole)">
+            <summary>
+            新增角色
+            </summary>
+            <param name="role"></param>
+        </member>
+        <member name="M:SporeAccounting.Server.SysRoleImp.Delete(System.String,System.String)">
+            <summary>
+            删除角色（逻辑）
+            </summary>
+            <param name="roleId"></param>
+            <param name="userId"></param>
+        </member>
+        <member name="M:SporeAccounting.Server.SysRoleImp.Update(SporeAccounting.Models.SysRole)">
+            <summary>
+            修改角色
+            </summary>
+            <param name="role"></param>
+        </member>
+        <member name="M:SporeAccounting.Server.SysRoleImp.Query(System.String)">
+            <summary>
+            查询角色
+            </summary>
+            <param name="roleName"></param>
+        </member>
+        <member name="M:SporeAccounting.Server.SysRoleImp.IsExistByRoleName(System.String)">
+            <summary>
+            角色是否存在
+            </summary>
+            <param name="roleName"></param>
+            <returns></returns>
+        </member>
+        <member name="M:SporeAccounting.Server.SysRoleImp.IsExistById(System.String)">
+            <summary>
+            角色是否存在
+            </summary>
+            <param name="roleId"></param>
+            <returns></returns>
+        </member>
+        <member name="M:SporeAccounting.Server.SysRoleImp.IsRepeat(System.String,System.String)">
+            <summary>
+            角色是否重复
+            </summary>
+            <param name="roleId"></param>
+            <param name="roleName"></param>
+            <returns></returns>
         </member>
         <member name="T:SporeAccounting.Server.SysUserImp">
             <summary>
@@ -466,6 +683,11 @@
         <member name="P:SporeAccounting.SporeAccountingDBContext.SysRoles">
             <summary>
             角色表
+            </summary>
+        </member>
+        <member name="P:SporeAccounting.SporeAccountingDBContext.RoleUrls">
+            <summary>
+            角色可访问径表
             </summary>
         </member>
     </members>
