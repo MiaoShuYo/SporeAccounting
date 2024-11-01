@@ -12,8 +12,8 @@ using SporeAccounting;
 namespace SporeAccounting.Migrations
 {
     [DbContext(typeof(SporeAccountingDBContext))]
-    [Migration("20240924154807_InitSysRole")]
-    partial class InitSysRole
+    [Migration("20241031174841_InitSysTable")]
+    partial class InitSysTable
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -56,32 +56,69 @@ namespace SporeAccounting.Migrations
                     b.Property<string>("UpdateUserId")
                         .HasColumnType("nvarchar(36)");
 
-                    b.Property<string>("UserId")
-                        .HasColumnType("nvarchar(36)");
-
                     b.HasKey("Id");
-
-                    b.HasIndex("UserId");
 
                     b.ToTable("SysRole");
 
                     b.HasData(
                         new
                         {
-                            Id = "b7e6ae8c-3f62-4d11-93af-bbf7e306be39",
-                            CreateDateTime = new DateTime(2024, 9, 24, 23, 48, 7, 529, DateTimeKind.Local).AddTicks(6918),
-                            CreateUserId = "08f35c1e-117f-431d-979d-9e51e29b0b7d",
+                            Id = "34d16e91-4180-4905-bb97-07dd49d6065e",
+                            CreateDateTime = new DateTime(2024, 11, 1, 1, 48, 41, 598, DateTimeKind.Local).AddTicks(2248),
+                            CreateUserId = "6e8f3db2-1791-42be-bb98-53cecb7eff72",
                             IsDeleted = false,
                             RoleName = "Administrator"
                         },
                         new
                         {
-                            Id = "1b78e284-2174-4a3f-8254-a8b22cd82b68",
-                            CreateDateTime = new DateTime(2024, 9, 24, 23, 48, 7, 529, DateTimeKind.Local).AddTicks(6925),
-                            CreateUserId = "08f35c1e-117f-431d-979d-9e51e29b0b7d",
+                            Id = "274a7bc2-0b66-4400-8451-f3950e5f2c65",
+                            CreateDateTime = new DateTime(2024, 11, 1, 1, 48, 41, 598, DateTimeKind.Local).AddTicks(2282),
+                            CreateUserId = "6e8f3db2-1791-42be-bb98-53cecb7eff72",
                             IsDeleted = false,
                             RoleName = "Consumer"
                         });
+                });
+
+            modelBuilder.Entity("SporeAccounting.Models.SysRoleUrl", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasColumnType("nvarchar(36)");
+
+                    b.Property<DateTime>("CreateDateTime")
+                        .HasColumnType("datetime");
+
+                    b.Property<string>("CreateUserId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(36)");
+
+                    b.Property<DateTime?>("DeleteDateTime")
+                        .HasColumnType("datetime");
+
+                    b.Property<string>("DeleteUserId")
+                        .HasColumnType("nvarchar(36)");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<string>("RoleId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(36)");
+
+                    b.Property<DateTime?>("UpdateDateTime")
+                        .HasColumnType("datetime");
+
+                    b.Property<string>("UpdateUserId")
+                        .HasColumnType("nvarchar(36)");
+
+                    b.Property<string>("Url")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(100)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("RoleId");
+
+                    b.ToTable("SysRoleUrl");
                 });
 
             modelBuilder.Entity("SporeAccounting.Models.SysUser", b =>
@@ -117,6 +154,10 @@ namespace SporeAccounting.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(11)");
 
+                    b.Property<string>("RoleId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(36)");
+
                     b.Property<string>("Salt")
                         .IsRequired()
                         .HasColumnType("nvarchar(36)");
@@ -133,35 +174,53 @@ namespace SporeAccounting.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("RoleId");
+
                     b.ToTable("SysUser");
 
                     b.HasData(
                         new
                         {
-                            Id = "08f35c1e-117f-431d-979d-9e51e29b0b7d",
-                            CreateDateTime = new DateTime(2024, 9, 24, 23, 48, 7, 529, DateTimeKind.Local).AddTicks(5886),
-                            CreateUserId = "08f35c1e-117f-431d-979d-9e51e29b0b7d",
+                            Id = "6e8f3db2-1791-42be-bb98-53cecb7eff72",
+                            CreateDateTime = new DateTime(2024, 11, 1, 1, 48, 41, 598, DateTimeKind.Local).AddTicks(2324),
+                            CreateUserId = "6e8f3db2-1791-42be-bb98-53cecb7eff72",
                             Email = "admin@miaoshu.xyz",
                             IsDeleted = false,
-                            Password = "Xwizw3C+xEtFkmO4KIGskDc4Mc3K2hYKY/f+FEikf4A=",
+                            Password = "cRRkFQHlOQ5+TudBv6IUsrDLT6T7AjavZavK00/herA=",
                             PhoneNumber = "",
-                            Salt = "13b5ff1a02534532930665f6b545eedb",
+                            RoleId = "34d16e91-4180-4905-bb97-07dd49d6065e",
+                            Salt = "c99b12497f4a4f2c87a7f82b9f3ec7f1",
                             UserName = "admin"
                         });
                 });
 
-            modelBuilder.Entity("SporeAccounting.Models.SysRole", b =>
+            modelBuilder.Entity("SporeAccounting.Models.SysRoleUrl", b =>
                 {
-                    b.HasOne("SporeAccounting.Models.SysUser", "User")
-                        .WithMany("Roles")
-                        .HasForeignKey("UserId");
+                    b.HasOne("SporeAccounting.Models.SysRole", "Role")
+                        .WithMany("RoleUrls")
+                        .HasForeignKey("RoleId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
-                    b.Navigation("User");
+                    b.Navigation("Role");
                 });
 
             modelBuilder.Entity("SporeAccounting.Models.SysUser", b =>
                 {
-                    b.Navigation("Roles");
+                    b.HasOne("SporeAccounting.Models.SysRole", "Role")
+                        .WithMany("Users")
+                        .HasForeignKey("RoleId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Role");
+                });
+
+            modelBuilder.Entity("SporeAccounting.Models.SysRole", b =>
+                {
+                    b.Navigation("RoleUrls");
+
+                    b.Navigation("Users");
                 });
 #pragma warning restore 612, 618
         }

@@ -80,8 +80,29 @@ public class SysRoleImp : ISysRoleServer
     {
         try
         {
-            List<SysRole> sysRoles = _dbContext.SysRoles.Where(p => p.RoleName.Contains(roleName)).ToList();
-            return sysRoles;
+            IQueryable<SysRole> sysRoles = _dbContext.SysRoles;
+            if(!string.IsNullOrEmpty(roleName))
+            {
+                sysRoles = sysRoles.Where(p => p.RoleName.Contains(roleName));
+            }
+            return sysRoles.ToList();
+        }
+        catch (Exception ex)
+        {
+            throw ex;
+        }
+    }
+
+    /// <summary>
+    /// 根据名字查询角色
+    /// </summary>
+    /// <param name="roleName"></param>
+    /// <returns></returns>
+    public SysRole QueryByName(string roleName)
+    {
+        try
+        {
+            return _dbContext.SysRoles.FirstOrDefault(p => p.RoleName == roleName && !p.IsDeleted);
         }
         catch (Exception ex)
         {
@@ -122,6 +143,22 @@ public class SysRoleImp : ISysRoleServer
         }
     }
 
+    /// <summary>
+    /// 是否可以删除
+    /// </summary>
+    /// <param name="roleId"></param>
+    /// <returns></returns>
+    public bool CanDelete(string roleId)
+    {
+        try
+        {
+            return _dbContext.SysRoles.Any(p => p.Id == roleId && p.CanDelete && !p.IsDeleted);
+        }
+        catch (Exception ex)
+        {
+            throw ex;
+        }
+    }
     /// <summary>
     /// 角色是否重复
     /// </summary>

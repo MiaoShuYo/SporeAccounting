@@ -44,6 +44,7 @@ namespace SporeAccounting.Controllers
                 }
 
                 SysRole dbRole = _mapper.Map<SysRole>(role);
+                dbRole.CanDelete = true;
                 //TODO：这里暂时写死，等权限和授权完成后再改为动态获取
                 dbRole.CreateUserId = "08f35c1e-117f-431d-979d-9e51e29b0b7d";
                 _sysRoleServer.Add(dbRole);
@@ -62,14 +63,19 @@ namespace SporeAccounting.Controllers
         /// <returns></returns>
         [HttpDelete]
         [Route("Remove/{roleId}")]
-        public ActionResult<ResponseData<bool>> Remove([FromQuery] string roleId)
+        public ActionResult<ResponseData<bool>> Remove([FromRoute] string roleId)
         {
             try
             {
                 bool isExist = _sysRoleServer.IsExistById(roleId);
                 if (!isExist)
                 {
-                    return Ok(new ResponseData<bool>(HttpStatusCode.Conflict, $"角色不存在！", false));
+                    return Ok(new ResponseData<bool>(HttpStatusCode.NotFound, $"角色不存在！", false));
+                }
+                bool canDelete = _sysRoleServer.CanDelete(roleId);
+                if (!canDelete)
+                {
+                    return Ok(new ResponseData<bool>(HttpStatusCode.Conflict, $"角色{roleId}不可删除！", false));
                 }
 
                 //TODO：这里暂时写死，等权限和授权完成后再改为动态获取
@@ -97,7 +103,7 @@ namespace SporeAccounting.Controllers
                 bool isExist = _sysRoleServer.IsExistById(roleView.RoleId);
                 if (!isExist)
                 {
-                    return Ok(new ResponseData<bool>(HttpStatusCode.Conflict, $"角色不存在！", false));
+                    return Ok(new ResponseData<bool>(HttpStatusCode.NotFound, $"角色不存在！", false));
                 }
 
                 //判断角色名字是否重复
@@ -125,8 +131,8 @@ namespace SporeAccounting.Controllers
         /// <param name="roleName"></param>
         /// <returns></returns>
         [HttpGet]
-        [Route("Query/{roleName}")]
-        public ActionResult<ResponseData<List<SysRoleQueryViewModel>>> Query([FromQuery] string roleName)
+        [Route("Query")]
+        public ActionResult<ResponseData<List<SysRoleQueryViewModel>>> Query([FromQuery] string? roleName)
         {
             try
             {

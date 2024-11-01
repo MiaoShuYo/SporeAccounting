@@ -1,0 +1,47 @@
+﻿using SporeAccounting.Models;
+using SporeAccounting.Models.ViewModels;
+
+namespace SporeAccounting.Server.Interface;
+
+/// <summary>
+/// 角色可访问的URL数据库操作接口
+/// </summary>
+public interface ISysRoleUrlServer
+{
+    /// <summary>
+    /// 新增角色可访问的URL
+    /// </summary>
+    /// <param name="roleUrl"></param>
+    void Add(SysRoleUrl roleUrl);
+    /// <summary>
+    /// 删除角色可访问的URL
+    /// </summary>
+    /// <param name="roleId"></param>
+    /// <param name="url"></param>
+    void Delete(string roleId, string url);
+    /// <summary>
+    /// 修改角色可访问的URL
+    /// </summary>
+    /// <param name="id"></param>
+    /// <param name="roleId"></param>
+    /// <param name="url"></param>
+    void Edit(string id,string roleId, string url);
+    /// <summary>
+    /// 查询角色可访问的URL
+    /// </summary>
+    /// <param name="roleId"></param>
+    List<string> Query(string roleId);
+    /// <summary>
+    /// 分页查询角色可访问的URL
+    /// </summary>
+    /// <param name="sysRoleUrlPageViewModel"></param>
+    /// <returns></returns>
+    (int rowCount, int pageCount, List<SysRoleUrl> sysRoleUrls) GetByPage(SysRoleUrlPageViewModel sysRoleUrlPageViewModel);
+    /// <summary>
+    /// 角色可访问的URL是否存在
+    /// </summary>
+    /// <param name="roleId"></param>
+    /// <param name="url"></param>
+    /// <returns></returns>
+    bool IsExist(string roleId, string url);
+}

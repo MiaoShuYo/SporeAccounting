@@ -34,10 +34,16 @@ public interface ISysUserServer
     /// 分页查询用户
     /// </summary>
     /// <param name="userPage"></param>
-    (int rowCount, int pageCount, List<SysUser> sysUsers) GetByPage(UserPageViewModel userPage);
+    (int rowCount, int pageCount, List<SysUser> sysUsers) GetByPage(SysUserPageViewModel userPage);
     /// <summary>
     /// 删除用户
     /// </summary>
     /// <param name="userId"></param>
     void Delete(string userId);
+    /// <summary>
+    /// 是否可删除
+    /// </summary>
+    /// <param name="userId"></param>
+    /// <returns></returns>
+    bool CanDelete(string userId);
 }

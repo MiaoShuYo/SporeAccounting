@@ -23,7 +23,7 @@ public class SporeAccountingDBContext : DbContext
     /// <summary>
     /// 角色可访问径表
     /// </summary>
-    public DbSet<SysRoleUrl> RoleUrls { get; set; }
+    public DbSet<SysRoleUrl> SysRoleUrls { get; set; }
 
     IConfiguration _dbConfig;
     public SporeAccountingDBContext(IConfiguration dbConfig)
@@ -36,6 +36,26 @@ public class SporeAccountingDBContext : DbContext
         string adminUserId= Guid.NewGuid().ToString();
         string salt = Guid.NewGuid().ToString("N");
         string adminId = Guid.NewGuid().ToString();
+        modelBuilder.Entity<SysRole>().HasData(new List<SysRole>()
+        {
+            new SysRole()
+            {
+                Id=adminId,
+                RoleName = "Administrator",
+                CanDelete = false,
+                IsDeleted = false,
+                CreateDateTime = DateTime.Now,
+                CreateUserId = adminUserId
+            },
+            new SysRole()
+            {
+                RoleName = "Consumer",
+                CanDelete = false,
+                IsDeleted = false,
+                CreateDateTime = DateTime.Now,
+                CreateUserId =adminUserId
+            }
+        });
         modelBuilder.Entity<SysUser>().HasData(
             new SysUser
             {
@@ -45,25 +65,13 @@ public class SporeAccountingDBContext : DbContext
                 PhoneNumber = "",
                 RoleId = adminId,
                 IsDeleted = false,
+                CanDelete = false,
+                CreateDateTime = DateTime.Now,
                 CreateUserId = adminUserId,
                 Salt = salt,
                 Password = HashPasswordWithSalt("123asdasd", salt),
             }
         );
-        modelBuilder.Entity<SysRole>().HasData(new List<SysRole>()
-        {
-            new SysRole()
-            {
-                Id=adminId,
-                RoleName = "Administrator",
-                CreateUserId = adminUserId
-            },
-            new SysRole()
-            {
-                RoleName = "Consumer",
-                CreateUserId =adminUserId
-            }
-        });
         base.OnModelCreating(modelBuilder);
     }
 

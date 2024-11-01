@@ -23,6 +23,7 @@ namespace SporeAccounting.Controllers
     public class SysUserController : ControllerBase
     {
         private readonly ISysUserServer _sysUserServer;
+        private readonly ISysRoleServer _sysRoleServer;
         private readonly IMapper _mapper;
         private readonly IConfiguration _config;
         /// <summary>
@@ -31,9 +32,10 @@ namespace SporeAccounting.Controllers
         /// <param name="sysUserServer"></param>
         /// <param name="mapper"></param>
         /// <param name="config"></param>
-        public SysUserController(ISysUserServer sysUserServer, IMapper mapper, IConfiguration config)
+        public SysUserController(ISysUserServer sysUserServer,ISysRoleServer roleServer, IMapper mapper, IConfiguration config)
         {
             _sysUserServer = sysUserServer;
+            _sysRoleServer = roleServer;
             _mapper = mapper;
             _config = config;
         }
@@ -48,10 +50,13 @@ namespace SporeAccounting.Controllers
         {
             try
             {
+                var role = _sysRoleServer.QueryByName("Consumer");
                 SysUser sysUser = _mapper.Map<SysUser>(sysUserViewModel);
                 sysUser.Salt = Guid.NewGuid().ToString("N");
                 sysUser.Password = HashPasswordWithSalt(sysUser.Password, sysUser.Salt);
                 sysUser.CreateUserId = sysUser.Id;
+                sysUser.CreateDateTime = DateTime.Now;
+                sysUser.RoleId= role.Id;
                 _sysUserServer.Add(sysUser);
                 return Ok(new ResponseData<bool>(HttpStatusCode.OK, "", false));
             }
@@ -171,18 +176,18 @@ namespace SporeAccounting.Controllers
         /// <returns></returns>
         [HttpPost]
         [Route("Query")]
-        public ActionResult<ResponseData<PageResponseViewModel<SysUserViewModel>>> Query([FromBody] UserPageViewModel userPage)
+        public ActionResult<ResponseData<PageResponseViewModel<SysUserQueryViewModel>>> Query([FromBody] SysUserPageViewModel userPage)
         {
             try
             {
                 (int rowCount, int pageCount, List<SysUser> sysUsers) = _sysUserServer.GetByPage(userPage);
-                List<SysUserViewModel> sysUsersView = _mapper.Map<List<SysUserViewModel>>(sysUsers);
-                PageResponseViewModel<SysUserViewModel>
-                    pageResponseView = new PageResponseViewModel<SysUserViewModel>();
+                List<SysUserQueryViewModel> sysUsersView = _mapper.Map<List<SysUserQueryViewModel>>(sysUsers);
+                PageResponseViewModel<SysUserQueryViewModel>
+                    pageResponseView = new PageResponseViewModel<SysUserQueryViewModel>();
                 pageResponseView.Data = sysUsersView;
                 pageResponseView.PageCount = pageCount;
                 pageResponseView.RowCount = rowCount;
-                return Ok(new ResponseData<PageResponseViewModel<SysUserViewModel>>(HttpStatusCode.OK, data: pageResponseView));
+                return Ok(new ResponseData<PageResponseViewModel<SysUserQueryViewModel>>(HttpStatusCode.OK, data: pageResponseView));
 
             }
             catch (Exception ex)
@@ -202,15 +207,17 @@ namespace SporeAccounting.Controllers
             try
             {
                 bool exist = UserExist(userId);
-                if (exist)
-                {
-                    _sysUserServer.Delete(userId);
-                    return Ok(new ResponseData<bool>(HttpStatusCode.OK, data: true));
-                }
-                else
+                if (!exist)
                 {
                     return Ok(new ResponseData<bool>(HttpStatusCode.NotFound, $"用户 {userId} 不存在", false));
                 }
+                bool canDeleted = _sysUserServer.CanDelete(userId);
+                if(!canDeleted)
+                {
+                    return Ok(new ResponseData<bool>(HttpStatusCode.Conflict, $"用户 {userId} 不可删除", false));
+                }
+                _sysUserServer.Delete(userId);
+                return Ok(new ResponseData<bool>(HttpStatusCode.OK, data: true));
             }
             catch (Exception ex)
             {
@@ -229,7 +236,7 @@ namespace SporeAccounting.Controllers
             try
             {
                 bool exist = UserExist(sysUserEditView.Id);
-                if (exist)
+                if (!exist)
                 {
                     SysUser sysUser = _sysUserServer.GetById(sysUserEditView.Id);
                     sysUser.Email = sysUserEditView.Email;
@@ -350,7 +357,7 @@ namespace SporeAccounting.Controllers
         {
             try
             {
-                bool exist = _sysUserServer.GetById(userId) == null;
+                bool exist = _sysUserServer.GetById(userId) != null;
                 return exist;
             }
             catch (Exception ex)

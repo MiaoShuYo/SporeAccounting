@@ -14,6 +14,7 @@ public class SysRoleUrl: BaseModel
     /// </summary>
     [Column(TypeName = "nvarchar(36)")]
     [Required]
+    [ForeignKey("FK_SysRoleUrl_SysRole")]
     public string RoleId { get; set; }
     /// <summary>
     /// 接口路径
@@ -25,5 +26,5 @@ public class SysRoleUrl: BaseModel
     /// <summary>
     /// 导航属性
     /// </summary>
-    public ICollection<SysRole> Roles { get; set; }
+    public SysRole Role { get; set; } 
 }

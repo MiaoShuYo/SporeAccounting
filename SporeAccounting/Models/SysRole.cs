@@ -17,6 +17,12 @@ public class SysRole : BaseModel
     [Required]
     public string RoleName { get; set; }
     /// <summary>
+    /// 是否允许删除
+    /// </summary>
+    [Column(TypeName = "tinyint(1)")]
+    [Required]
+    public bool CanDelete { get; set; } = true;
+    /// <summary>
     /// 导航属性
     /// </summary>
     public ICollection<SysUser> Users { get; set; }

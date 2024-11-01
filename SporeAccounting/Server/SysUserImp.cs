@@ -94,7 +94,7 @@ public class SysUserImp : ISysUserServer
     /// </summary>
     /// <param name="userPage"></param>
     /// <returns></returns>
-    public (int rowCount, int pageCount, List<SysUser> sysUsers) GetByPage(UserPageViewModel userPage)
+    public (int rowCount, int pageCount, List<SysUser> sysUsers) GetByPage(SysUserPageViewModel userPage)
     {
         try
         {
@@ -144,6 +144,24 @@ public class SysUserImp : ISysUserServer
             sysUser.DeleteDateTime= DateTime.Now;
             _dbContext.SysUsers.Update(sysUser);
             _dbContext.SaveChanges();
+        }
+        catch (Exception ex)
+        {
+            throw ex;
+        }
+    }
+
+    /// <summary>
+    /// 是否可删除
+    /// </summary>
+    /// <param name="userId"></param>
+    /// <returns></returns>
+    public bool CanDelete(string userId)
+    {
+        try
+        {
+            var sysUser = _dbContext.SysUsers.FirstOrDefault(p => p.Id == userId);
+            return sysUser.CanDelete;
         }
         catch (Exception ex)
         {

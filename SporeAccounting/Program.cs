@@ -94,6 +94,8 @@ namespace SporeAccounting
             });
             builder.Services.AddDbContext<SporeAccountingDBContext>(ServiceLifetime.Scoped);
             builder.Services.AddScoped(typeof(ISysUserServer), typeof(SysUserImp));
+            builder.Services.AddScoped(typeof(ISysRoleServer), typeof(SysRoleImp));
+            builder.Services.AddScoped(typeof(ISysRoleUrlServer), typeof(SysRoleUrlImp));
 
             var app = builder.Build();
 

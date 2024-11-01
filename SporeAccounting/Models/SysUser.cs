@@ -39,6 +39,12 @@ public class SysUser:BaseModel
     [Column(TypeName = "nvarchar(11)")]
     public string PhoneNumber { get; set; }
     /// <summary>
+    /// 是否可以删除
+    /// </summary>
+    [Column(TypeName = "tinyint(1)")]
+    [Required]
+    public bool CanDelete { get; set; }= true;
+    /// <summary>
     /// 角色id
     /// </summary>
     [Column(TypeName = "nvarchar(36)")]

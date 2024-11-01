@@ -2,7 +2,7 @@
 
 namespace SporeAccounting.Models.ViewModels;
 
-public class UserPageViewModel: PageRequestViewModel
+public class SysUserPageViewModel: PageRequestViewModel
 {
     /// <summary>
     /// 用户名

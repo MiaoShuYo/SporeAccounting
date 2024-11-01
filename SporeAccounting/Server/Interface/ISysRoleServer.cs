@@ -28,6 +28,12 @@ public interface ISysRoleServer
     /// <param name="roleName"></param>
     List<SysRole> Query(string roleName);
     /// <summary>
+    /// 根据名字查询角色
+    /// </summary>
+    /// <param name="roleName"></param>
+    /// <returns></returns>
+    SysRole QueryByName(string roleName);
+    /// <summary>
     /// 角色是否存在
     /// </summary>
     /// <param name="roleName"></param>
@@ -39,6 +45,12 @@ public interface ISysRoleServer
     /// <param name="roleId"></param>
     /// <returns></returns>
     bool IsExistById(string roleId);
+    /// <summary>
+    /// 是否可以删除
+    /// </summary>
+    /// <param name="roleId"></param>
+    /// <returns></returns>
+    bool CanDelete(string roleId);
     /// <summary>
     /// 角色是否重复
     /// </summary>
