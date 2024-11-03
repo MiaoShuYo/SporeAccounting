@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using SporeAccounting;
 
@@ -11,9 +12,11 @@ using SporeAccounting;
 namespace SporeAccounting.Migrations
 {
     [DbContext(typeof(SporeAccountingDBContext))]
-    partial class SporeAccountingDBContextModelSnapshot : ModelSnapshot
+    [Migration("20241103041030_InitSysUrl")]
+    partial class InitSysUrl
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -63,19 +66,19 @@ namespace SporeAccounting.Migrations
                     b.HasData(
                         new
                         {
-                            Id = "37191752-9c34-4106-82bc-5631cf69ef6f",
+                            Id = "952db095-ed24-4afe-989d-425a95e29380",
                             CanDelete = false,
-                            CreateDateTime = new DateTime(2024, 11, 3, 13, 6, 2, 588, DateTimeKind.Local).AddTicks(3105),
-                            CreateUserId = "d76591a7-e77f-4a85-af94-9539142eb2a0",
+                            CreateDateTime = new DateTime(2024, 11, 3, 12, 10, 28, 834, DateTimeKind.Local).AddTicks(4753),
+                            CreateUserId = "0ed877a5-982b-47bf-a6b5-983c1149ac75",
                             IsDeleted = false,
                             RoleName = "Administrator"
                         },
                         new
                         {
-                            Id = "f581095b-ecbc-4cf9-9cdb-c1bdebe251f6",
+                            Id = "b253b817-2b3f-4cb4-b988-47584b282045",
                             CanDelete = false,
-                            CreateDateTime = new DateTime(2024, 11, 3, 13, 6, 2, 588, DateTimeKind.Local).AddTicks(3125),
-                            CreateUserId = "d76591a7-e77f-4a85-af94-9539142eb2a0",
+                            CreateDateTime = new DateTime(2024, 11, 3, 12, 10, 28, 834, DateTimeKind.Local).AddTicks(4768),
+                            CreateUserId = "0ed877a5-982b-47bf-a6b5-983c1149ac75",
                             IsDeleted = false,
                             RoleName = "Consumer"
                         });
@@ -127,10 +130,6 @@ namespace SporeAccounting.Migrations
                 {
                     b.Property<string>("Id")
                         .HasColumnType("nvarchar(36)");
-
-                    b.Property<string>("CanDelete")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(200)");
 
                     b.Property<DateTime>("CreateDateTime")
                         .HasColumnType("datetime");
@@ -230,16 +229,16 @@ namespace SporeAccounting.Migrations
                     b.HasData(
                         new
                         {
-                            Id = "d76591a7-e77f-4a85-af94-9539142eb2a0",
+                            Id = "0ed877a5-982b-47bf-a6b5-983c1149ac75",
                             CanDelete = false,
-                            CreateDateTime = new DateTime(2024, 11, 3, 13, 6, 2, 588, DateTimeKind.Local).AddTicks(3716),
-                            CreateUserId = "d76591a7-e77f-4a85-af94-9539142eb2a0",
+                            CreateDateTime = new DateTime(2024, 11, 3, 12, 10, 28, 834, DateTimeKind.Local).AddTicks(4840),
+                            CreateUserId = "0ed877a5-982b-47bf-a6b5-983c1149ac75",
                             Email = "admin@miaoshu.xyz",
                             IsDeleted = false,
-                            Password = "Fd+aomGKuAet8eUb+FVNvxqdevWqK7UjnNrv8N6uO6A=",
+                            Password = "1It/wM0Hgslp001xCEYFsNBIPqfZmjxIZWBL0UvAMAI=",
                             PhoneNumber = "",
-                            RoleId = "37191752-9c34-4106-82bc-5631cf69ef6f",
-                            Salt = "0e92a36d056b4034beac108e7852570a",
+                            RoleId = "952db095-ed24-4afe-989d-425a95e29380",
+                            Salt = "ec09492cbe984d2fa1aca3a5dec882ea",
                             UserName = "admin"
                         });
                 });

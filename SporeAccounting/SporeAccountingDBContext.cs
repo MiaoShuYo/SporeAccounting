@@ -24,6 +24,10 @@ public class SporeAccountingDBContext : DbContext
     /// 角色可访问径表
     /// </summary>
     public DbSet<SysRoleUrl> SysRoleUrls { get; set; }
+    /// <summary>
+    /// 接口URL表
+    /// </summary>
+    public DbSet<SysUrl> SysUrls { get; set; }
 
     IConfiguration _dbConfig;
     public SporeAccountingDBContext(IConfiguration dbConfig)

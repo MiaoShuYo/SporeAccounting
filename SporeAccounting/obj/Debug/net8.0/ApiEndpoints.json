@@ -239,6 +239,136 @@
     ]
   },
   {
+    "ContainingType": "SporeAccounting.Controllers.SysUrlController",
+    "Method": "Add",
+    "RelativePath": "api/SysUrl/Add",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "sysUrlViewModel",
+        "Type": "SporeAccounting.Models.ViewModels.SysUrlViewModel",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": [
+      {
+        "Type": "SporeAccounting.BaseModels.ResponseData\u00601[[System.Boolean, System.Private.CoreLib, Version=8.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]]",
+        "MediaTypes": [
+          "text/plain",
+          "application/json",
+          "text/json"
+        ],
+        "StatusCode": 200
+      }
+    ]
+  },
+  {
+    "ContainingType": "SporeAccounting.Controllers.SysUrlController",
+    "Method": "Delete",
+    "RelativePath": "api/SysUrl/Delete/{urlId}",
+    "HttpMethod": "DELETE",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "urlId",
+        "Type": "System.String",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": [
+      {
+        "Type": "SporeAccounting.BaseModels.ResponseData\u00601[[System.Boolean, System.Private.CoreLib, Version=8.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]]",
+        "MediaTypes": [
+          "text/plain",
+          "application/json",
+          "text/json"
+        ],
+        "StatusCode": 200
+      }
+    ]
+  },
+  {
+    "ContainingType": "SporeAccounting.Controllers.SysUrlController",
+    "Method": "Edit",
+    "RelativePath": "api/SysUrl/Edit",
+    "HttpMethod": "PUT",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "sysUrlViewModel",
+        "Type": "SporeAccounting.Models.ViewModels.SysUrlEditViewModel",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": [
+      {
+        "Type": "SporeAccounting.BaseModels.ResponseData\u00601[[System.Boolean, System.Private.CoreLib, Version=8.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]]",
+        "MediaTypes": [
+          "text/plain",
+          "application/json",
+          "text/json"
+        ],
+        "StatusCode": 200
+      }
+    ]
+  },
+  {
+    "ContainingType": "SporeAccounting.Controllers.SysUrlController",
+    "Method": "Query",
+    "RelativePath": "api/SysUrl/Query",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "sysUrlPage",
+        "Type": "SporeAccounting.Models.ViewModels.SysUrlPageViewModel",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": [
+      {
+        "Type": "SporeAccounting.BaseModels.ResponseData\u00601[[SporeAccounting.BaseModels.ViewModel.Response.PageResponseViewModel\u00601[[SporeAccounting.Models.ViewModels.SysUrlQueryViewModel, SporeAccounting, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null]], SporeAccounting, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null]]",
+        "MediaTypes": [
+          "text/plain",
+          "application/json",
+          "text/json"
+        ],
+        "StatusCode": 200
+      }
+    ]
+  },
+  {
+    "ContainingType": "SporeAccounting.Controllers.SysUrlController",
+    "Method": "QueryById",
+    "RelativePath": "api/SysUrl/QueryById",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "urlId",
+        "Type": "System.String",
+        "IsRequired": false
+      }
+    ],
+    "ReturnTypes": [
+      {
+        "Type": "SporeAccounting.BaseModels.ResponseData\u00601[[SporeAccounting.Models.ViewModels.SysUrlQueryViewModel, SporeAccounting, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null]]",
+        "MediaTypes": [
+          "text/plain",
+          "application/json",
+          "text/json"
+        ],
+        "StatusCode": 200
+      }
+    ]
+  },
+  {
     "ContainingType": "SporeAccounting.Controllers.SysUserController",
     "Method": "Edit",
     "RelativePath": "api/SysUser/Edit",

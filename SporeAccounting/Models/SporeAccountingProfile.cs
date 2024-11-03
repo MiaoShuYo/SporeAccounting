@@ -29,7 +29,15 @@ public class SporeAccountingProfile : Profile
         CreateMap<SysRole, SysRoleQueryViewModel>()
             .ForMember(d => d.RoleName, opt =>
                 opt.MapFrom(s => s.RoleName))
-            .ForMember(d=>d.RoleId,opt=>
-                opt.MapFrom(s=>s.Id));
+            .ForMember(d => d.RoleId, opt =>
+                opt.MapFrom(s => s.Id));
+
+        CreateMap<SysUrlViewModel, SysUrl>();
+        CreateMap<SysUrlEditViewModel, SysUrl>();
+        CreateMap<SysUrl, SysUrlQueryViewModel>()
+            .ForMember(d => d.Id, opt =>
+                opt.MapFrom(s => s.Id))
+            .ForMember(d => d.Url, opt =>
+                opt.MapFrom(s => s.Url));
     }
 }

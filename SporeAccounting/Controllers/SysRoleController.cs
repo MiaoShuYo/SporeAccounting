@@ -126,7 +126,7 @@ namespace SporeAccounting.Controllers
         }
 
         /// <summary>
-        /// 根据角色名查询
+        /// 根据角色名查询（分页查询）
         /// </summary>
         /// <param name="roleName"></param>
         /// <returns></returns>

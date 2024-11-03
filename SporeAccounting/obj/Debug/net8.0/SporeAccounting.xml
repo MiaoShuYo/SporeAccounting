@@ -140,7 +140,7 @@
         </member>
         <member name="M:SporeAccounting.Controllers.SysRoleController.Query(System.String)">
             <summary>
-            根据角色名查询
+            根据角色名查询（分页查询）
             </summary>
             <param name="roleName"></param>
             <returns></returns>
@@ -177,6 +177,46 @@
             修改角色可访问的URL
             </summary>
             <param name="roleUrl"></param>
+            <returns></returns>
+        </member>
+        <member name="T:SporeAccounting.Controllers.SysUrlController">
+            <summary>
+            接口URL控制器
+            </summary>
+        </member>
+        <member name="M:SporeAccounting.Controllers.SysUrlController.Add(SporeAccounting.Models.ViewModels.SysUrlViewModel)">
+            <summary>
+            新增URL
+            </summary>
+            <param name="sysUrlViewModel"></param>
+            <returns></returns>
+        </member>
+        <member name="M:SporeAccounting.Controllers.SysUrlController.Delete(System.String)">
+            <summary>
+            删除URL（逻辑删除）
+            </summary>
+            <param name="urlId"></param>
+            <returns></returns>
+        </member>
+        <member name="M:SporeAccounting.Controllers.SysUrlController.Edit(SporeAccounting.Models.ViewModels.SysUrlEditViewModel)">
+            <summary>
+            修改URL
+            </summary>
+            <param name="sysUrlViewModel"></param>
+            <returns></returns>
+        </member>
+        <member name="M:SporeAccounting.Controllers.SysUrlController.Query(SporeAccounting.Models.ViewModels.SysUrlPageViewModel)">
+            <summary>
+            查询URL列表（分页查询）
+            </summary>
+            <param name="sysUrlPage"></param>
+            <returns></returns>
+        </member>
+        <member name="M:SporeAccounting.Controllers.SysUrlController.QueryById(System.String)">
+            <summary>
+            查询具体某个URL信息
+            </summary>
+            <param name="urlId"></param>
             <returns></returns>
         </member>
         <member name="T:SporeAccounting.Controllers.SysUserController">
@@ -303,6 +343,30 @@
         <member name="M:SporeAccounting.Migrations.AddCanDelete.BuildTargetModel(Microsoft.EntityFrameworkCore.ModelBuilder)">
             <inheritdoc />
         </member>
+        <member name="T:SporeAccounting.Migrations.InitSysUrl">
+            <inheritdoc />
+        </member>
+        <member name="M:SporeAccounting.Migrations.InitSysUrl.Up(Microsoft.EntityFrameworkCore.Migrations.MigrationBuilder)">
+            <inheritdoc />
+        </member>
+        <member name="M:SporeAccounting.Migrations.InitSysUrl.Down(Microsoft.EntityFrameworkCore.Migrations.MigrationBuilder)">
+            <inheritdoc />
+        </member>
+        <member name="M:SporeAccounting.Migrations.InitSysUrl.BuildTargetModel(Microsoft.EntityFrameworkCore.ModelBuilder)">
+            <inheritdoc />
+        </member>
+        <member name="T:SporeAccounting.Migrations.UpdateCanDelete">
+            <inheritdoc />
+        </member>
+        <member name="M:SporeAccounting.Migrations.UpdateCanDelete.Up(Microsoft.EntityFrameworkCore.Migrations.MigrationBuilder)">
+            <inheritdoc />
+        </member>
+        <member name="M:SporeAccounting.Migrations.UpdateCanDelete.Down(Microsoft.EntityFrameworkCore.Migrations.MigrationBuilder)">
+            <inheritdoc />
+        </member>
+        <member name="M:SporeAccounting.Migrations.UpdateCanDelete.BuildTargetModel(Microsoft.EntityFrameworkCore.ModelBuilder)">
+            <inheritdoc />
+        </member>
         <member name="T:SporeAccounting.Models.SysRole">
             <summary>
             角色
@@ -346,6 +410,26 @@
         <member name="P:SporeAccounting.Models.SysRoleUrl.Role">
             <summary>
             导航属性
+            </summary>
+        </member>
+        <member name="T:SporeAccounting.Models.SysUrl">
+            <summary>
+            接口URL表
+            </summary>
+        </member>
+        <member name="P:SporeAccounting.Models.SysUrl.Url">
+            <summary>
+            接口URL
+            </summary>
+        </member>
+        <member name="P:SporeAccounting.Models.SysUrl.Description">
+            <summary>
+            URL描述
+            </summary>
+        </member>
+        <member name="P:SporeAccounting.Models.SysUrl.CanDelete">
+            <summary>
+            是否可以删除
             </summary>
         </member>
         <member name="T:SporeAccounting.Models.SysUser">
@@ -461,6 +545,56 @@
         <member name="P:SporeAccounting.Models.ViewModels.SysRoleViewModel.RoleName">
             <summary>
             角色名称
+            </summary>
+        </member>
+        <member name="P:SporeAccounting.Models.ViewModels.SysUrlEditViewModel.Id">
+            <summary>
+            Url Id
+            </summary>
+        </member>
+        <member name="P:SporeAccounting.Models.ViewModels.SysUrlEditViewModel.Url">
+            <summary>
+            URL地址
+            </summary>
+        </member>
+        <member name="P:SporeAccounting.Models.ViewModels.SysUrlEditViewModel.Description">
+            <summary>
+            URL描述
+            </summary>
+        </member>
+        <member name="P:SporeAccounting.Models.ViewModels.SysUrlPageViewModel.Url">
+            <summary>
+            Url
+            </summary>
+        </member>
+        <member name="P:SporeAccounting.Models.ViewModels.SysUrlQueryViewModel.Id">
+            <summary>
+            URL Id
+            </summary>
+        </member>
+        <member name="P:SporeAccounting.Models.ViewModels.SysUrlQueryViewModel.Url">
+            <summary>
+            URL 
+            </summary>
+        </member>
+        <member name="P:SporeAccounting.Models.ViewModels.SysUrlQueryViewModel.Description">
+            <summary>
+            URL描述
+            </summary>
+        </member>
+        <member name="P:SporeAccounting.Models.ViewModels.SysUrlViewModel.Url">
+            <summary>
+            URL地址
+            </summary>
+        </member>
+        <member name="P:SporeAccounting.Models.ViewModels.SysUrlViewModel.Description">
+            <summary>
+            URL描述
+            </summary>
+        </member>
+        <member name="P:SporeAccounting.Models.ViewModels.SysUrlViewModel.CanDelete">
+            <summary>
+            是否可删除
             </summary>
         </member>
         <member name="P:SporeAccounting.Models.ViewModels.SysUserEditViewModel.Id">
@@ -666,6 +800,63 @@
             <param name="url"></param>
             <returns></returns>
         </member>
+        <member name="T:SporeAccounting.Server.Interface.ISysUrlServer">
+            <summary>
+            URL服务接口
+            </summary>
+        </member>
+        <member name="M:SporeAccounting.Server.Interface.ISysUrlServer.Add(SporeAccounting.Models.SysUrl)">
+            <summary>
+            新增URL
+            </summary>
+            <param name="sysUrl"></param>
+        </member>
+        <member name="M:SporeAccounting.Server.Interface.ISysUrlServer.Delete(SporeAccounting.Models.SysUrl)">
+            <summary>
+            删除URL
+            </summary>
+            <param name="urlId"></param>
+        </member>
+        <member name="M:SporeAccounting.Server.Interface.ISysUrlServer.Query(System.String)">
+            <summary>
+            查询URL
+            </summary>
+            <param name="urlId"></param>
+        </member>
+        <member name="M:SporeAccounting.Server.Interface.ISysUrlServer.GetByPage(SporeAccounting.Models.ViewModels.SysUrlPageViewModel)">
+            <summary>
+            查询URL列表
+            </summary>
+            <param name="sysRoleUrlPageViewModel"></param>
+            <returns></returns>
+        </member>
+        <member name="M:SporeAccounting.Server.Interface.ISysUrlServer.Update(SporeAccounting.Models.SysUrl)">
+            <summary>
+            修改Url
+            </summary>
+            <param name="sysUrl"></param>
+        </member>
+        <member name="M:SporeAccounting.Server.Interface.ISysUrlServer.IsExist(System.String)">
+            <summary>
+            URL是否存在
+            </summary>
+            <param name="url"></param>
+            <returns></returns>
+        </member>
+        <member name="M:SporeAccounting.Server.Interface.ISysUrlServer.IsExistById(System.String)">
+            <summary>
+            URL是否存在
+            </summary>
+            <param name="urlId"></param>
+            <returns></returns>
+        </member>
+        <member name="M:SporeAccounting.Server.Interface.ISysUrlServer.CanDelete(System.String)">
+            <summary>
+            是否可以删除
+            </summary>
+            <param name="urlId"></param>
+            <returns></returns>
+        </member>
         <member name="T:SporeAccounting.Server.Interface.ISysUserServer">
             <summary>
             用户接口
@@ -824,6 +1015,63 @@
             <returns></returns>
             <exception cref="T:System.NotImplementedException"></exception>
         </member>
+        <member name="T:SporeAccounting.Server.SysUrlImp">
+            <summary>
+            URL服务实现
+            </summary>
+        </member>
+        <member name="M:SporeAccounting.Server.SysUrlImp.Add(SporeAccounting.Models.SysUrl)">
+            <summary>
+            新增URL
+            </summary>
+            <param name="sysUrl"></param>
+        </member>
+        <member name="M:SporeAccounting.Server.SysUrlImp.Delete(SporeAccounting.Models.SysUrl)">
+            <summary>
+            删除URL
+            </summary>
+            <param name="sysUrl"></param>
+        </member>
+        <member name="M:SporeAccounting.Server.SysUrlImp.Query(System.String)">
+            <summary>
+            查询URL
+            </summary>
+            <param name="urlId"></param>
+        </member>
+        <member name="M:SporeAccounting.Server.SysUrlImp.GetByPage(SporeAccounting.Models.ViewModels.SysUrlPageViewModel)">
+            <summary>
+            查询URL列表
+            </summary>
+            <param name="sysRoleUrlPageViewModel"></param>
+            <returns></returns>
+        </member>
+        <member name="M:SporeAccounting.Server.SysUrlImp.Update(SporeAccounting.Models.SysUrl)">
+            <summary>
+            修改Url
+            </summary>
+            <param name="sysUrl"></param>
+        </member>
+        <member name="M:SporeAccounting.Server.SysUrlImp.IsExist(System.String)">
+            <summary>
+            URL是否存在
+            </summary>
+            <param name="url"></param>
+            <returns></returns>
+        </member>
+        <member name="M:SporeAccounting.Server.SysUrlImp.IsExistById(System.String)">
+            <summary>
+            URL是否存在
+            </summary>
+            <param name="urlId"></param>
+            <returns></returns>
+        </member>
+        <member name="M:SporeAccounting.Server.SysUrlImp.CanDelete(System.String)">
+            <summary>
+            是否可以删除
+            </summary>
+            <param name="urlId"></param>
+            <returns></returns>
+        </member>
         <member name="T:SporeAccounting.Server.SysUserImp">
             <summary>
             用户实现类
@@ -893,6 +1141,11 @@
         <member name="P:SporeAccounting.SporeAccountingDBContext.SysRoleUrls">
             <summary>
             角色可访问径表
+            </summary>
+        </member>
+        <member name="P:SporeAccounting.SporeAccountingDBContext.SysUrls">
+            <summary>
+            接口URL表
             </summary>
         </member>
     </members>

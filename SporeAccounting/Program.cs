@@ -96,6 +96,7 @@ namespace SporeAccounting
             builder.Services.AddScoped(typeof(ISysUserServer), typeof(SysUserImp));
             builder.Services.AddScoped(typeof(ISysRoleServer), typeof(SysRoleImp));
             builder.Services.AddScoped(typeof(ISysRoleUrlServer), typeof(SysRoleUrlImp));
+            builder.Services.AddScoped(typeof(ISysUrlServer), typeof(SysUrlImp));
 
             var app = builder.Build();
 
