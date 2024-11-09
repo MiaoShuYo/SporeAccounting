@@ -37,12 +37,13 @@ public class SysRoleUrlImp : ISysRoleUrlServer
     /// 删除角色可访问的URL
     /// </summary>
     /// <param name="roleId"></param>
-    /// <param name="url"></param>
-    public void Delete(string roleId, string url)
+    /// <param name="urlId"></param>
+    public void Delete(string roleId, string urlId)
     {
         try
         {
-            SysRoleUrl roleUrl = _dbContext.SysRoleUrls.FirstOrDefault(x => x.RoleId == roleId && x.Url == url);
+            SysRoleUrl roleUrl = _dbContext.SysRoleUrls.
+                FirstOrDefault(x => x.RoleId == roleId && x.UrlId == urlId);
             if (roleUrl != null)
             {
                 _dbContext.SysRoleUrls.Remove(roleUrl);
@@ -60,16 +61,16 @@ public class SysRoleUrlImp : ISysRoleUrlServer
     /// </summary>
     /// <param name="id"></param>
     /// <param name="roleId"></param>
-    /// <param name="url"></param>
-    public void Edit(string id, string roleId, string url)
+    /// <param name="urlId"></param>
+    public void Edit(string id, string roleId, string urlId)
     {
         try
         {
             SysRoleUrl roleUrl = _dbContext.SysRoleUrls.FirstOrDefault(x => x.Id == id);
             if (roleUrl != null)
             {
-                roleUrl.Url = url;
-                roleUrl.RoleId= roleId;
+                roleUrl.UrlId = urlId;
+                roleUrl.RoleId = roleId;
                 _dbContext.SysRoleUrls.Update(roleUrl);
                 _dbContext.SaveChanges();
             }
@@ -85,11 +86,30 @@ public class SysRoleUrlImp : ISysRoleUrlServer
     /// <param name="roleId"></param>
     /// <param name="url"></param>
     /// <returns></returns>
-    public bool IsExist(string roleId, string url)
+    public bool IsExist(string roleId, string urlId)
     {
         try
         {
-            return _dbContext.SysRoleUrls.Any(x => x.RoleId == roleId && x.Url == url);
+            return _dbContext.SysRoleUrls.Any(x => x.RoleId == roleId && x.UrlId == urlId);
+        }
+        catch (Exception e)
+        {
+            throw;
+        }
+    }
+
+    /// <summary>
+    /// 是否可以删除
+    /// </summary>
+    /// <param name="roleId"></param>
+    /// <param name="urlId"></param>
+    /// <returns></returns>
+    public bool IsDelete(string roleId, string urlId)
+    {
+        try
+        {
+            return _dbContext.SysRoleUrls
+                .Any(x => x.RoleId == roleId && x.UrlId == urlId && x.CanDelete);
         }
         catch (Exception e)
         {
@@ -100,11 +120,19 @@ public class SysRoleUrlImp : ISysRoleUrlServer
     /// 查询角色可访问的URL
     /// </summary>
     /// <param name="roleId"></param>
-    public List<string> Query(string roleId)
+    public List<SysRoleUrlInfoVideModel> Query(string roleId)
     {
         try
         {
-            return _dbContext.SysRoleUrls.Where(x => x.RoleId == roleId).Select(x => x.Url).ToList();
+            return _dbContext.SysRoleUrls
+                .Where(x => x.RoleId == roleId)
+                .Select(x => new SysRoleUrlInfoVideModel()
+                {
+                    RoleId = x.RoleId,
+                    UrlId = x.UrlId,
+                    RoleName = x.Role.RoleName,
+                    Url = x.Url.Url
+                }).ToList();
         }
         catch (Exception e)
         {
@@ -116,17 +144,23 @@ public class SysRoleUrlImp : ISysRoleUrlServer
     /// </summary>
     /// <param name="sysRoleUrlPageViewModel"></param>
     /// <returns></returns>
-    /// <exception cref="NotImplementedException"></exception>
-    public (int rowCount, int pageCount, List<SysRoleUrl> sysRoleUrls) GetByPage(SysRoleUrlPageViewModel sysRoleUrlPageViewModel)
+    public (int rowCount, int pageCount, List<SysRoleUrlInfoVideModel> sysRoleUrls) GetByPage(SysRoleUrlPageViewModel sysRoleUrlPageViewModel)
     {
         try
         {
             //计算跳过的数据量
             int skip = (sysRoleUrlPageViewModel.PageNumber - 1) * sysRoleUrlPageViewModel.PageSize;
-            IQueryable<SysRoleUrl> roleUrls = _dbContext.SysRoleUrls.Include(i=>i.Role);
+            IQueryable<SysRoleUrlInfoVideModel> roleUrls = _dbContext.SysRoleUrls
+                .Select(s => new SysRoleUrlInfoVideModel()
+                {
+                    RoleId = s.RoleId,
+                    RoleName = s.Role.RoleName,
+                    UrlId = s.UrlId,
+                    Url = s.Url.Url
+                });
             if (!string.IsNullOrEmpty(sysRoleUrlPageViewModel.RoleName))
             {
-                roleUrls = roleUrls.Where(ru => ru.Role.RoleName.Contains(sysRoleUrlPageViewModel.RoleName));
+                roleUrls = roleUrls.Where(ru => ru.RoleName.Contains(sysRoleUrlPageViewModel.RoleName));
             }
             if (!string.IsNullOrEmpty(sysRoleUrlPageViewModel.Url))
             {

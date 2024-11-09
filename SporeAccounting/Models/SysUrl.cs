@@ -28,4 +28,8 @@ public class SysUrl : BaseModel
     [Column(TypeName = "nvarchar(200)")]
     [Required]
     public bool CanDelete { get; set; } = true;
+    /// <summary>
+    /// 导航属性
+    /// </summary>
+    public ICollection<SysRoleUrl> RoleUrls { get; set; }
 }

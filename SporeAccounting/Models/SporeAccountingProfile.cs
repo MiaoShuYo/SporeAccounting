@@ -39,5 +39,7 @@ public class SporeAccountingProfile : Profile
                 opt.MapFrom(s => s.Id))
             .ForMember(d => d.Url, opt =>
                 opt.MapFrom(s => s.Url));
+
+        CreateMap<SysRoleUrlViewModel, SysRoleUrl>();
     }
 }

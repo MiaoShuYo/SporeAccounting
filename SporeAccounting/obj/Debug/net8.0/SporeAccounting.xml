@@ -145,40 +145,6 @@
             <param name="roleName"></param>
             <returns></returns>
         </member>
-        <member name="T:SporeAccounting.Controllers.SysRoleUrlController">
-            <summary>
-            角色可访问URL
-            </summary>
-        </member>
-        <member name="M:SporeAccounting.Controllers.SysRoleUrlController.Query(System.String)">
-            <summary>
-            根据角色Id查询角色可访问的URL
-            </summary>
-            <param name="roleId"></param>
-            <returns></returns>
-        </member>
-        <member name="M:SporeAccounting.Controllers.SysRoleUrlController.Add(SporeAccounting.Models.ViewModels.SysRoleUrlViewModel)">
-            <summary>
-            新增角色可访问的URL
-            </summary>
-            <param name="roleUrl"></param>
-            <returns></returns>
-        </member>
-        <member name="M:SporeAccounting.Controllers.SysRoleUrlController.Delete(System.String,System.String)">
-            <summary>
-            删除角色可访问的URL
-            </summary>
-            <param name="roleId"></param>
-            <param name="url"></param>
-            <returns></returns>
-        </member>
-        <member name="M:SporeAccounting.Controllers.SysRoleUrlController.Edit(SporeAccounting.Models.ViewModels.SysRoleUrlViewModel)">
-            <summary>
-            修改角色可访问的URL
-            </summary>
-            <param name="roleUrl"></param>
-            <returns></returns>
-        </member>
         <member name="T:SporeAccounting.Controllers.SysUrlController">
             <summary>
             接口URL控制器
@@ -319,52 +285,16 @@
             </summary>
             <returns></returns>
         </member>
-        <member name="T:SporeAccounting.Migrations.InitSysTable">
+        <member name="T:SporeAccounting.Migrations.InitDataBase">
             <inheritdoc />
         </member>
-        <member name="M:SporeAccounting.Migrations.InitSysTable.Up(Microsoft.EntityFrameworkCore.Migrations.MigrationBuilder)">
+        <member name="M:SporeAccounting.Migrations.InitDataBase.Up(Microsoft.EntityFrameworkCore.Migrations.MigrationBuilder)">
             <inheritdoc />
         </member>
-        <member name="M:SporeAccounting.Migrations.InitSysTable.Down(Microsoft.EntityFrameworkCore.Migrations.MigrationBuilder)">
+        <member name="M:SporeAccounting.Migrations.InitDataBase.Down(Microsoft.EntityFrameworkCore.Migrations.MigrationBuilder)">
             <inheritdoc />
         </member>
-        <member name="M:SporeAccounting.Migrations.InitSysTable.BuildTargetModel(Microsoft.EntityFrameworkCore.ModelBuilder)">
-            <inheritdoc />
-        </member>
-        <member name="T:SporeAccounting.Migrations.AddCanDelete">
-            <inheritdoc />
-        </member>
-        <member name="M:SporeAccounting.Migrations.AddCanDelete.Up(Microsoft.EntityFrameworkCore.Migrations.MigrationBuilder)">
-            <inheritdoc />
-        </member>
-        <member name="M:SporeAccounting.Migrations.AddCanDelete.Down(Microsoft.EntityFrameworkCore.Migrations.MigrationBuilder)">
-            <inheritdoc />
-        </member>
-        <member name="M:SporeAccounting.Migrations.AddCanDelete.BuildTargetModel(Microsoft.EntityFrameworkCore.ModelBuilder)">
-            <inheritdoc />
-        </member>
-        <member name="T:SporeAccounting.Migrations.InitSysUrl">
-            <inheritdoc />
-        </member>
-        <member name="M:SporeAccounting.Migrations.InitSysUrl.Up(Microsoft.EntityFrameworkCore.Migrations.MigrationBuilder)">
-            <inheritdoc />
-        </member>
-        <member name="M:SporeAccounting.Migrations.InitSysUrl.Down(Microsoft.EntityFrameworkCore.Migrations.MigrationBuilder)">
-            <inheritdoc />
-        </member>
-        <member name="M:SporeAccounting.Migrations.InitSysUrl.BuildTargetModel(Microsoft.EntityFrameworkCore.ModelBuilder)">
-            <inheritdoc />
-        </member>
-        <member name="T:SporeAccounting.Migrations.UpdateCanDelete">
-            <inheritdoc />
-        </member>
-        <member name="M:SporeAccounting.Migrations.UpdateCanDelete.Up(Microsoft.EntityFrameworkCore.Migrations.MigrationBuilder)">
-            <inheritdoc />
-        </member>
-        <member name="M:SporeAccounting.Migrations.UpdateCanDelete.Down(Microsoft.EntityFrameworkCore.Migrations.MigrationBuilder)">
-            <inheritdoc />
-        </member>
-        <member name="M:SporeAccounting.Migrations.UpdateCanDelete.BuildTargetModel(Microsoft.EntityFrameworkCore.ModelBuilder)">
+        <member name="M:SporeAccounting.Migrations.InitDataBase.BuildTargetModel(Microsoft.EntityFrameworkCore.ModelBuilder)">
             <inheritdoc />
         </member>
         <member name="T:SporeAccounting.Models.SysRole">
@@ -402,12 +332,17 @@
             角色Id
             </summary>
         </member>
-        <member name="P:SporeAccounting.Models.SysRoleUrl.Url">
+        <member name="P:SporeAccounting.Models.SysRoleUrl.UrlId">
             <summary>
             接口路径
             </summary>
         </member>
         <member name="P:SporeAccounting.Models.SysRoleUrl.Role">
+            <summary>
+            导航属性
+            </summary>
+        </member>
+        <member name="P:SporeAccounting.Models.SysRoleUrl.Url">
             <summary>
             导航属性
             </summary>
@@ -430,6 +365,11 @@
         <member name="P:SporeAccounting.Models.SysUrl.CanDelete">
             <summary>
             是否可以删除
+            </summary>
+        </member>
+        <member name="P:SporeAccounting.Models.SysUrl.RoleUrls">
+            <summary>
+            导航属性
             </summary>
         </member>
         <member name="T:SporeAccounting.Models.SysUser">
@@ -580,6 +520,11 @@
         <member name="P:SporeAccounting.Models.ViewModels.SysUrlQueryViewModel.Description">
             <summary>
             URL描述
+            </summary>
+        </member>
+        <member name="P:SporeAccounting.Models.ViewModels.SysUrlQueryViewModel.CanDelete">
+            <summary>
+            是否可以删除
             </summary>
         </member>
         <member name="P:SporeAccounting.Models.ViewModels.SysUrlViewModel.Url">
@@ -965,55 +910,6 @@
             <param name="roleId"></param>
             <param name="roleName"></param>
             <returns></returns>
-        </member>
-        <member name="T:SporeAccounting.Server.SysRoleUrlImp">
-            <summary>
-            角色可访问的URL数据库操作
-            </summary>
-        </member>
-        <member name="M:SporeAccounting.Server.SysRoleUrlImp.Add(SporeAccounting.Models.SysRoleUrl)">
-            <summary>
-            新增角色可访问的URL
-            </summary>
-            <param name="roleId"></param>
-            <param name="url"></param>
-        </member>
-        <member name="M:SporeAccounting.Server.SysRoleUrlImp.Delete(System.String,System.String)">
-            <summary>
-            删除角色可访问的URL
-            </summary>
-            <param name="roleId"></param>
-            <param name="url"></param>
-        </member>
-        <member name="M:SporeAccounting.Server.SysRoleUrlImp.Edit(System.String,System.String,System.String)">
-            <summary>
-            修改角色可访问的URL
-            </summary>
-            <param name="id"></param>
-            <param name="roleId"></param>
-            <param name="url"></param>
-        </member>
-        <member name="M:SporeAccounting.Server.SysRoleUrlImp.IsExist(System.String,System.String)">
-            <summary>
-            角色可访问的URL是否存在
-            </summary>
-            <param name="roleId"></param>
-            <param name="url"></param>
-            <returns></returns>
-        </member>
-        <member name="M:SporeAccounting.Server.SysRoleUrlImp.Query(System.String)">
-            <summary>
-            查询角色可访问的URL
-            </summary>
-            <param name="roleId"></param>
-        </member>
-        <member name="M:SporeAccounting.Server.SysRoleUrlImp.GetByPage(SporeAccounting.Models.ViewModels.SysRoleUrlPageViewModel)">
-            <summary>
-            分页查询角色可访问的URL
-            </summary>
-            <param name="sysRoleUrlPageViewModel"></param>
-            <returns></returns>
-            <exception cref="T:System.NotImplementedException"></exception>
         </member>
         <member name="T:SporeAccounting.Server.SysUrlImp">
             <summary>

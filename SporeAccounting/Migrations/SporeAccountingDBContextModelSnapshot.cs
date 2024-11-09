@@ -63,19 +63,19 @@ namespace SporeAccounting.Migrations
                     b.HasData(
                         new
                         {
-                            Id = "37191752-9c34-4106-82bc-5631cf69ef6f",
+                            Id = "5e575fd7-8c2a-434a-afe3-f0daaad7adb2",
                             CanDelete = false,
-                            CreateDateTime = new DateTime(2024, 11, 3, 13, 6, 2, 588, DateTimeKind.Local).AddTicks(3105),
-                            CreateUserId = "d76591a7-e77f-4a85-af94-9539142eb2a0",
+                            CreateDateTime = new DateTime(2024, 11, 9, 23, 12, 59, 238, DateTimeKind.Local).AddTicks(9634),
+                            CreateUserId = "22df3bad-66df-40a7-a3a1-c0c3d06e5a99",
                             IsDeleted = false,
                             RoleName = "Administrator"
                         },
                         new
                         {
-                            Id = "f581095b-ecbc-4cf9-9cdb-c1bdebe251f6",
+                            Id = "d5f0fc96-0a8f-4b8c-9555-a41642d547aa",
                             CanDelete = false,
-                            CreateDateTime = new DateTime(2024, 11, 3, 13, 6, 2, 588, DateTimeKind.Local).AddTicks(3125),
-                            CreateUserId = "d76591a7-e77f-4a85-af94-9539142eb2a0",
+                            CreateDateTime = new DateTime(2024, 11, 9, 23, 12, 59, 238, DateTimeKind.Local).AddTicks(9655),
+                            CreateUserId = "22df3bad-66df-40a7-a3a1-c0c3d06e5a99",
                             IsDeleted = false,
                             RoleName = "Consumer"
                         });
@@ -112,13 +112,15 @@ namespace SporeAccounting.Migrations
                     b.Property<string>("UpdateUserId")
                         .HasColumnType("nvarchar(36)");
 
-                    b.Property<string>("Url")
+                    b.Property<string>("UrlId")
                         .IsRequired()
-                        .HasColumnType("nvarchar(100)");
+                        .HasColumnType("nvarchar(36)");
 
                     b.HasKey("Id");
 
                     b.HasIndex("RoleId");
+
+                    b.HasIndex("UrlId");
 
                     b.ToTable("SysRoleUrl");
                 });
@@ -230,16 +232,16 @@ namespace SporeAccounting.Migrations
                     b.HasData(
                         new
                         {
-                            Id = "d76591a7-e77f-4a85-af94-9539142eb2a0",
+                            Id = "22df3bad-66df-40a7-a3a1-c0c3d06e5a99",
                             CanDelete = false,
-                            CreateDateTime = new DateTime(2024, 11, 3, 13, 6, 2, 588, DateTimeKind.Local).AddTicks(3716),
-                            CreateUserId = "d76591a7-e77f-4a85-af94-9539142eb2a0",
+                            CreateDateTime = new DateTime(2024, 11, 9, 23, 12, 59, 238, DateTimeKind.Local).AddTicks(9800),
+                            CreateUserId = "22df3bad-66df-40a7-a3a1-c0c3d06e5a99",
                             Email = "admin@miaoshu.xyz",
                             IsDeleted = false,
-                            Password = "Fd+aomGKuAet8eUb+FVNvxqdevWqK7UjnNrv8N6uO6A=",
+                            Password = "xg5Ko6Blelj8ragUu37ks58Gwa+d8hnnJMK2de5/E8w=",
                             PhoneNumber = "",
-                            RoleId = "37191752-9c34-4106-82bc-5631cf69ef6f",
-                            Salt = "0e92a36d056b4034beac108e7852570a",
+                            RoleId = "5e575fd7-8c2a-434a-afe3-f0daaad7adb2",
+                            Salt = "93bf761918924dd6825a52d4680ed6ac",
                             UserName = "admin"
                         });
                 });
@@ -252,7 +254,15 @@ namespace SporeAccounting.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("SporeAccounting.Models.SysUrl", "Url")
+                        .WithMany("RoleUrls")
+                        .HasForeignKey("UrlId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
                     b.Navigation("Role");
+
+                    b.Navigation("Url");
                 });
 
             modelBuilder.Entity("SporeAccounting.Models.SysUser", b =>
@@ -271,6 +281,11 @@ namespace SporeAccounting.Migrations
                     b.Navigation("RoleUrls");
 
                     b.Navigation("Users");
+                });
+
+            modelBuilder.Entity("SporeAccounting.Models.SysUrl", b =>
+                {
+                    b.Navigation("RoleUrls");
                 });
 #pragma warning restore 612, 618
         }

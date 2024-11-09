@@ -1,12 +1,11 @@
-﻿using System.Data;
-using System.Net;
-using Microsoft.AspNetCore.Http;
+﻿using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
 using SporeAccounting.BaseModels;
 using SporeAccounting.BaseModels.ViewModel.Response;
 using SporeAccounting.Models;
 using SporeAccounting.Models.ViewModels;
 using SporeAccounting.Server.Interface;
+using System.Net;
 
 namespace SporeAccounting.Controllers
 {
@@ -18,9 +17,11 @@ namespace SporeAccounting.Controllers
     public class SysRoleUrlController : ControllerBase
     {
         private readonly ISysRoleUrlServer _sysRoleUrlServer;
-        public SysRoleUrlController(ISysRoleUrlServer sysRoleUrlServer)
+        private readonly IMapper _mapper;
+        public SysRoleUrlController(ISysRoleUrlServer sysRoleUrlServer,IMapper mapper)
         {
             _sysRoleUrlServer = sysRoleUrlServer;
+            _mapper = mapper;
         }
         /// <summary>
         /// 根据角色Id查询角色可访问的URL
@@ -29,12 +30,12 @@ namespace SporeAccounting.Controllers
         /// <returns></returns>
         [HttpGet]
         [Route("Query/{roleId}")]
-        public ActionResult<ResponseData<List<string>>> Query([FromRoute] string roleId)
+        public ActionResult<ResponseData<List<SysRoleUrlInfoVideModel>>> Query([FromRoute] string roleId)
         {
             try
             {
-                List<string> urls = _sysRoleUrlServer.Query(roleId);
-                return Ok(new ResponseData<List<string>>(HttpStatusCode.OK, data: urls));
+                List<SysRoleUrlInfoVideModel> roleUrlInfo = _sysRoleUrlServer.Query(roleId);
+                return Ok(new ResponseData<List<SysRoleUrlInfoVideModel>>(HttpStatusCode.OK, data: roleUrlInfo));
             }
             catch (Exception e)
             {
@@ -43,29 +44,17 @@ namespace SporeAccounting.Controllers
         }
         [HttpPost]
         [Route("Query")]
-        public ActionResult<ResponseData<PageResponseViewModel<SysRoleUrlQueryViewModel>>> Query([FromBody] SysRoleUrlPageViewModel sysRoleUrlPageViewModel)
+        public ActionResult<ResponseData<PageResponseViewModel<SysRoleUrlInfoVideModel>>> Query([FromBody] SysRoleUrlPageViewModel sysRoleUrlPageViewModel)
         {
             try
             {
-                (int rowCount, int pageCount, List<SysRoleUrl> sysRoleUrls) = _sysRoleUrlServer.GetByPage(sysRoleUrlPageViewModel);
-                List<SysRoleUrlQueryViewModel> sysRoleUrlQuery = new List<SysRoleUrlQueryViewModel>();
-                foreach (var item in sysRoleUrls)
-                {
-                    sysRoleUrlQuery.Add(new SysRoleUrlQueryViewModel
-                    {
-                        Id = item.Id,
-                        RoleId = item.RoleId,
-                        RoleName = item.Role.RoleName,
-                        Url = item.Url
-                    });
-                }
-
-                PageResponseViewModel<SysRoleUrlQueryViewModel> pageResponse =
-                    new PageResponseViewModel<SysRoleUrlQueryViewModel>();
-                pageResponse.Data = sysRoleUrlQuery;
+                (int rowCount, int pageCount, List<SysRoleUrlInfoVideModel> sysRoleUrls) = _sysRoleUrlServer.GetByPage(sysRoleUrlPageViewModel);
+                PageResponseViewModel<SysRoleUrlInfoVideModel> pageResponse =
+                    new PageResponseViewModel<SysRoleUrlInfoVideModel>();
+                pageResponse.Data = sysRoleUrls;
                 pageResponse.PageCount = pageCount;
                 pageResponse.RowCount = rowCount;
-                return Ok(new ResponseData<PageResponseViewModel<SysRoleUrlQueryViewModel>>(HttpStatusCode.OK, data: pageResponse));
+                return Ok(new ResponseData<PageResponseViewModel<SysRoleUrlInfoVideModel>>(HttpStatusCode.OK, data: pageResponse));
             }
             catch (Exception e)
             {
@@ -76,7 +65,7 @@ namespace SporeAccounting.Controllers
         /// <summary>
         /// 新增角色可访问的URL
         /// </summary>
-        /// <param name="roleUrl"></param>
+        /// <param name="roleUrlViewModel"></param>
         /// <returns></returns>
         [HttpPost]
         [Route("Add")]
@@ -84,17 +73,16 @@ namespace SporeAccounting.Controllers
         {
             try
             {
-                bool isExist = _sysRoleUrlServer.IsExist(roleUrlViewModel.RoleId, roleUrlViewModel.Url);
+                bool isExist = _sysRoleUrlServer.IsExist(roleUrlViewModel.RoleId, roleUrlViewModel.UrlId);
                 if (isExist)
                 {
-                    return Ok(new ResponseData<bool>(HttpStatusCode.Conflict, $"角色{roleUrlViewModel.RoleId}已存在URL{roleUrlViewModel.Url}！", false));
+                    return Ok(new ResponseData<bool>(HttpStatusCode.Conflict, $"角色{roleUrlViewModel.RoleId}已存在{roleUrlViewModel.UrlId}！", false));
                 }
 
-                SysRoleUrl roleUrl = new SysRoleUrl();
-                roleUrl.RoleId = roleUrlViewModel.RoleId;
-                roleUrl.Url = roleUrlViewModel.Url;
+                SysRoleUrl roleUrl = _mapper.Map<SysRoleUrl>(roleUrlViewModel);
                 //TODO：这里暂时写死，等权限和授权完成后再改为动态获取
                 roleUrl.CreateUserId = "08f35c1e-117f-431d-979d-9e51e29b0b7d";
+                roleUrl.CreateDateTime = DateTime.Now;
                 _sysRoleUrlServer.Add(roleUrl);
                 return Ok(new ResponseData<bool>(HttpStatusCode.OK, data: true));
             }
@@ -107,20 +95,25 @@ namespace SporeAccounting.Controllers
         /// 删除角色可访问的URL
         /// </summary>
         /// <param name="roleId"></param>
-        /// <param name="url"></param>
+        /// <param name="urlId"></param>
         /// <returns></returns>
         [HttpDelete]
-        [Route("Delete/{roleId}/{url}")]
-        public ActionResult<ResponseData<bool>> Delete([FromRoute] string roleId, [FromRoute] string url)
+        [Route("Delete/{roleId}/{urlId}")]
+        public ActionResult<ResponseData<bool>> Delete([FromRoute] string roleId, [FromRoute] string urlId)
         {
             try
             {
-                bool isExist = _sysRoleUrlServer.IsExist(roleId, url);
+                bool isExist = _sysRoleUrlServer.IsExist(roleId, urlId);
                 if (!isExist)
                 {
-                    return Ok(new ResponseData<bool>(HttpStatusCode.Conflict, $"角色{roleId}不存在URL{url}！", false));
+                    return Ok(new ResponseData<bool>(HttpStatusCode.NotFound, $"角色{roleId}不存在URL{urlId}！", false));
                 }
-                _sysRoleUrlServer.Delete(roleId, url);
+                bool isDelete= _sysRoleUrlServer.IsDelete(roleId, urlId);
+                if (!isDelete)
+                {
+                    return Ok(new ResponseData<bool>(HttpStatusCode.Conflict, $"角色{roleId}不允许删除URL{urlId}！", false));
+                }
+                _sysRoleUrlServer.Delete(roleId, urlId);
                 return Ok(new ResponseData<bool>(HttpStatusCode.OK, data: true));
             }
             catch (Exception e)
@@ -139,7 +132,12 @@ namespace SporeAccounting.Controllers
         {
             try
             {
-                _sysRoleUrlServer.Edit(roleUrl.Id,roleUrl.RoleId, roleUrl.Url);
+                bool isExist = _sysRoleUrlServer.IsExist(roleUrl.RoleId, roleUrl.UrlId);
+                if (!isExist)
+                {
+                    return Ok(new ResponseData<bool>(HttpStatusCode.Conflict, $"角色{roleUrl.RoleId}存在{roleUrl.UrlId}！", false));
+                }
+                _sysRoleUrlServer.Edit(roleUrl.Id, roleUrl.RoleId, roleUrl.UrlId);
                 return Ok(new ResponseData<bool>(HttpStatusCode.OK, data: true));
             }
             catch (Exception e)

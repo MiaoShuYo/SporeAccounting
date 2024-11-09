@@ -17,31 +17,39 @@ public interface ISysRoleUrlServer
     /// 删除角色可访问的URL
     /// </summary>
     /// <param name="roleId"></param>
-    /// <param name="url"></param>
-    void Delete(string roleId, string url);
+    /// <param name="urlId"></param>
+    void Delete(string roleId, string urlId);
     /// <summary>
     /// 修改角色可访问的URL
     /// </summary>
     /// <param name="id"></param>
     /// <param name="roleId"></param>
     /// <param name="url"></param>
-    void Edit(string id,string roleId, string url);
+    void Edit(string id,string roleId, string urlId);
     /// <summary>
     /// 查询角色可访问的URL
     /// </summary>
     /// <param name="roleId"></param>
-    List<string> Query(string roleId);
+    List<SysRoleUrlInfoVideModel> Query(string roleId);
     /// <summary>
     /// 分页查询角色可访问的URL
     /// </summary>
     /// <param name="sysRoleUrlPageViewModel"></param>
     /// <returns></returns>
-    (int rowCount, int pageCount, List<SysRoleUrl> sysRoleUrls) GetByPage(SysRoleUrlPageViewModel sysRoleUrlPageViewModel);
+    (int rowCount, int pageCount, List<SysRoleUrlInfoVideModel> sysRoleUrls) GetByPage(SysRoleUrlPageViewModel sysRoleUrlPageViewModel);
     /// <summary>
     /// 角色可访问的URL是否存在
     /// </summary>
     /// <param name="roleId"></param>
-    /// <param name="url"></param>
+    /// <param name="urlId"></param>
     /// <returns></returns>
-    bool IsExist(string roleId, string url);
+    bool IsExist(string roleId, string urlId);
+
+    /// <summary>
+    /// 是否可以删除
+    /// </summary>
+    /// <param name="roleId"></param>
+    /// <param name="urlId"></param>
+    /// <returns></returns>
+    bool IsDelete(string roleId, string urlId);
 }
