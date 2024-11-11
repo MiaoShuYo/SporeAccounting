@@ -29,6 +29,8 @@ public class SporeAccountingDBContext : DbContext
     /// </summary>
     public DbSet<SysUrl> SysUrls { get; set; }
 
+    public DbSet<IncomeExpenditureClassification> IncomeExpenditureClassifications { get; set; }
+
     IConfiguration _dbConfig;
     public SporeAccountingDBContext(IConfiguration dbConfig)
     {
