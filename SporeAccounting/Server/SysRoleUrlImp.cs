@@ -99,6 +99,24 @@ public class SysRoleUrlImp : ISysRoleUrlServer
     }
 
     /// <summary>
+    /// 角色是否可以访问URL
+    /// </summary>
+    /// <param name="roleId"></param>
+    /// <param name="url"></param>
+    /// <returns></returns>
+    public bool IsRoleUseUrl(string roleId, string url)
+    {
+        try
+        {
+            return _dbContext.SysRoleUrls.Any(x => x.RoleId == roleId && x.Url.Url == url);
+        }
+        catch (Exception e)
+        {
+            throw;
+        }
+    }
+
+    /// <summary>
     /// 是否可以删除
     /// </summary>
     /// <param name="roleId"></param>

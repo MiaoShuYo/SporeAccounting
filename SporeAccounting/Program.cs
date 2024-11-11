@@ -10,6 +10,7 @@ using Microsoft.AspNetCore.Mvc.ModelBinding;
 using SporeAccounting.BaseModels;
 using SporeAccounting.Server;
 using SporeAccounting.Server.Interface;
+using SporeAccounting.Middlewares;
 
 namespace SporeAccounting
 {
@@ -46,7 +47,6 @@ namespace SporeAccounting
                     ClockSkew = TimeSpan.Zero 
                 };
             });
-
 
             builder.Services.AddAutoMapper(Assembly.GetExecutingAssembly());
 
@@ -107,6 +107,7 @@ namespace SporeAccounting
                 app.UseSwaggerUI();
             }
 
+            app.UseMiddleware<PermissionsMiddleware>();
             app.UseHttpsRedirection();
 
             app.UseAuthentication();

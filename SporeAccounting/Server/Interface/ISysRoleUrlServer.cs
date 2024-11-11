@@ -25,7 +25,7 @@ public interface ISysRoleUrlServer
     /// <param name="id"></param>
     /// <param name="roleId"></param>
     /// <param name="url"></param>
-    void Edit(string id,string roleId, string urlId);
+    void Edit(string id, string roleId, string urlId);
     /// <summary>
     /// 查询角色可访问的URL
     /// </summary>
@@ -44,6 +44,13 @@ public interface ISysRoleUrlServer
     /// <param name="urlId"></param>
     /// <returns></returns>
     bool IsExist(string roleId, string urlId);
+    /// <summary>
+    /// 角色是否可以访问URL
+    /// </summary>
+    /// <param name="roleId"></param>
+    /// <param name="url"></param>
+    /// <returns></returns>
+    bool IsRoleUseUrl(string roleId, string url);
 
     /// <summary>
     /// 是否可以删除
