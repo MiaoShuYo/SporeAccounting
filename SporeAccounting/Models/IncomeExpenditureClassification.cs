@@ -26,10 +26,17 @@ public class IncomeExpenditureClassification : BaseModel
     public IncomeExpenditureTypeEnmu Type { get; set; }
 
     /// <summary>
+    /// 是否可以删除
+    /// </summary>
+    [Required(ErrorMessage = "是否可以删除")]
+    [Column(TypeName = "tinyint(1)")]
+    public bool CanDelete { get; set; } = true;
+
+    /// <summary>
     /// 父级分类ID
     /// </summary>
     [Column(TypeName = "nvarchar(36)")]
-    [ForeignKey("IncomeExpenditureClassification_ParentClassificationId")]
+    [ForeignKey("FK_Classification_ClassificationId")]
     public string? ParentClassificationId { get; set; }
 
     /// <summary>

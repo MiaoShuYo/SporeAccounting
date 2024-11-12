@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using SporeAccounting;
 
@@ -11,9 +12,11 @@ using SporeAccounting;
 namespace SporeAccounting.Migrations
 {
     [DbContext(typeof(SporeAccountingDBContext))]
-    partial class SporeAccountingDBContextModelSnapshot : ModelSnapshot
+    [Migration("20241112160231_UpdateIncomeExpenditureClassification")]
+    partial class UpdateIncomeExpenditureClassification
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -26,9 +29,6 @@ namespace SporeAccounting.Migrations
                 {
                     b.Property<string>("Id")
                         .HasColumnType("nvarchar(36)");
-
-                    b.Property<bool>("CanDelete")
-                        .HasColumnType("tinyint(1)");
 
                     b.Property<DateTime>("CreateDateTime")
                         .HasColumnType("datetime");
@@ -71,18 +71,6 @@ namespace SporeAccounting.Migrations
                     b.HasIndex("ParentId");
 
                     b.ToTable("IncomeExpenditureClassification");
-
-                    b.HasData(
-                        new
-                        {
-                            Id = "4de809b7-2dda-4e64-b6c0-9a5198abecb8",
-                            CanDelete = false,
-                            CreateDateTime = new DateTime(2024, 11, 13, 0, 13, 46, 837, DateTimeKind.Local).AddTicks(8164),
-                            CreateUserId = "7c976fa1-255e-46a1-b4a7-73d88a75f519",
-                            IsDeleted = false,
-                            Name = "其他",
-                            Type = -1
-                        });
                 });
 
             modelBuilder.Entity("SporeAccounting.Models.SysRole", b =>
@@ -126,19 +114,19 @@ namespace SporeAccounting.Migrations
                     b.HasData(
                         new
                         {
-                            Id = "227267c6-2575-4fc4-ac2e-fad1e4926606",
+                            Id = "0d6511fe-cc70-4514-abc7-6ef02e4b1552",
                             CanDelete = false,
-                            CreateDateTime = new DateTime(2024, 11, 13, 0, 13, 46, 837, DateTimeKind.Local).AddTicks(7164),
-                            CreateUserId = "7c976fa1-255e-46a1-b4a7-73d88a75f519",
+                            CreateDateTime = new DateTime(2024, 11, 13, 0, 2, 28, 724, DateTimeKind.Local).AddTicks(8046),
+                            CreateUserId = "c1cc21f5-53df-4b84-9f30-1c3dbef072f8",
                             IsDeleted = false,
                             RoleName = "Administrator"
                         },
                         new
                         {
-                            Id = "81017bf4-8b16-4571-a704-043b89bd0254",
+                            Id = "64f33311-1e28-4f4a-8d3d-faa113864652",
                             CanDelete = false,
-                            CreateDateTime = new DateTime(2024, 11, 13, 0, 13, 46, 837, DateTimeKind.Local).AddTicks(7175),
-                            CreateUserId = "7c976fa1-255e-46a1-b4a7-73d88a75f519",
+                            CreateDateTime = new DateTime(2024, 11, 13, 0, 2, 28, 724, DateTimeKind.Local).AddTicks(8060),
+                            CreateUserId = "c1cc21f5-53df-4b84-9f30-1c3dbef072f8",
                             IsDeleted = false,
                             RoleName = "Consumer"
                         });
@@ -298,16 +286,16 @@ namespace SporeAccounting.Migrations
                     b.HasData(
                         new
                         {
-                            Id = "7c976fa1-255e-46a1-b4a7-73d88a75f519",
+                            Id = "c1cc21f5-53df-4b84-9f30-1c3dbef072f8",
                             CanDelete = false,
-                            CreateDateTime = new DateTime(2024, 11, 13, 0, 13, 46, 837, DateTimeKind.Local).AddTicks(7219),
-                            CreateUserId = "7c976fa1-255e-46a1-b4a7-73d88a75f519",
+                            CreateDateTime = new DateTime(2024, 11, 13, 0, 2, 28, 724, DateTimeKind.Local).AddTicks(8106),
+                            CreateUserId = "c1cc21f5-53df-4b84-9f30-1c3dbef072f8",
                             Email = "admin@miaoshu.xyz",
                             IsDeleted = false,
-                            Password = "5WeL3p+R/98wW2dkvK/XqjHF28wK8n7ucLxVFdVCno0=",
+                            Password = "4eGevupeD4LV439DS6/shNOc7qYBLA5W+niLbe35gFU=",
                             PhoneNumber = "",
-                            RoleId = "227267c6-2575-4fc4-ac2e-fad1e4926606",
-                            Salt = "0400965eb7514a16bf56d10dfc5f1b5a",
+                            RoleId = "0d6511fe-cc70-4514-abc7-6ef02e4b1552",
+                            Salt = "847a360593bb408589aeecccb9f650ef",
                             UserName = "admin"
                         });
                 });

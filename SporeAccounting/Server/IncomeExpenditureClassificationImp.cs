@@ -168,4 +168,23 @@ public class IncomeExpenditureClassificationImp : IIncomeExpenditureClassificati
             throw;
         }
     }
+
+    /// <summary>
+    /// 是否可删除
+    /// </summary>
+    /// <param name="classificationId"></param>
+    /// <returns></returns>
+    public bool CanDelete(string classificationId)
+    {
+        try
+        {
+            return _sporeAccountingDbContext.IncomeExpenditureClassifications
+                .FirstOrDefault(p => p.ParentClassificationId == classificationId).CanDelete;
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e);
+            throw;
+        }
+    }
 }

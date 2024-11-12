@@ -356,6 +356,30 @@
         <member name="M:SporeAccounting.Migrations.InitIncomeExpenditureClassifications.BuildTargetModel(Microsoft.EntityFrameworkCore.ModelBuilder)">
             <inheritdoc />
         </member>
+        <member name="T:SporeAccounting.Migrations.UpdateIncomeExpenditureClassification">
+            <inheritdoc />
+        </member>
+        <member name="M:SporeAccounting.Migrations.UpdateIncomeExpenditureClassification.Up(Microsoft.EntityFrameworkCore.Migrations.MigrationBuilder)">
+            <inheritdoc />
+        </member>
+        <member name="M:SporeAccounting.Migrations.UpdateIncomeExpenditureClassification.Down(Microsoft.EntityFrameworkCore.Migrations.MigrationBuilder)">
+            <inheritdoc />
+        </member>
+        <member name="M:SporeAccounting.Migrations.UpdateIncomeExpenditureClassification.BuildTargetModel(Microsoft.EntityFrameworkCore.ModelBuilder)">
+            <inheritdoc />
+        </member>
+        <member name="T:SporeAccounting.Migrations.AddClassificationCanDelete">
+            <inheritdoc />
+        </member>
+        <member name="M:SporeAccounting.Migrations.AddClassificationCanDelete.Up(Microsoft.EntityFrameworkCore.Migrations.MigrationBuilder)">
+            <inheritdoc />
+        </member>
+        <member name="M:SporeAccounting.Migrations.AddClassificationCanDelete.Down(Microsoft.EntityFrameworkCore.Migrations.MigrationBuilder)">
+            <inheritdoc />
+        </member>
+        <member name="M:SporeAccounting.Migrations.AddClassificationCanDelete.BuildTargetModel(Microsoft.EntityFrameworkCore.ModelBuilder)">
+            <inheritdoc />
+        </member>
         <member name="T:SporeAccounting.Models.IncomeExpenditureClassification">
             <summary>
             收支分类
@@ -371,14 +395,34 @@
             收支类型
             </summary>
         </member>
+        <member name="P:SporeAccounting.Models.IncomeExpenditureClassification.CanDelete">
+            <summary>
+            是否可以删除
+            </summary>
+        </member>
         <member name="P:SporeAccounting.Models.IncomeExpenditureClassification.ParentClassificationId">
             <summary>
             父级分类ID
             </summary>
         </member>
+        <member name="P:SporeAccounting.Models.IncomeExpenditureClassification.Parent">
+            <summary>
+            导航属性，用于指向父项
+            </summary>
+        </member>
+        <member name="P:SporeAccounting.Models.IncomeExpenditureClassification.Children">
+            <summary>
+            导航属性，用于指向子项集合
+            </summary>
+        </member>
         <member name="T:SporeAccounting.Models.IncomeExpenditureTypeEnmu">
             <summary>
             收支类型
+            </summary>
+        </member>
+        <member name="F:SporeAccounting.Models.IncomeExpenditureTypeEnmu.Other">
+            <summary>
+            其他
             </summary>
         </member>
         <member name="F:SporeAccounting.Models.IncomeExpenditureTypeEnmu.Income">
@@ -514,6 +558,26 @@
         <member name="P:SporeAccounting.Models.SysUser.Role">
             <summary>
             导航属性
+            </summary>
+        </member>
+        <member name="T:SporeAccounting.Models.ViewModels.IncomeExpenditureClassificationPageViewModel">
+            <summary>
+            收支分类视图模型
+            </summary>
+        </member>
+        <member name="P:SporeAccounting.Models.ViewModels.IncomeExpenditureClassificationPageViewModel.ClassificationName">
+            <summary>
+            分类名称
+            </summary>
+        </member>
+        <member name="P:SporeAccounting.Models.ViewModels.IncomeExpenditureClassificationPageViewModel.Type">
+            <summary>
+            收支类型
+            </summary>
+        </member>
+        <member name="P:SporeAccounting.Models.ViewModels.IncomeExpenditureClassificationPageViewModel.ParentClassificationId">
+            <summary>
+            父级分类ID
             </summary>
         </member>
         <member name="T:SporeAccounting.Models.ViewModels.SysRoleEditViewModel">
@@ -730,6 +794,116 @@
             <summary>
             用于刷新token的RefreshToken
             </summary>
+        </member>
+        <member name="T:SporeAccounting.Server.IncomeExpenditureClassificationImp">
+            <summary>
+            收支分类数据库操作实现
+            </summary>
+        </member>
+        <member name="M:SporeAccounting.Server.IncomeExpenditureClassificationImp.#ctor(SporeAccounting.SporeAccountingDBContext)">
+            <summary>
+            构造函数
+            </summary>
+            <param name="sporeAccountingDbContext"></param>
+        </member>
+        <member name="M:SporeAccounting.Server.IncomeExpenditureClassificationImp.Add(SporeAccounting.Models.IncomeExpenditureClassification)">
+            <summary>
+            新增收支分类
+            </summary>
+            <param name="classification"></param>
+        </member>
+        <member name="M:SporeAccounting.Server.IncomeExpenditureClassificationImp.Delete(System.String)">
+            <summary>
+            删除收支分类（物理删除）
+            </summary>
+            <param name="classificationId"></param>
+        </member>
+        <member name="M:SporeAccounting.Server.IncomeExpenditureClassificationImp.Update(SporeAccounting.Models.IncomeExpenditureClassification)">
+            <summary>
+            修改收支分类
+            </summary>
+            <param name="classification"></param>
+        </member>
+        <member name="M:SporeAccounting.Server.IncomeExpenditureClassificationImp.Query(System.String)">
+            <summary>
+            根据父级分类Id查询
+            </summary>
+            <param name="parentId"></param>
+            <returns></returns>
+        </member>
+        <member name="M:SporeAccounting.Server.IncomeExpenditureClassificationImp.GetByPage(SporeAccounting.Models.ViewModels.IncomeExpenditureClassificationPageViewModel)">
+            <summary>
+            分页查询收支分类
+            </summary>
+            <param name="sysRoleUrlPageViewModel"></param>
+            <returns></returns>
+        </member>
+        <member name="M:SporeAccounting.Server.IncomeExpenditureClassificationImp.IsExist(System.String,System.String)">
+            <summary>
+            分类名称是否存在
+            </summary>
+            <param name="classificationName"></param>
+            <param name="userId"></param>
+            <returns></returns>
+        </member>
+        <member name="M:SporeAccounting.Server.IncomeExpenditureClassificationImp.CanDelete(System.String)">
+            <summary>
+            是否可删除
+            </summary>
+            <param name="classificationId"></param>
+            <returns></returns>
+        </member>
+        <member name="T:SporeAccounting.Server.Interface.IIncomeExpenditureClassificationServer">
+            <summary>
+            收支分类数据库操作接口
+            </summary>
+        </member>
+        <member name="M:SporeAccounting.Server.Interface.IIncomeExpenditureClassificationServer.Add(SporeAccounting.Models.IncomeExpenditureClassification)">
+            <summary>
+            新增收支分类
+            </summary>
+            <param name="classification"></param>
+        </member>
+        <member name="M:SporeAccounting.Server.Interface.IIncomeExpenditureClassificationServer.Delete(System.String)">
+            <summary>
+            删除收支分类（物理删除）
+            </summary>
+            <param name="classificationId"></param>
+        </member>
+        <member name="M:SporeAccounting.Server.Interface.IIncomeExpenditureClassificationServer.Update(SporeAccounting.Models.IncomeExpenditureClassification)">
+            <summary>
+            修改收支分类
+            </summary>
+            <param name="classification"></param>
+        </member>
+        <member name="M:SporeAccounting.Server.Interface.IIncomeExpenditureClassificationServer.Query(System.String)">
+            <summary>
+            根据父级分类Id查询
+            </summary>
+            <param name="parentId"></param>
+            <returns></returns>
+        </member>
+        <member name="M:SporeAccounting.Server.Interface.IIncomeExpenditureClassificationServer.GetByPage(SporeAccounting.Models.ViewModels.IncomeExpenditureClassificationPageViewModel)">
+            <summary>
+            分页查询收支分类
+            </summary>
+            <param name="sysRoleUrlPageViewModel"></param>
+            <returns></returns>
+        </member>
+        <member name="M:SporeAccounting.Server.Interface.IIncomeExpenditureClassificationServer.IsExist(System.String,System.String)">
+            <summary>
+            分类名称是否存在
+            </summary>
+            <param name="classificationName"></param>
+            <param name="userId"></param>
+            <returns></returns>
+        </member>
+        <member name="M:SporeAccounting.Server.Interface.IIncomeExpenditureClassificationServer.CanDelete(System.String)">
+            <summary>
+            是否可删除
+            </summary>
+            <param name="classificationId"></param>
+            <returns></returns>
         </member>
         <member name="T:SporeAccounting.Server.Interface.ISysRoleServer">
             <summary>

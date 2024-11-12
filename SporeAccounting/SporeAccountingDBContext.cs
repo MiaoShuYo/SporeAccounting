@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using SporeAccounting.BaseModels;
 using SporeAccounting.Models;
+using SporeAccounting.Server;
 using System.Reflection.Metadata;
 using System.Security.Cryptography;
 using System.Text;
@@ -78,6 +79,15 @@ public class SporeAccountingDBContext : DbContext
                 Password = HashPasswordWithSalt("123asdasd", salt),
             }
         );
+        modelBuilder.Entity<IncomeExpenditureClassification>().HasData(new IncomeExpenditureClassification
+        {
+            Id = Guid.NewGuid().ToString(),
+            Name = "其他",
+            Type = IncomeExpenditureTypeEnmu.Other,
+            CreateDateTime = DateTime.Now,
+            CreateUserId = adminUserId,
+            CanDelete = false,
+        });
         base.OnModelCreating(modelBuilder);
     }
 

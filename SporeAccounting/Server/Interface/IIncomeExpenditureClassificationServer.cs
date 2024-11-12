@@ -48,4 +48,10 @@ public interface IIncomeExpenditureClassificationServer
     /// <param name="userId"></param>
     /// <returns></returns>
     bool IsExist(string classificationName, string userId);
+    /// <summary>
+    /// 是否可删除
+    /// </summary>
+    /// <param name="classificationId"></param>
+    /// <returns></returns>
+    bool CanDelete(string classificationId);
 }
