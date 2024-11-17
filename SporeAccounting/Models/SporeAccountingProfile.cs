@@ -41,5 +41,8 @@ public class SporeAccountingProfile : Profile
                 opt.MapFrom(s => s.Url));
 
         CreateMap<SysRoleUrlViewModel, SysRoleUrl>();
+
+        CreateMap<IncomeExpenditureClassification, IncomeExpenditureClassificationInfoViewModel>();
+        CreateMap<IncomeExpenditureClassificationViewModel, IncomeExpenditureClassification>();
     }
 }

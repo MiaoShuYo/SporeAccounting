@@ -85,6 +85,26 @@ public class IncomeExpenditureClassificationImp : IIncomeExpenditureClassificati
     }
 
     /// <summary>
+    /// 根据收支类型查询
+    /// </summary>
+    /// <param name="type"></param>
+    /// <param name="userId"></param>
+    /// <returns></returns>
+    public IQueryable<IncomeExpenditureClassification> Query(IncomeExpenditureTypeEnmu type, string userId)
+    {
+        try
+        {
+            return _sporeAccountingDbContext.IncomeExpenditureClassifications
+                .Where(p => p.Type == type && p.CreateUserId == userId);
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e);
+            throw;
+        }
+    }
+
+    /// <summary>
     /// 根据父级分类Id查询
     /// </summary>
     /// <param name="parentId"></param>
@@ -164,7 +184,24 @@ public class IncomeExpenditureClassificationImp : IIncomeExpenditureClassificati
         }
         catch (Exception e)
         {
-            Console.WriteLine(e);
+            throw;
+        }
+    }
+
+    /// <summary>
+    /// 指定id的分类是否存在
+    /// </summary>
+    /// <param name="classificationId"></param>
+    /// <returns></returns>
+    public bool IsExist(string classificationId)
+    {
+        try
+        {
+            return _sporeAccountingDbContext.IncomeExpenditureClassifications
+                .Any(p => p.Id == classificationId);
+        }
+        catch (Exception e)
+        {
             throw;
         }
     }

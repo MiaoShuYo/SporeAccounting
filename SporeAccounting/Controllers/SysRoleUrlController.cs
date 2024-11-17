@@ -14,7 +14,7 @@ namespace SporeAccounting.Controllers
     /// </summary>
     [Route("api/[controller]")]
     [ApiController]
-    public class SysRoleUrlController : ControllerBase
+    public class SysRoleUrlController : BaseController
     {
         private readonly ISysRoleUrlServer _sysRoleUrlServer;
         private readonly IMapper _mapper;
@@ -81,7 +81,7 @@ namespace SporeAccounting.Controllers
 
                 SysRoleUrl roleUrl = _mapper.Map<SysRoleUrl>(roleUrlViewModel);
                 //TODO：这里暂时写死，等权限和授权完成后再改为动态获取
-                roleUrl.CreateUserId = "08f35c1e-117f-431d-979d-9e51e29b0b7d";
+                roleUrl.CreateUserId = GetUserId();
                 roleUrl.CreateDateTime = DateTime.Now;
                 _sysRoleUrlServer.Add(roleUrl);
                 return Ok(new ResponseData<bool>(HttpStatusCode.OK, data: true));

@@ -20,7 +20,7 @@ namespace SporeAccounting.Controllers
     /// </summary>
     [Route("api/[controller]/")]
     [ApiController]
-    public class SysUserController : ControllerBase
+    public class SysUserController : BaseController
     {
         private readonly ISysUserServer _sysUserServer;
         private readonly ISysRoleServer _sysRoleServer;

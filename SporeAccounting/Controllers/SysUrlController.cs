@@ -14,7 +14,7 @@ namespace SporeAccounting.Controllers
     /// </summary>
     [Route("api/[controller]/")]
     [ApiController]
-    public class SysUrlController : ControllerBase
+    public class SysUrlController : BaseController
     {
         private readonly ISysUrlServer _sysUrlServer;
         private readonly IMapper _mapper;
@@ -45,7 +45,7 @@ namespace SporeAccounting.Controllers
                 SysUrl sysUrl = _mapper.Map<SysUrl>(sysUrlViewModel);
                 sysUrl.CreateDateTime = DateTime.Now;
                 //TODO：这里暂时写死，等权限和授权完成后再改为动态获取
-                sysUrl.CreateUserId = "08f35c1e-117f-431d-979d-9e51e29b0b7d";
+                sysUrl.CreateUserId = GetUserId();
                 _sysUrlServer.Add(sysUrl);
                 return Ok(new ResponseData<bool>(HttpStatusCode.OK, data: true));
             }
@@ -82,7 +82,7 @@ namespace SporeAccounting.Controllers
                 sysUrl.DeleteDateTime = DateTime.Now;
                 sysUrl.IsDeleted = true;
                 //TODO：这里暂时写死，等权限和授权完成后再改为动态获取
-                sysUrl.DeleteUserId = "08f35c1e-117f-431d-979d-9e51e29b0b7d";
+                sysUrl.DeleteUserId = GetUserId();
                 _sysUrlServer.Delete(sysUrl);
                 return Ok(new ResponseData<bool>(HttpStatusCode.OK, data: true));
             }
@@ -113,7 +113,7 @@ namespace SporeAccounting.Controllers
                 sysUrl = _mapper.Map(sysUrlViewModel, sysUrl);
                 sysUrl.UpdateDateTime = DateTime.Now;
                 //TODO：这里暂时写死，等权限和授权完成后再改为动态获取
-                sysUrl.UpdateUserId = "08f35c1e-117f-431d-979d-9e51e29b0b7d";
+                sysUrl.UpdateUserId = GetUserId();
                 _sysUrlServer.Update(sysUrl);
                 return Ok(new ResponseData<bool>(HttpStatusCode.OK, data: true));
             }

@@ -15,7 +15,7 @@ namespace SporeAccounting.Controllers
     /// </summary>
     [Route("api/[controller]/")]
     [ApiController]
-    public class SysRoleController : ControllerBase
+    public class SysRoleController : BaseController
     {
         private readonly ISysRoleServer _sysRoleServer;
         private readonly IMapper _mapper;
@@ -45,8 +45,7 @@ namespace SporeAccounting.Controllers
 
                 SysRole dbRole = _mapper.Map<SysRole>(role);
                 dbRole.CanDelete = true;
-                //TODO：这里暂时写死，等权限和授权完成后再改为动态获取
-                dbRole.CreateUserId = "08f35c1e-117f-431d-979d-9e51e29b0b7d";
+                dbRole.CreateUserId = GetUserId();
                 _sysRoleServer.Add(dbRole);
                 return Ok(new ResponseData<bool>(HttpStatusCode.OK, data: true));
             }
@@ -77,9 +76,7 @@ namespace SporeAccounting.Controllers
                 {
                     return Ok(new ResponseData<bool>(HttpStatusCode.Conflict, $"角色{roleId}不可删除！", false));
                 }
-
-                //TODO：这里暂时写死，等权限和授权完成后再改为动态获取
-                _sysRoleServer.Delete(roleId, "08f35c1e-117f-431d-979d-9e51e29b0b7d");
+                _sysRoleServer.Delete(roleId, GetUserId());
                 return Ok(new ResponseData<bool>(HttpStatusCode.OK, data: true));
             }
             catch (Exception e)
@@ -115,7 +112,7 @@ namespace SporeAccounting.Controllers
 
                 SysRole role = _mapper.Map<SysRole>(roleView);
                 //TODO：这里暂时写死，等权限和授权完成后再改为动态获取
-                role.UpdateUserId = "08f35c1e-117f-431d-979d-9e51e29b0b7d";
+                role.UpdateUserId = GetUserId();
                 _sysRoleServer.Update(role);
                 return Ok(new ResponseData<bool>(HttpStatusCode.OK, data: true));
             }

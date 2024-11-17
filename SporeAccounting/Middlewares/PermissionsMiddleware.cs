@@ -63,7 +63,7 @@ public class PermissionsMiddleware
                 var userId = claimsPrincipal.FindFirst(ClaimTypes.NameIdentifier)?.Value;
                 var roleId = claimsPrincipal.FindFirst(ClaimTypes.Role)?.Value;
                 // 在上下文中存储用户信息
-                httpContext.Items["UserId"] = userId;
+                httpContext.Request.Headers.Add("UserId",userId);
                 string pathUrlNotParam = string.Join("/", requestPath.Split("/").Take(3));
                 bool isUse = sysRoleUrlServer.IsRoleUseUrl(roleId, pathUrlNotParam);
                 if (isUse)

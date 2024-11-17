@@ -1,4 +1,3 @@
-
 using System.Net;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
@@ -27,7 +26,7 @@ namespace SporeAccounting
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
 
-            ConfigurationManager configurationManager= builder.Configuration;
+            ConfigurationManager configurationManager = builder.Configuration;
             // 配置 JWT 验证
             builder.Services.AddAuthentication(options =>
             {
@@ -43,8 +42,9 @@ namespace SporeAccounting
                     ValidateIssuerSigningKey = true,
                     ValidIssuer = configurationManager["JWT:ValidIssuer"],
                     ValidAudience = configurationManager["JWT:ValidAudience"],
-                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(configurationManager["JWT:IssuerSigningKey"])),
-                    ClockSkew = TimeSpan.Zero 
+                    IssuerSigningKey =
+                        new SymmetricSecurityKey(Encoding.UTF8.GetBytes(configurationManager["JWT:IssuerSigningKey"])),
+                    ClockSkew = TimeSpan.Zero
                 };
             });
 
@@ -63,14 +63,18 @@ namespace SporeAccounting
                     Scheme = "Bearer"
                 });
                 //添加安全要求
-                s.AddSecurityRequirement(new OpenApiSecurityRequirement {
+                s.AddSecurityRequirement(new OpenApiSecurityRequirement
+                {
                     {
-                        new OpenApiSecurityScheme{
-                            Reference =new OpenApiReference{
+                        new OpenApiSecurityScheme
+                        {
+                            Reference = new OpenApiReference
+                            {
                                 Type = ReferenceType.SecurityScheme,
-                                Id ="Bearer"
+                                Id = "Bearer"
                             }
-                        },new string[]{ }
+                        },
+                        new string[] { }
                     }
                 });
             });
@@ -88,7 +92,8 @@ namespace SporeAccounting
                         .ToList();
 
                     // 统一返回格式
-                    var result = new ResponseData<string>(HttpStatusCode.BadRequest, string.Join("\r\n", errors.ToArray()), "");
+                    var result = new ResponseData<string>(HttpStatusCode.BadRequest,
+                        string.Join("\r\n", errors.ToArray()), "");
                     return new BadRequestObjectResult(result);
                 };
             });
@@ -97,6 +102,8 @@ namespace SporeAccounting
             builder.Services.AddScoped(typeof(ISysRoleServer), typeof(SysRoleImp));
             builder.Services.AddScoped(typeof(ISysRoleUrlServer), typeof(SysRoleUrlImp));
             builder.Services.AddScoped(typeof(ISysUrlServer), typeof(SysUrlImp));
+            builder.Services.AddScoped(typeof(IIncomeExpenditureClassificationServer),
+                typeof(IncomeExpenditureClassificationImp));
 
             var app = builder.Build();
 
