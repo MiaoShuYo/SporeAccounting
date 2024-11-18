@@ -1,5 +1,161 @@
 [
   {
+    "ContainingType": "SporeAccounting.Controllers.IncomeExpenditureClassificationController",
+    "Method": "Add",
+    "RelativePath": "api/IncomeExpenditureClassification/Add",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "classificationAddViewModel",
+        "Type": "SporeAccounting.Models.ViewModels.IncomeExpenditureClassificationViewModel",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": [
+      {
+        "Type": "SporeAccounting.BaseModels.ResponseData\u00601[[System.Boolean, System.Private.CoreLib, Version=8.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]]",
+        "MediaTypes": [
+          "text/plain",
+          "application/json",
+          "text/json"
+        ],
+        "StatusCode": 200
+      }
+    ]
+  },
+  {
+    "ContainingType": "SporeAccounting.Controllers.IncomeExpenditureClassificationController",
+    "Method": "Delete",
+    "RelativePath": "api/IncomeExpenditureClassification/Delete/{classificationId}",
+    "HttpMethod": "DELETE",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "classificationId",
+        "Type": "System.String",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": [
+      {
+        "Type": "SporeAccounting.BaseModels.ResponseData\u00601[[System.Boolean, System.Private.CoreLib, Version=8.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]]",
+        "MediaTypes": [
+          "text/plain",
+          "application/json",
+          "text/json"
+        ],
+        "StatusCode": 200
+      }
+    ]
+  },
+  {
+    "ContainingType": "SporeAccounting.Controllers.IncomeExpenditureClassificationController",
+    "Method": "Query",
+    "RelativePath": "api/IncomeExpenditureClassification/Query",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "incomeExpenditureClassificationPageViewModel",
+        "Type": "SporeAccounting.Models.ViewModels.IncomeExpenditureClassificationPageViewModel",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": [
+      {
+        "Type": "SporeAccounting.BaseModels.ResponseData\u00601[[SporeAccounting.BaseModels.ViewModel.Response.PageResponseViewModel\u00601[[SporeAccounting.Models.ViewModels.IncomeExpenditureClassificationInfoViewModel, SporeAccounting, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null]], SporeAccounting, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null]]",
+        "MediaTypes": [
+          "text/plain",
+          "application/json",
+          "text/json"
+        ],
+        "StatusCode": 200
+      }
+    ]
+  },
+  {
+    "ContainingType": "SporeAccounting.Controllers.IncomeExpenditureClassificationController",
+    "Method": "Query",
+    "RelativePath": "api/IncomeExpenditureClassification/Query/{parentClassificationId}",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "parentClassificationId",
+        "Type": "System.String",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": [
+      {
+        "Type": "SporeAccounting.BaseModels.ResponseData\u00601[[System.Collections.Generic.List\u00601[[SporeAccounting.Models.ViewModels.IncomeExpenditureClassificationInfoViewModel, SporeAccounting, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null]], System.Private.CoreLib, Version=8.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]]",
+        "MediaTypes": [
+          "text/plain",
+          "application/json",
+          "text/json"
+        ],
+        "StatusCode": 200
+      }
+    ]
+  },
+  {
+    "ContainingType": "SporeAccounting.Controllers.IncomeExpenditureClassificationController",
+    "Method": "QueryByType",
+    "RelativePath": "api/IncomeExpenditureClassification/QueryByType",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "type",
+        "Type": "System.String",
+        "IsRequired": false
+      }
+    ],
+    "ReturnTypes": [
+      {
+        "Type": "SporeAccounting.BaseModels.ResponseData\u00601[[System.Collections.Generic.List\u00601[[SporeAccounting.Models.ViewModels.IncomeExpenditureClassificationInfoViewModel, SporeAccounting, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null]], System.Private.CoreLib, Version=8.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]]",
+        "MediaTypes": [
+          "text/plain",
+          "application/json",
+          "text/json"
+        ],
+        "StatusCode": 200
+      }
+    ]
+  },
+  {
+    "ContainingType": "SporeAccounting.Controllers.IncomeExpenditureClassificationController",
+    "Method": "Update",
+    "RelativePath": "api/IncomeExpenditureClassification/Update",
+    "HttpMethod": "PUT",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "classificationViewModel",
+        "Type": "SporeAccounting.Models.ViewModels.IncomeExpenditureClassificationEditViewModel",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": [
+      {
+        "Type": "SporeAccounting.BaseModels.ResponseData\u00601[[System.Boolean, System.Private.CoreLib, Version=8.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]]",
+        "MediaTypes": [
+          "text/plain",
+          "application/json",
+          "text/json"
+        ],
+        "StatusCode": 200
+      }
+    ]
+  },
+  {
     "ContainingType": "SporeAccounting.Controllers.SysRoleController",
     "Method": "Add",
     "RelativePath": "api/SysRole/Add",
@@ -132,7 +288,7 @@
   {
     "ContainingType": "SporeAccounting.Controllers.SysRoleUrlController",
     "Method": "Delete",
-    "RelativePath": "api/SysRoleUrl/Delete/{roleId}/{url}",
+    "RelativePath": "api/SysRoleUrl/Delete/{roleId}/{urlId}",
     "HttpMethod": "DELETE",
     "IsController": true,
     "Order": 0,
@@ -143,7 +299,7 @@
         "IsRequired": true
       },
       {
-        "Name": "url",
+        "Name": "urlId",
         "Type": "System.String",
         "IsRequired": true
       }
@@ -202,7 +358,7 @@
     ],
     "ReturnTypes": [
       {
-        "Type": "SporeAccounting.BaseModels.ResponseData\u00601[[SporeAccounting.BaseModels.ViewModel.Response.PageResponseViewModel\u00601[[SporeAccounting.Models.ViewModels.SysRoleUrlQueryViewModel, SporeAccounting, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null]], SporeAccounting, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null]]",
+        "Type": "SporeAccounting.BaseModels.ResponseData\u00601[[SporeAccounting.BaseModels.ViewModel.Response.PageResponseViewModel\u00601[[SporeAccounting.Models.ViewModels.SysRoleUrlInfoVideModel, SporeAccounting, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null]], SporeAccounting, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null]]",
         "MediaTypes": [
           "text/plain",
           "application/json",
@@ -228,7 +384,7 @@
     ],
     "ReturnTypes": [
       {
-        "Type": "SporeAccounting.BaseModels.ResponseData\u00601[[System.Collections.Generic.List\u00601[[System.String, System.Private.CoreLib, Version=8.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]], System.Private.CoreLib, Version=8.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]]",
+        "Type": "SporeAccounting.BaseModels.ResponseData\u00601[[System.Collections.Generic.List\u00601[[SporeAccounting.Models.ViewModels.SysRoleUrlInfoVideModel, SporeAccounting, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null]], System.Private.CoreLib, Version=8.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]]",
         "MediaTypes": [
           "text/plain",
           "application/json",
