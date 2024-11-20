@@ -133,21 +133,17 @@ namespace SporeAccounting.Controllers
                 {
                     return Ok(new ResponseData<bool>(HttpStatusCode.Conflict, $"分类{classificationAddViewModel.Name}已存在！", false));
                 }
-                //判断类型是否和父级的类型一样
+                
                 if (!string.IsNullOrEmpty(classificationAddViewModel.ParentClassificationId))
                 {
+                    //判断类型是否和父级的类型一样
                     IncomeExpenditureClassification parentClassification =
                         _incomeExpenditureClassificationService.QueryById(classificationAddViewModel.ParentClassificationId);
                     if (parentClassification.Type != classificationAddViewModel.Type)
                     {
                         return Ok(new ResponseData<bool>(HttpStatusCode.Conflict, $"分类{classificationAddViewModel.Name}的类型和父级类型不一致！", false));
                     }
-                }
-                //判断父级是否是子集
-                if (!string.IsNullOrEmpty(classificationAddViewModel.ParentClassificationId))
-                {
-                    IncomeExpenditureClassification parentClassification =
-                        _incomeExpenditureClassificationService.QueryById(classificationAddViewModel.ParentClassificationId);
+                    //判断父级是否是子集
                     if (parentClassification.ParentClassificationId != null)
                     {
                         return Ok(new ResponseData<bool>(HttpStatusCode.Conflict, $"子分类不能再创建子类！", false));
@@ -220,18 +216,14 @@ namespace SporeAccounting.Controllers
                 //判断类型是否和父级的类型一样
                 if (!string.IsNullOrEmpty(classificationViewModel.ParentClassificationId))
                 {
+                    //判断类型是否和父级的类型一样
                     IncomeExpenditureClassification parentClassification =
                         _incomeExpenditureClassificationService.QueryById(classificationViewModel.ParentClassificationId);
                     if (parentClassification.Type != classificationViewModel.Type)
                     {
                         return Ok(new ResponseData<bool>(HttpStatusCode.Conflict, $"分类{classificationViewModel.Name}的类型和父级类型不一致！", false));
                     }
-                }
-                //判断父级是否是子集
-                if (!string.IsNullOrEmpty(classificationViewModel.ParentClassificationId))
-                {
-                    IncomeExpenditureClassification parentClassification =
-                        _incomeExpenditureClassificationService.QueryById(classificationViewModel.ParentClassificationId);
+                    //判断父级是否是子集
                     if (parentClassification.ParentClassificationId != null)
                     {
                         return Ok(new ResponseData<bool>(HttpStatusCode.Conflict, $"子分类不能再创建子类！", false));
