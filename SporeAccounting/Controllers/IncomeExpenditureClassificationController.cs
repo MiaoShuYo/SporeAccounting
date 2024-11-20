@@ -29,7 +29,7 @@ namespace SporeAccounting.Controllers
         /// <summary>
         /// 查询父分类下的子分类
         /// </summary>
-        /// <param name="classificationId"></param>
+        /// <param name="parentClassificationId"></param>
         /// <returns></returns>
         [HttpGet]
         [Route("Query/{parentClassificationId}")]
@@ -185,6 +185,12 @@ namespace SporeAccounting.Controllers
                 if (!canDelete)
                 {
                     return Ok(new ResponseData<bool>(HttpStatusCode.Conflict, $"分类{classificationId}不可删除！", false));
+                }
+                //是否存在子类型
+                bool hasChild = _incomeExpenditureClassificationService.HasChild(classificationId);
+                if (hasChild)
+                {
+                    return Ok(new ResponseData<bool>(HttpStatusCode.Conflict, $"分类{classificationId}存在子分类，不允许删除！", false));
                 }
                 _incomeExpenditureClassificationService.Delete(classificationId);
                 return Ok(new ResponseData<bool>(HttpStatusCode.OK, data: true));

@@ -32,19 +32,21 @@ public interface IIncomeExpenditureClassificationServer
     /// <param name="parentId"></param>
     /// <returns></returns>
     IQueryable<IncomeExpenditureClassification> Query(string parentId);
+
     /// <summary>
     /// 根据分类Id查询
     /// </summary>
     /// <param name="classificationId"></param>
     /// <returns></returns>
     IncomeExpenditureClassification QueryById(string classificationId);
+
     /// <summary>
     /// 根据收支类型查询
     /// </summary>
     /// <param name="type"></param>
     /// <param name="userId"></param>
     /// <returns></returns>
-    IQueryable<IncomeExpenditureClassification> Query(IncomeExpenditureTypeEnmu type,string userId);
+    IQueryable<IncomeExpenditureClassification> Query(IncomeExpenditureTypeEnmu type, string userId);
 
     /// <summary>
     /// 分页查询收支分类
@@ -61,16 +63,25 @@ public interface IIncomeExpenditureClassificationServer
     /// <param name="userId"></param>
     /// <returns></returns>
     bool IsExist(string classificationName, string userId);
+
     /// <summary>
     /// 指定id的分类是否存在
     /// </summary>
     /// <param name="classificationId"></param>
     /// <returns></returns>
     bool IsExist(string classificationId);
+
     /// <summary>
     /// 是否可删除
     /// </summary>
     /// <param name="classificationId"></param>
     /// <returns></returns>
     bool CanDelete(string classificationId);
+
+    /// <summary>
+    /// 是否存在子类型
+    /// </summary>
+    /// <param name="classificationId"></param>
+    /// <returns></returns>
+    bool HasChild(string classificationId);
 }

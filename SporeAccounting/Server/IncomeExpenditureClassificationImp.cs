@@ -243,4 +243,23 @@ public class IncomeExpenditureClassificationImp : IIncomeExpenditureClassificati
             throw;
         }
     }
+
+    /// <summary>
+    /// 是否存在子类型
+    /// </summary>
+    /// <param name="classificationId"></param>
+    /// <returns></returns>
+    public bool HasChild(string classificationId)
+    {
+        try
+        {
+            return _sporeAccountingDbContext.IncomeExpenditureClassifications
+                .Any(p => p.ParentClassificationId == classificationId);
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e);
+            throw;
+        }
+    }
 }
