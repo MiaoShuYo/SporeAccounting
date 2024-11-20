@@ -33,6 +33,12 @@ public interface IIncomeExpenditureClassificationServer
     /// <returns></returns>
     IQueryable<IncomeExpenditureClassification> Query(string parentId);
     /// <summary>
+    /// 根据分类Id查询
+    /// </summary>
+    /// <param name="classificationId"></param>
+    /// <returns></returns>
+    IncomeExpenditureClassification QueryById(string classificationId);
+    /// <summary>
     /// 根据收支类型查询
     /// </summary>
     /// <param name="type"></param>

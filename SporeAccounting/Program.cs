@@ -52,6 +52,10 @@ namespace SporeAccounting
 
             builder.Services.AddSwaggerGen(s =>
             {
+                var file=Path.Combine(AppContext.BaseDirectory,"SporeAccounting.xml");
+                var path=Path.Combine(AppContext.BaseDirectory,file);
+                s.IncludeXmlComments(path);
+                s.OrderActionsBy(o=>o.RelativePath);
                 //添加安全定义
                 s.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
                 {

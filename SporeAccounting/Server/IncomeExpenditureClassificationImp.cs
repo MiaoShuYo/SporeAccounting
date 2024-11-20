@@ -124,6 +124,25 @@ public class IncomeExpenditureClassificationImp : IIncomeExpenditureClassificati
     }
 
     /// <summary>
+    /// 根据分类Id查询
+    /// </summary>
+    /// <param name="classificationId"></param>
+    /// <returns></returns>
+    public IncomeExpenditureClassification QueryById(string classificationId)
+    {
+        try
+        {
+            return _sporeAccountingDbContext.IncomeExpenditureClassifications
+                .FirstOrDefault(p => p.Id == classificationId);
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e);
+            throw;
+        }
+    }
+
+    /// <summary>
     /// 分页查询收支分类
     /// </summary>
     /// <param name="sysRoleUrlPageViewModel"></param>
@@ -216,7 +235,7 @@ public class IncomeExpenditureClassificationImp : IIncomeExpenditureClassificati
         try
         {
             return _sporeAccountingDbContext.IncomeExpenditureClassifications
-                .FirstOrDefault(p => p.ParentClassificationId == classificationId).CanDelete;
+                .FirstOrDefault(p => p.Id == classificationId).CanDelete;
         }
         catch (Exception e)
         {

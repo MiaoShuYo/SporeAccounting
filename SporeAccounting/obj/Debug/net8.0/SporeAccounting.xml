@@ -129,7 +129,7 @@
             <param name="classificationId"></param>
             <returns></returns>
         </member>
-        <member name="M:SporeAccounting.Controllers.IncomeExpenditureClassificationController.QueryByType(System.String)">
+        <member name="M:SporeAccounting.Controllers.IncomeExpenditureClassificationController.QueryByType(SporeAccounting.Models.IncomeExpenditureTypeEnmu)">
             <summary>
             根据收支类型查询分类
             </summary>
@@ -946,6 +946,13 @@
             <param name="parentId"></param>
             <returns></returns>
         </member>
+        <member name="M:SporeAccounting.Server.IncomeExpenditureClassificationImp.QueryById(System.String)">
+            <summary>
+            根据分类Id查询
+            </summary>
+            <param name="classificationId"></param>
+            <returns></returns>
+        </member>
         <member name="M:SporeAccounting.Server.IncomeExpenditureClassificationImp.GetByPage(SporeAccounting.Models.ViewModels.IncomeExpenditureClassificationPageViewModel)">
             <summary>
             分页查询收支分类
@@ -1003,6 +1010,13 @@
             根据父级分类Id查询
             </summary>
             <param name="parentId"></param>
+            <returns></returns>
+        </member>
+        <member name="M:SporeAccounting.Server.Interface.IIncomeExpenditureClassificationServer.QueryById(System.String)">
+            <summary>
+            根据分类Id查询
+            </summary>
+            <param name="classificationId"></param>
             <returns></returns>
         </member>
         <member name="M:SporeAccounting.Server.Interface.IIncomeExpenditureClassificationServer.Query(SporeAccounting.Models.IncomeExpenditureTypeEnmu,System.String)">
