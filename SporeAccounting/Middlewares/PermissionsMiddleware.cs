@@ -24,7 +24,7 @@ public class PermissionsMiddleware
     /// <param name="httpContext"></param>
     /// <param name="sysRoleUrlServer"></param>
     /// <param name="configuration"></param>
-    public async Task Invoke(HttpContext httpContext, ISysRoleUrlServer sysRoleUrlServer, IConfiguration configuration)
+    public async System.Threading.Tasks.Task Invoke(HttpContext httpContext, ISysRoleUrlServer sysRoleUrlServer, IConfiguration configuration)
     {
         //请求的路径
         string requestPath = httpContext.Request.Path.Value;

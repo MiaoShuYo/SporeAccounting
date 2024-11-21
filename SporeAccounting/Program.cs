@@ -108,7 +108,7 @@ namespace SporeAccounting
             builder.Services.AddScoped(typeof(ISysUrlServer), typeof(SysUrlImp));
             builder.Services.AddScoped(typeof(IIncomeExpenditureClassificationServer),
                 typeof(IncomeExpenditureClassificationImp));
-
+            builder.Services.AddHttpClient();
             var app = builder.Build();
 
             // Configure the HTTP request pipeline.

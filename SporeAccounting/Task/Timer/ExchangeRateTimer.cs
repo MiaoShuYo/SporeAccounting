@@ -6,8 +6,18 @@ namespace SporeAccounting.Task.Timer;
 /// </summary>
 public class ExchangeRateTimer:IJob
 {
+    private readonly IHttpClientFactory _httpClientFactory;
+    private readonly IConfiguration _configuration; 
+    public ExchangeRateTimer(IHttpClientFactory httpClientFactory,IConfiguration configuration)
+    {
+        _httpClientFactory = httpClientFactory;
+        _configuration = configuration;
+    }
     public System.Threading.Tasks.Task Execute(IJobExecutionContext context)
     {
-        throw new NotImplementedException();
+        // string exchangeRateUrl = _configuration["ExchangeRate"];
+        // //获取主币种
+        // _httpClientFactory.CreateClient().GetAsync(exchangeRateUrl);
+        return null;
     }
 }
