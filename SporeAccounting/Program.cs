@@ -6,10 +6,12 @@ using System.Text;
 using Microsoft.OpenApi.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
+using Quartz;
 using SporeAccounting.BaseModels;
 using SporeAccounting.Server;
 using SporeAccounting.Server.Interface;
 using SporeAccounting.Middlewares;
+using SporeAccounting.Task.Timer;
 
 namespace SporeAccounting
 {
@@ -52,10 +54,10 @@ namespace SporeAccounting
 
             builder.Services.AddSwaggerGen(s =>
             {
-                var file=Path.Combine(AppContext.BaseDirectory,"SporeAccounting.xml");
-                var path=Path.Combine(AppContext.BaseDirectory,file);
+                var file = Path.Combine(AppContext.BaseDirectory, "SporeAccounting.xml");
+                var path = Path.Combine(AppContext.BaseDirectory, file);
                 s.IncludeXmlComments(path);
-                s.OrderActionsBy(o=>o.RelativePath);
+                s.OrderActionsBy(o => o.RelativePath);
                 //添加安全定义
                 s.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
                 {
@@ -109,7 +111,25 @@ namespace SporeAccounting
             builder.Services.AddScoped(typeof(IIncomeExpenditureClassificationServer),
                 typeof(IncomeExpenditureClassificationImp));
             builder.Services.AddScoped(typeof(ICurrencyService), typeof(CurrencyImp));
+            builder.Services.AddScoped(typeof(IExchangeRateRecordService), typeof(ExchangeRateRecordImp));
             builder.Services.AddHttpClient();
+            // 添加定时任务
+            builder.Services.AddQuartz(q =>
+            {
+                var exchangeRateTimerJobKey=new JobKey("ExchangeRateTimer");
+                q.AddJob<ExchangeRateTimer>(opts=>opts.WithIdentity(exchangeRateTimerJobKey));
+                q.AddTrigger(opts=>opts
+                    .ForJob(exchangeRateTimerJobKey)
+                    .WithIdentity("ExchangeRateTimerTrigger")
+                    .StartNow()
+                    .WithCronSchedule("0 0 1 * * ?"));
+            });
+            builder.Services.AddQuartzHostedService(options =>
+            {
+                //启用 Quartz 的托管服务，`WaitForJobsToComplete = true` 表示在应用程序停止时等待任务完成后再关闭。
+                options.WaitForJobsToComplete = true;
+            });
+
             var app = builder.Build();
 
             // Configure the HTTP request pipeline.
