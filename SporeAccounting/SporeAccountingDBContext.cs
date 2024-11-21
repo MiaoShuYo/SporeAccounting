@@ -17,22 +17,36 @@ public class SporeAccountingDBContext : DbContext
     /// 用户表
     /// </summary>
     public DbSet<SysUser> SysUsers { get; set; }
+
     /// <summary>
     /// 角色表
     /// </summary>
     public DbSet<SysRole> SysRoles { get; set; }
+
     /// <summary>
     /// 角色可访问径表
     /// </summary>
     public DbSet<SysRoleUrl> SysRoleUrls { get; set; }
+
     /// <summary>
     /// 接口URL表
     /// </summary>
     public DbSet<SysUrl> SysUrls { get; set; }
 
+    /// <summary>
+    /// 汇率记录表
+    /// </summary>
+    public DbSet<ExchangeRateRecord> ExchangeRateRecords { get; set; }
+
+    /// <summary>
+    /// 币种表
+    /// </summary>
+    public DbSet<Currency> Currencies { get; set; }
+
     public DbSet<IncomeExpenditureClassification> IncomeExpenditureClassifications { get; set; }
 
     IConfiguration _dbConfig;
+
     public SporeAccountingDBContext(IConfiguration dbConfig)
     {
         _dbConfig = dbConfig;
@@ -40,14 +54,14 @@ public class SporeAccountingDBContext : DbContext
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-        string adminUserId= Guid.NewGuid().ToString();
+        string adminUserId = Guid.NewGuid().ToString();
         string salt = Guid.NewGuid().ToString("N");
         string adminId = Guid.NewGuid().ToString();
         modelBuilder.Entity<SysRole>().HasData(new List<SysRole>()
         {
             new SysRole()
             {
-                Id=adminId,
+                Id = adminId,
                 RoleName = "Administrator",
                 CanDelete = false,
                 IsDeleted = false,
@@ -60,7 +74,7 @@ public class SporeAccountingDBContext : DbContext
                 CanDelete = false,
                 IsDeleted = false,
                 CreateDateTime = DateTime.Now,
-                CreateUserId =adminUserId
+                CreateUserId = adminUserId
             }
         });
         modelBuilder.Entity<SysUser>().HasData(
@@ -88,6 +102,73 @@ public class SporeAccountingDBContext : DbContext
             CreateUserId = adminUserId,
             CanDelete = false,
         });
+
+        modelBuilder.Entity<Currency>().HasData(new List<Currency>()
+        {
+            new Currency()
+            {
+                Name = "人民币",
+                Abbreviation = "CNY",
+                CreateUserId = adminId,
+                CreateDateTime = DateTime.Now
+            },
+            new Currency()
+            {
+                Name = "美元",
+                Abbreviation = "USD",
+                CreateUserId = adminId,
+                CreateDateTime = DateTime.Now
+            },
+            new Currency()
+            {
+                Name = "欧元",
+                Abbreviation = "EUR",
+                CreateUserId = adminId,
+                CreateDateTime = DateTime.Now
+            },
+            new Currency()
+            {
+                Name = "日元",
+                Abbreviation = "JPY",
+                CreateUserId = adminId,
+                CreateDateTime = DateTime.Now
+            },
+            new Currency()
+            {
+                Name = "英镑",
+                Abbreviation = "GBP",
+                CreateUserId = adminId,
+                CreateDateTime = DateTime.Now
+            },
+            new Currency()
+            {
+                Name = "澳门币",
+                Abbreviation = "MOP",
+                CreateUserId = adminId,
+                CreateDateTime = DateTime.Now
+            },
+            new Currency()
+            {
+                Name = "港元",
+                Abbreviation = "HKD",
+                CreateUserId = adminId,
+                CreateDateTime = DateTime.Now
+            },
+            new Currency()
+            {
+                Name = "韩圆",
+                Abbreviation = "KRW",
+                CreateUserId = adminId,
+                CreateDateTime = DateTime.Now
+            },
+            new Currency()
+            {
+                Name = "新台币",
+                Abbreviation = "TWD",
+                CreateUserId = adminId,
+                CreateDateTime = DateTime.Now
+            }
+        });
         base.OnModelCreating(modelBuilder);
     }
 
@@ -100,7 +181,6 @@ public class SporeAccountingDBContext : DbContext
             //控制台打印SQL语句
             builder.AddConsole();
         }));
-
     }
 
     private static string HashPasswordWithSalt(string password, string salt)
