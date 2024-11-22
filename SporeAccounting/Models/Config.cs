@@ -30,4 +30,9 @@ public class Config : BaseModel
     [Column(TypeName = "nvarchar(100)")]
     [Required]
     public string Value { get; set; }
+    
+    /// <summary>
+    /// 导航属性
+    /// </summary>
+    public SysUser User { get; set; }
 }

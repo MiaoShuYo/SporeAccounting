@@ -110,8 +110,8 @@ namespace SporeAccounting
             builder.Services.AddScoped(typeof(ISysUrlServer), typeof(SysUrlImp));
             builder.Services.AddScoped(typeof(IIncomeExpenditureClassificationServer),
                 typeof(IncomeExpenditureClassificationImp));
-            builder.Services.AddScoped(typeof(ICurrencyService), typeof(CurrencyImp));
-            builder.Services.AddScoped(typeof(IExchangeRateRecordService), typeof(ExchangeRateRecordImp));
+            builder.Services.AddScoped(typeof(ICurrencyServer), typeof(CurrencyImp));
+            builder.Services.AddScoped(typeof(IExchangeRateRecordServer), typeof(ExchangeRateRecordImp));
             builder.Services.AddHttpClient();
             // 添加定时任务
             builder.Services.AddQuartz(q =>

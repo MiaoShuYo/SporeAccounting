@@ -14,16 +14,16 @@ public class ExchangeRateTimer : IJob
     private readonly IHttpClientFactory _httpClientFactory;
     private readonly IConfiguration _configuration;
     private readonly IServiceScopeFactory _serviceScopeFactory;
-    private readonly ICurrencyService _currencyService;
+    private readonly ICurrencyServer _currencyServer;
 
     public ExchangeRateTimer(IHttpClientFactory httpClientFactory,
         IConfiguration configuration, IServiceScopeFactory serviceScopeFactory,
-        ICurrencyService currencyService)
+        ICurrencyServer currencyServer)
     {
         _httpClientFactory = httpClientFactory;
         _configuration = configuration;
         _serviceScopeFactory = serviceScopeFactory;
-        _currencyService = currencyService;
+        _currencyServer = currencyServer;
     }
 
     public System.Threading.Tasks.Task Execute(IJobExecutionContext context)
@@ -31,7 +31,7 @@ public class ExchangeRateTimer : IJob
         string exchangeRateUrl = _configuration["ExchangeRate"];
 
         //获取全部币种
-        List<Currency> currencies = _currencyService.Query().ToList();
+        List<Currency> currencies = _currencyServer.Query().ToList();
         //获取对每种币种的汇率
         foreach (var currency in currencies)
         {
@@ -41,7 +41,7 @@ public class ExchangeRateTimer : IJob
                     {
                         using var scope = _serviceScopeFactory.CreateScope();
                         var exchangeRateRecordService =
-                            scope.ServiceProvider.GetRequiredService<IExchangeRateRecordService>();
+                            scope.ServiceProvider.GetRequiredService<IExchangeRateRecordServer>();
                         List<ExchangeRateRecord> exchangeRateRecords = new();
                         if (response.Result.IsSuccessStatusCode)
                         {

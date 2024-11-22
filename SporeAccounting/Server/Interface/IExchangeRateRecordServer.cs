@@ -5,7 +5,7 @@ namespace SporeAccounting.Server.Interface;
 /// <summary>
 /// 汇率记录服务接口
 /// </summary>
-public interface IExchangeRateRecordService
+public interface IExchangeRateRecordServer
 {
     /// <summary>
     /// 批量新增汇率记录

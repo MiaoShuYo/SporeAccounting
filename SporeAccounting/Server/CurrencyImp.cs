@@ -5,7 +5,7 @@ namespace SporeAccounting.Server;
 /// <summary>
 /// 币种服务实现
 /// </summary>
-public class CurrencyImp:ICurrencyService
+public class CurrencyImp:ICurrencyServer
 {
     
     private readonly SporeAccountingDBContext _dbContext;

@@ -45,5 +45,7 @@ public class SporeAccountingProfile : Profile
         CreateMap<IncomeExpenditureClassification, IncomeExpenditureClassificationInfoViewModel>();
         CreateMap<IncomeExpenditureClassificationViewModel, IncomeExpenditureClassification>();
         CreateMap<IncomeExpenditureClassificationEditViewModel, IncomeExpenditureClassification>();
+
+        CreateMap<Config, ConfigViewModel>();
     }
 }

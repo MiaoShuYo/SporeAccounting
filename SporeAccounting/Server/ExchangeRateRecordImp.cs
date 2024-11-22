@@ -6,7 +6,7 @@ namespace SporeAccounting.Server;
 /// <summary>
 /// 汇率记录服务实现
 /// </summary>
-public class ExchangeRateRecordImp : IExchangeRateRecordService
+public class ExchangeRateRecordImp : IExchangeRateRecordServer
 {
     private readonly SporeAccountingDBContext _sporeAccountingDbContext;
 
