@@ -42,10 +42,16 @@ public class SporeAccountingDBContext : DbContext
     /// 币种表
     /// </summary>
     public DbSet<Currency> Currencies { get; set; }
+
     /// <summary>
     /// 用户配置表
     /// </summary>
     public DbSet<Config> Configs { get; set; }
+
+    /// <summary>
+    /// 收支记录表
+    /// </summary>
+    public DbSet<IncomeExpenditureRecord> IncomeExpenditureRecords { get; set; }
 
     public DbSet<IncomeExpenditureClassification> IncomeExpenditureClassifications { get; set; }
 
