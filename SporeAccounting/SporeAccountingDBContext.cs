@@ -47,6 +47,10 @@ public class SporeAccountingDBContext : DbContext
     /// 用户配置表
     /// </summary>
     public DbSet<Config> Configs { get; set; }
+    /// <summary>
+    /// 账本表
+    /// </summary>
+    public DbSet<AccountBook> AccountBooks { get; set; }
 
     /// <summary>
     /// 收支记录表

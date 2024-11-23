@@ -67,8 +67,15 @@ public class SysUser : BaseModel
     /// 导航属性
     /// </summary>
     public Config Config { get; set; }
+
     /// <summary>
     /// 导航属性
     /// </summary>
-    public ICollection<IncomeExpenditureRecord> IncomeExpenditureRecords { get; set; } = new List<IncomeExpenditureRecord>();
+    public ICollection<IncomeExpenditureRecord> IncomeExpenditureRecords { get; set; } =
+        new List<IncomeExpenditureRecord>();
+
+    /// <summary>
+    /// 导航属性
+    /// </summary>
+    public ICollection<AccountBook> AccountBooks { get; set; } = new List<AccountBook>();
 }

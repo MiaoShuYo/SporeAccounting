@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using SporeAccounting;
 
@@ -11,9 +12,11 @@ using SporeAccounting;
 namespace SporeAccounting.Migrations
 {
     [DbContext(typeof(SporeAccountingDBContext))]
-    partial class SporeAccountingDBContextModelSnapshot : ModelSnapshot
+    [Migration("20241123032703_InitAccountBook")]
+    partial class InitAccountBook
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -64,8 +67,6 @@ namespace SporeAccounting.Migrations
                         .HasColumnType("nvarchar(36)");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("UserId");
 
                     b.ToTable("AccountBook");
                 });
@@ -158,82 +159,82 @@ namespace SporeAccounting.Migrations
                     b.HasData(
                         new
                         {
-                            Id = "7255a6eb-ae5b-4e07-8edc-cb0d1e29618b",
+                            Id = "8bcf8596-efcd-464c-8581-d36ce2444afb",
                             Abbreviation = "CNY",
-                            CreateDateTime = new DateTime(2024, 11, 23, 11, 30, 9, 512, DateTimeKind.Local).AddTicks(9900),
-                            CreateUserId = "ebcef031-0158-4f8b-9b73-f448f7038aab",
+                            CreateDateTime = new DateTime(2024, 11, 23, 11, 27, 0, 171, DateTimeKind.Local).AddTicks(1840),
+                            CreateUserId = "ee58d560-b44c-4032-b73d-04720a9c2c37",
                             IsDeleted = false,
                             Name = "人民币"
                         },
                         new
                         {
-                            Id = "b2e81836-edc5-4762-b2b5-6a8777b5ccfc",
+                            Id = "962cee15-4ed1-4878-b877-08a727009146",
                             Abbreviation = "USD",
-                            CreateDateTime = new DateTime(2024, 11, 23, 11, 30, 9, 512, DateTimeKind.Local).AddTicks(9908),
-                            CreateUserId = "ebcef031-0158-4f8b-9b73-f448f7038aab",
+                            CreateDateTime = new DateTime(2024, 11, 23, 11, 27, 0, 171, DateTimeKind.Local).AddTicks(1849),
+                            CreateUserId = "ee58d560-b44c-4032-b73d-04720a9c2c37",
                             IsDeleted = false,
                             Name = "美元"
                         },
                         new
                         {
-                            Id = "b69bb731-8f62-4cf1-bdc3-f45c3f90be8d",
+                            Id = "8e62a30c-db84-478b-83ba-0995ad2eb284",
                             Abbreviation = "EUR",
-                            CreateDateTime = new DateTime(2024, 11, 23, 11, 30, 9, 512, DateTimeKind.Local).AddTicks(9915),
-                            CreateUserId = "ebcef031-0158-4f8b-9b73-f448f7038aab",
+                            CreateDateTime = new DateTime(2024, 11, 23, 11, 27, 0, 171, DateTimeKind.Local).AddTicks(1855),
+                            CreateUserId = "ee58d560-b44c-4032-b73d-04720a9c2c37",
                             IsDeleted = false,
                             Name = "欧元"
                         },
                         new
                         {
-                            Id = "35acf108-2aff-4196-a33e-117143aef6ea",
+                            Id = "e646ada2-2aca-4ea6-aa1f-d88e3a4de525",
                             Abbreviation = "JPY",
-                            CreateDateTime = new DateTime(2024, 11, 23, 11, 30, 9, 512, DateTimeKind.Local).AddTicks(9921),
-                            CreateUserId = "ebcef031-0158-4f8b-9b73-f448f7038aab",
+                            CreateDateTime = new DateTime(2024, 11, 23, 11, 27, 0, 171, DateTimeKind.Local).AddTicks(1875),
+                            CreateUserId = "ee58d560-b44c-4032-b73d-04720a9c2c37",
                             IsDeleted = false,
                             Name = "日元"
                         },
                         new
                         {
-                            Id = "b95a010f-55b2-4d99-b862-b796a2edfcc1",
+                            Id = "8aa8a00a-df54-4397-9865-5e9791bf74f8",
                             Abbreviation = "GBP",
-                            CreateDateTime = new DateTime(2024, 11, 23, 11, 30, 9, 512, DateTimeKind.Local).AddTicks(9928),
-                            CreateUserId = "ebcef031-0158-4f8b-9b73-f448f7038aab",
+                            CreateDateTime = new DateTime(2024, 11, 23, 11, 27, 0, 171, DateTimeKind.Local).AddTicks(1882),
+                            CreateUserId = "ee58d560-b44c-4032-b73d-04720a9c2c37",
                             IsDeleted = false,
                             Name = "英镑"
                         },
                         new
                         {
-                            Id = "5ec27600-fe3b-4d56-883e-dad11fbe4873",
+                            Id = "d6ca0145-4e0b-453c-9b28-dac863e0b952",
                             Abbreviation = "MOP",
-                            CreateDateTime = new DateTime(2024, 11, 23, 11, 30, 9, 512, DateTimeKind.Local).AddTicks(9939),
-                            CreateUserId = "ebcef031-0158-4f8b-9b73-f448f7038aab",
+                            CreateDateTime = new DateTime(2024, 11, 23, 11, 27, 0, 171, DateTimeKind.Local).AddTicks(1894),
+                            CreateUserId = "ee58d560-b44c-4032-b73d-04720a9c2c37",
                             IsDeleted = false,
                             Name = "澳门币"
                         },
                         new
                         {
-                            Id = "ba76a4b6-c7bc-48fb-9854-18e432163ee9",
+                            Id = "9631399c-0be8-48ed-8a33-02b69e09def3",
                             Abbreviation = "HKD",
-                            CreateDateTime = new DateTime(2024, 11, 23, 11, 30, 9, 512, DateTimeKind.Local).AddTicks(9946),
-                            CreateUserId = "ebcef031-0158-4f8b-9b73-f448f7038aab",
+                            CreateDateTime = new DateTime(2024, 11, 23, 11, 27, 0, 171, DateTimeKind.Local).AddTicks(1901),
+                            CreateUserId = "ee58d560-b44c-4032-b73d-04720a9c2c37",
                             IsDeleted = false,
                             Name = "港元"
                         },
                         new
                         {
-                            Id = "4a773a81-d408-4535-a9f5-f387f3fc9233",
+                            Id = "72e022b5-b40a-4a23-b6a6-2fb7b6ad66f6",
                             Abbreviation = "KRW",
-                            CreateDateTime = new DateTime(2024, 11, 23, 11, 30, 9, 512, DateTimeKind.Local).AddTicks(9952),
-                            CreateUserId = "ebcef031-0158-4f8b-9b73-f448f7038aab",
+                            CreateDateTime = new DateTime(2024, 11, 23, 11, 27, 0, 171, DateTimeKind.Local).AddTicks(1907),
+                            CreateUserId = "ee58d560-b44c-4032-b73d-04720a9c2c37",
                             IsDeleted = false,
                             Name = "韩圆"
                         },
                         new
                         {
-                            Id = "ee9af98c-3dba-4ead-8e8a-9f429dc96ade",
+                            Id = "ad45a67d-5c1f-440b-8565-73101f6fd06a",
                             Abbreviation = "TWD",
-                            CreateDateTime = new DateTime(2024, 11, 23, 11, 30, 9, 512, DateTimeKind.Local).AddTicks(9959),
-                            CreateUserId = "ebcef031-0158-4f8b-9b73-f448f7038aab",
+                            CreateDateTime = new DateTime(2024, 11, 23, 11, 27, 0, 171, DateTimeKind.Local).AddTicks(1913),
+                            CreateUserId = "ee58d560-b44c-4032-b73d-04720a9c2c37",
                             IsDeleted = false,
                             Name = "新台币"
                         });
@@ -334,10 +335,10 @@ namespace SporeAccounting.Migrations
                     b.HasData(
                         new
                         {
-                            Id = "f41c2386-e0ec-4baa-9539-4e2b0f7d624a",
+                            Id = "405a9d0f-0291-4e6a-bee4-ba511f1ed630",
                             CanDelete = false,
-                            CreateDateTime = new DateTime(2024, 11, 23, 11, 30, 9, 512, DateTimeKind.Local).AddTicks(9869),
-                            CreateUserId = "87bd9e76-9ad0-4744-9e46-3203a40bc86a",
+                            CreateDateTime = new DateTime(2024, 11, 23, 11, 27, 0, 171, DateTimeKind.Local).AddTicks(1808),
+                            CreateUserId = "2da32ea8-71aa-4060-a968-15fbe21d8974",
                             IsDeleted = false,
                             Name = "其他",
                             Type = -1
@@ -444,19 +445,19 @@ namespace SporeAccounting.Migrations
                     b.HasData(
                         new
                         {
-                            Id = "ebcef031-0158-4f8b-9b73-f448f7038aab",
+                            Id = "ee58d560-b44c-4032-b73d-04720a9c2c37",
                             CanDelete = false,
-                            CreateDateTime = new DateTime(2024, 11, 23, 11, 30, 9, 512, DateTimeKind.Local).AddTicks(8708),
-                            CreateUserId = "87bd9e76-9ad0-4744-9e46-3203a40bc86a",
+                            CreateDateTime = new DateTime(2024, 11, 23, 11, 27, 0, 171, DateTimeKind.Local).AddTicks(542),
+                            CreateUserId = "2da32ea8-71aa-4060-a968-15fbe21d8974",
                             IsDeleted = false,
                             RoleName = "Administrator"
                         },
                         new
                         {
-                            Id = "f895454a-3a2e-4bd2-a2b1-43dc9d972539",
+                            Id = "dd62a92c-2354-4ec3-9618-22f13ad686d6",
                             CanDelete = false,
-                            CreateDateTime = new DateTime(2024, 11, 23, 11, 30, 9, 512, DateTimeKind.Local).AddTicks(8720),
-                            CreateUserId = "87bd9e76-9ad0-4744-9e46-3203a40bc86a",
+                            CreateDateTime = new DateTime(2024, 11, 23, 11, 27, 0, 171, DateTimeKind.Local).AddTicks(564),
+                            CreateUserId = "2da32ea8-71aa-4060-a968-15fbe21d8974",
                             IsDeleted = false,
                             RoleName = "Consumer"
                         });
@@ -616,29 +617,18 @@ namespace SporeAccounting.Migrations
                     b.HasData(
                         new
                         {
-                            Id = "87bd9e76-9ad0-4744-9e46-3203a40bc86a",
+                            Id = "2da32ea8-71aa-4060-a968-15fbe21d8974",
                             CanDelete = false,
-                            CreateDateTime = new DateTime(2024, 11, 23, 11, 30, 9, 512, DateTimeKind.Local).AddTicks(8778),
-                            CreateUserId = "87bd9e76-9ad0-4744-9e46-3203a40bc86a",
+                            CreateDateTime = new DateTime(2024, 11, 23, 11, 27, 0, 171, DateTimeKind.Local).AddTicks(662),
+                            CreateUserId = "2da32ea8-71aa-4060-a968-15fbe21d8974",
                             Email = "admin@miaoshu.xyz",
                             IsDeleted = false,
-                            Password = "eGl4J/dfpUJ8rhwvLejRFfACYsmtizXYB8XP2msXARU=",
+                            Password = "soq3PK8e/Cpdi9GBfbSkh0X/zomlqE6aMNLsgspjaBk=",
                             PhoneNumber = "",
-                            RoleId = "ebcef031-0158-4f8b-9b73-f448f7038aab",
-                            Salt = "4951cb15942a4d48886c29bb496f30e5",
+                            RoleId = "ee58d560-b44c-4032-b73d-04720a9c2c37",
+                            Salt = "74375f176b084f209f27943c421838fe",
                             UserName = "admin"
                         });
-                });
-
-            modelBuilder.Entity("SporeAccounting.Models.AccountBook", b =>
-                {
-                    b.HasOne("SporeAccounting.Models.SysUser", "User")
-                        .WithMany("AccountBooks")
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("SporeAccounting.Models.Config", b =>
@@ -744,8 +734,6 @@ namespace SporeAccounting.Migrations
 
             modelBuilder.Entity("SporeAccounting.Models.SysUser", b =>
                 {
-                    b.Navigation("AccountBooks");
-
                     b.Navigation("Config")
                         .IsRequired();
 
