@@ -66,7 +66,7 @@ public class SysUser : BaseModel
     /// <summary>
     /// 导航属性
     /// </summary>
-    public Config Config { get; set; }
+    public ICollection<Config> Configs { get; set; } = new List<Config>();
 
     /// <summary>
     /// 导航属性

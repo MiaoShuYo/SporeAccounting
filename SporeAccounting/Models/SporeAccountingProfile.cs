@@ -3,8 +3,14 @@ using SporeAccounting.Models.ViewModels;
 
 namespace SporeAccounting.Models;
 
+/// <summary>
+/// SporeAccountingProfile
+/// </summary>
 public class SporeAccountingProfile : Profile
 {
+    /// <summary>
+    /// 构造函数
+    /// </summary>
     public SporeAccountingProfile()
     {
         CreateMap<SysUserViewModel, SysUser>();
@@ -19,6 +25,18 @@ public class SporeAccountingProfile : Profile
                 opt.MapFrom(s => s.Email))
             .ForMember(d => d.PhoneNumber, opt =>
                 opt.MapFrom(s => s.PhoneNumber));
+        CreateMap<SysUser, SysUserInfoViewModel>()
+            .ForMember(d => d.PhoneNumber, opt =>
+                opt.MapFrom(s => s.PhoneNumber))
+            .ForMember(d => d.Email, opt =>
+                opt.MapFrom(s => s.Email))
+            .ForMember(d => d.UserName, opt =>
+                opt.MapFrom(s => s.UserName))
+            .ForMember(d => d.Id, opt =>
+                opt.MapFrom(s => s.Id))
+            .ForMember(d => d.Configs, opt =>
+                opt.MapFrom(s => s.Configs));
+
 
         CreateMap<SysRoleViewModel, SysRole>()
             .ForMember(d => d.RoleName, opt =>
@@ -47,6 +65,13 @@ public class SporeAccountingProfile : Profile
         CreateMap<IncomeExpenditureClassificationEditViewModel, IncomeExpenditureClassification>();
 
         CreateMap<Config, ConfigViewModel>();
+        CreateMap<Config, ConfigInfoViewModel>()
+            .ForMember(d => d.Id, opt =>
+                opt.MapFrom(s => s.Id))
+            .ForMember(d => d.Value, opt =>
+                opt.MapFrom(s => s.Value))
+            .ForMember(d => d.ConfigTypeEnum, opt =>
+                opt.MapFrom(s => s.ConfigTypeEnum));
 
         CreateMap<AccountBookAddViewmModel, AccountBook>()
             .ForMember(d => d.Name, opt =>

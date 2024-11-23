@@ -25,19 +25,22 @@ namespace SporeAccounting.Controllers
         private readonly ISysRoleServer _sysRoleServer;
         private readonly IMapper _mapper;
         private readonly IConfiguration _config;
+
         /// <summary>
         /// 用户构造函数
         /// </summary>
         /// <param name="sysUserServer"></param>
         /// <param name="mapper"></param>
         /// <param name="config"></param>
-        public SysUserController(ISysUserServer sysUserServer,ISysRoleServer roleServer, IMapper mapper, IConfiguration config)
+        public SysUserController(ISysUserServer sysUserServer, ISysRoleServer roleServer, IMapper mapper,
+            IConfiguration config)
         {
             _sysUserServer = sysUserServer;
             _sysRoleServer = roleServer;
             _mapper = mapper;
             _config = config;
         }
+
         /// <summary>
         /// 注册
         /// </summary>
@@ -55,7 +58,7 @@ namespace SporeAccounting.Controllers
                 sysUser.Password = HashPasswordWithSalt(sysUser.Password, sysUser.Salt);
                 sysUser.CreateUserId = sysUser.Id;
                 sysUser.CreateDateTime = DateTime.Now;
-                sysUser.RoleId= role.Id;
+                sysUser.RoleId = role.Id;
                 _sysUserServer.Add(sysUser);
                 return Ok(new ResponseData<bool>(HttpStatusCode.OK, "", false));
             }
@@ -64,6 +67,7 @@ namespace SporeAccounting.Controllers
                 return Ok(new ResponseData<bool>(HttpStatusCode.InternalServerError, "服务端异常", false));
             }
         }
+
         /// <summary>
         /// 登录
         /// </summary>
@@ -72,7 +76,8 @@ namespace SporeAccounting.Controllers
         /// <returns></returns>
         [HttpGet]
         [Route("Login/{userName}/{password}")]
-        public ActionResult<ResponseData<TokenViewModel>> Login([FromRoute] string userName, [FromRoute] string password)
+        public ActionResult<ResponseData<TokenViewModel>> Login([FromRoute] string userName,
+            [FromRoute] string password)
         {
             try
             {
@@ -82,12 +87,14 @@ namespace SporeAccounting.Controllers
                 {
                     return Ok(new ResponseData<bool>(HttpStatusCode.BadRequest, "用户或密码错误！", false));
                 }
+
                 string passwordHash = HashPasswordWithSalt(password, sysUser.Salt);
                 //验证密码
                 if (sysUser.Password != passwordHash)
                 {
                     return Ok(new ResponseData<bool>(HttpStatusCode.OK, "用户或密码错误！", false));
                 }
+
                 //生成Token和刷新Token
                 TokenViewModel sysToken = new TokenViewModel();
                 sysToken.RefreshToken = GenerateRefreshToken();
@@ -108,7 +115,8 @@ namespace SporeAccounting.Controllers
         /// <returns></returns>
         [HttpGet]
         [Route("RetrievePassword/{userName}/{email}")]
-        public ActionResult<ResponseData<string>> RetrievePassword([FromRoute] string userName, [FromRoute] string email)
+        public ActionResult<ResponseData<string>> RetrievePassword([FromRoute] string userName,
+            [FromRoute] string email)
         {
             try
             {
@@ -118,10 +126,12 @@ namespace SporeAccounting.Controllers
                 {
                     return Ok(new ResponseData<bool>(HttpStatusCode.BadRequest, "用户不存在！", false));
                 }
+
                 if (sysUser.Email != email)
                 {
                     return Ok(new ResponseData<bool>(HttpStatusCode.BadRequest, "邮箱不正确！", false));
                 }
+
                 //生成12位随机密码
                 string newPassword = GenerateRandomPassword(12);
                 sysUser.Password = HashPasswordWithSalt(newPassword, sysUser.Salt);
@@ -134,6 +144,7 @@ namespace SporeAccounting.Controllers
                 return Ok(new ResponseData<bool>(HttpStatusCode.InternalServerError, "服务端异常", false));
             }
         }
+
         /// <summary>
         /// 刷新token
         /// </summary>
@@ -153,12 +164,14 @@ namespace SporeAccounting.Controllers
                 {
                     return Ok(new ResponseData<bool>(HttpStatusCode.BadRequest, "数据违规！", false));
                 }
+
                 //根据userid查询用户
                 SysUser sysUser = _sysUserServer.GetById(userId);
                 if (sysUser == null)
                 {
                     return Ok(new ResponseData<bool>(HttpStatusCode.NotFound, "用户不存在！", false));
                 }
+
                 //使用刷新token刷新token
                 string newToken = GenerateToken(userId, refreshToken);
                 return Ok(new ResponseData<string>(HttpStatusCode.OK, data: newToken));
@@ -168,6 +181,7 @@ namespace SporeAccounting.Controllers
                 return Ok(new ResponseData<bool>(HttpStatusCode.InternalServerError, "服务端异常", false));
             }
         }
+
         /// <summary>
         /// 查询用户
         /// </summary>
@@ -175,7 +189,8 @@ namespace SporeAccounting.Controllers
         /// <returns></returns>
         [HttpPost]
         [Route("Query")]
-        public ActionResult<ResponseData<PageResponseViewModel<SysUserQueryViewModel>>> Query([FromBody] SysUserPageViewModel userPage)
+        public ActionResult<ResponseData<PageResponseViewModel<SysUserQueryViewModel>>> Query(
+            [FromBody] SysUserPageViewModel userPage)
         {
             try
             {
@@ -186,14 +201,36 @@ namespace SporeAccounting.Controllers
                 pageResponseView.Data = sysUsersView;
                 pageResponseView.PageCount = pageCount;
                 pageResponseView.RowCount = rowCount;
-                return Ok(new ResponseData<PageResponseViewModel<SysUserQueryViewModel>>(HttpStatusCode.OK, data: pageResponseView));
-
+                return Ok(new ResponseData<PageResponseViewModel<SysUserQueryViewModel>>(HttpStatusCode.OK,
+                    data: pageResponseView));
             }
             catch (Exception ex)
             {
                 return Ok(new ResponseData<bool>(HttpStatusCode.InternalServerError, "服务端异常", false));
             }
         }
+
+        /// <summary>
+        /// 获取用户信息
+        /// </summary>
+        /// <param name="userId"></param>
+        /// <returns></returns>
+        [HttpGet]
+        [Route("QueryUserInfo/{userId}")]
+        public ActionResult<ResponseData<SysUserInfoViewModel>> QueryUserInfo([FromRoute] string userId)
+        {
+            try
+            {
+                SysUser sysUser = _sysUserServer.GetById(userId);
+                SysUserInfoViewModel sysUserInfoViewModel = _mapper.Map<SysUserInfoViewModel>(sysUser);
+                return Ok(new ResponseData<SysUserInfoViewModel>(HttpStatusCode.OK, data: sysUserInfoViewModel));
+            }
+            catch (Exception ex)
+            {
+                return Ok(new ResponseData<bool>(HttpStatusCode.InternalServerError, "服务端异常", false));
+            }
+        }
+
         /// <summary>
         /// 删除用户（逻辑删除）
         /// </summary>
@@ -210,11 +247,13 @@ namespace SporeAccounting.Controllers
                 {
                     return Ok(new ResponseData<bool>(HttpStatusCode.NotFound, $"用户 {userId} 不存在", false));
                 }
+
                 bool canDeleted = _sysUserServer.CanDelete(userId);
-                if(!canDeleted)
+                if (!canDeleted)
                 {
                     return Ok(new ResponseData<bool>(HttpStatusCode.Conflict, $"用户 {userId} 不可删除", false));
                 }
+
                 _sysUserServer.Delete(userId);
                 return Ok(new ResponseData<bool>(HttpStatusCode.OK, data: true));
             }
@@ -223,6 +262,7 @@ namespace SporeAccounting.Controllers
                 return Ok(new ResponseData<bool>(HttpStatusCode.InternalServerError, "服务器异常", false));
             }
         }
+
         /// <summary>
         /// 修改用户信息
         /// </summary>
@@ -255,6 +295,12 @@ namespace SporeAccounting.Controllers
             }
         }
 
+        /// <summary>
+        /// 密码HASH
+        /// </summary>
+        /// <param name="password"></param>
+        /// <param name="salt"></param>
+        /// <returns></returns>
         private static string HashPasswordWithSalt(string password, string salt)
         {
             using (var sha256 = SHA256.Create())
@@ -265,6 +311,7 @@ namespace SporeAccounting.Controllers
                 return Convert.ToBase64String(hashBytes);
             }
         }
+
         /// <summary>
         /// 生成Token
         /// </summary>
@@ -277,7 +324,7 @@ namespace SporeAccounting.Controllers
             {
                 new Claim(JwtRegisteredClaimNames.Sub, userId),
                 new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
-                new Claim("refreshToken",refreshToken)
+                new Claim("refreshToken", refreshToken)
             };
             var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_config["JWT:IssuerSigningKey"]));
             var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
@@ -290,10 +337,10 @@ namespace SporeAccounting.Controllers
                 signingCredentials: creds);
             return new JwtSecurityTokenHandler().WriteToken(token);
         }
+
         /// <summary>
         /// 生成刷新Token
         /// </summary>
-        /// <param name="token"></param>
         /// <returns></returns>
         private string GenerateRefreshToken()
         {
@@ -304,6 +351,7 @@ namespace SporeAccounting.Controllers
                 return Convert.ToBase64String(randomNumber);
             }
         }
+
         /// <summary>
         /// 随机密码生成
         /// </summary>
@@ -323,8 +371,10 @@ namespace SporeAccounting.Controllers
                     password.Append(validChars[(int)(num % (uint)validChars.Length)]);
                 }
             }
+
             return password.ToString();
         }
+
         /// <summary>
         /// 获取token中的userid
         /// </summary>
@@ -339,6 +389,7 @@ namespace SporeAccounting.Controllers
             {
                 throw new ArgumentException("无效的令牌");
             }
+
             // 读取令牌
             var jwtToken = handler.ReadJwtToken(token);
             // 从声明中提取用户ID（通常是“sub”声明）
@@ -347,11 +398,11 @@ namespace SporeAccounting.Controllers
             var refreshTokenClaim = jwtToken.Claims.FirstOrDefault(claim => claim.Type == "refreshToken");
             return (userIdClaim?.Value, jtiClaim.Value, refreshTokenClaim.Value);
         }
+
         /// <summary>
         /// //判断用户是否存在
         /// </summary>
         /// <returns></returns>
-
         private bool UserExist(string userId)
         {
             try

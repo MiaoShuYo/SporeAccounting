@@ -26,6 +26,7 @@ namespace SporeAccounting.Controllers
         /// 构造函数
         /// </summary>
         /// <param name="configServer"></param>
+        /// <param name="mapper"></param>
         public ConfigController(IConfigServer configServer, IMapper mapper)
         {
             _configServer = configServer;
@@ -65,15 +66,16 @@ namespace SporeAccounting.Controllers
             try
             {
                 string userId = GetUserId();
-                bool isExist= _configServer.IsExist(userId, configViewModel.Id);
+                bool isExist = _configServer.IsExist(userId, configViewModel.Id);
                 if (!isExist)
                 {
                     return Ok(new ResponseData<bool>(HttpStatusCode.NotFound, "用户配置不存在"));
                 }
+
                 _configServer.Update(userId, configViewModel.Id, configViewModel.Value);
-                
+
                 //TODO:如果切换的是主币种，那么就将以前的所有金额全部转换成新的主币种的金额
-                
+
                 return Ok(new ResponseData<bool>(HttpStatusCode.OK, data: true));
             }
             catch (Exception ex)
