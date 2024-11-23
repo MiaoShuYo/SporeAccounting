@@ -11,6 +11,9 @@ using SporeAccounting.BaseModels;
 using SporeAccounting.Server;
 using SporeAccounting.Server.Interface;
 using SporeAccounting.Middlewares;
+using SporeAccounting.MQ;
+using SporeAccounting.MQ.Message;
+using SporeAccounting.MQ.Model;
 using SporeAccounting.Task.Timer;
 
 namespace SporeAccounting
@@ -103,6 +106,23 @@ namespace SporeAccounting
                     return new BadRequestObjectResult(result);
                 };
             });
+
+            #region RabbitMQ配置
+
+            builder.Services.AddSingleton(new RabbitMQOptions
+            {
+                HostName = configurationManager["RabbitMQ:Host"],
+                Port = int.Parse(configurationManager["RabbitMQ:Port"]),
+                UserName = configurationManager["RabbitMQ:UserName"],
+                Password = configurationManager["RabbitMQ:Password"],
+                VirtualHost = configurationManager["RabbitMQ:VirtualHost"],
+            });
+            builder.Services.AddSingleton<RabbitMQConnection>();
+            builder.Services.AddSingleton<RabbitMQPublisher>();
+            builder.Services.AddSingleton<RabbitMQSubscriber>();
+
+            #endregion
+
             builder.Services.AddDbContext<SporeAccountingDBContext>(ServiceLifetime.Scoped);
             builder.Services.AddScoped(typeof(ISysUserServer), typeof(SysUserImp));
             builder.Services.AddScoped(typeof(ISysRoleServer), typeof(SysRoleImp));
@@ -116,9 +136,9 @@ namespace SporeAccounting
             // 添加定时任务
             builder.Services.AddQuartz(q =>
             {
-                var exchangeRateTimerJobKey=new JobKey("ExchangeRateTimer");
-                q.AddJob<ExchangeRateTimer>(opts=>opts.WithIdentity(exchangeRateTimerJobKey));
-                q.AddTrigger(opts=>opts
+                var exchangeRateTimerJobKey = new JobKey("ExchangeRateTimer");
+                q.AddJob<ExchangeRateTimer>(opts => opts.WithIdentity(exchangeRateTimerJobKey));
+                q.AddTrigger(opts => opts
                     .ForJob(exchangeRateTimerJobKey)
                     .WithIdentity("ExchangeRateTimerTrigger")
                     .StartNow()
@@ -131,7 +151,8 @@ namespace SporeAccounting
             });
 
             var app = builder.Build();
-
+            //开启监听主币种
+            SetMainCurrency.Start(app.Services);
             // Configure the HTTP request pipeline.
             if (app.Environment.IsDevelopment())
             {

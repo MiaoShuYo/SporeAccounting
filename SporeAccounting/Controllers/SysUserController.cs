@@ -10,6 +10,7 @@ using SporeAccounting.BaseModels;
 using SporeAccounting.BaseModels.ViewModel.Response;
 using SporeAccounting.Models;
 using SporeAccounting.Models.ViewModels;
+using SporeAccounting.MQ;
 using SporeAccounting.Server.Interface;
 
 namespace SporeAccounting.Controllers
@@ -25,20 +26,24 @@ namespace SporeAccounting.Controllers
         private readonly ISysRoleServer _sysRoleServer;
         private readonly IMapper _mapper;
         private readonly IConfiguration _config;
+        private readonly RabbitMQPublisher _rabbitMqPublisher;
 
         /// <summary>
         /// 用户构造函数
         /// </summary>
         /// <param name="sysUserServer"></param>
+        /// <param name="roleServer"></param>
         /// <param name="mapper"></param>
         /// <param name="config"></param>
+        /// <param name="rabbitMqPublisher"></param>
         public SysUserController(ISysUserServer sysUserServer, ISysRoleServer roleServer, IMapper mapper,
-            IConfiguration config)
+            IConfiguration config, RabbitMQPublisher rabbitMqPublisher)
         {
             _sysUserServer = sysUserServer;
             _sysRoleServer = roleServer;
             _mapper = mapper;
             _config = config;
+            _rabbitMqPublisher = rabbitMqPublisher;
         }
 
         /// <summary>
@@ -60,6 +65,8 @@ namespace SporeAccounting.Controllers
                 sysUser.CreateDateTime = DateTime.Now;
                 sysUser.RoleId = role.Id;
                 _sysUserServer.Add(sysUser);
+                //发布设置主币种消息
+                _ = _rabbitMqPublisher.Publish("SetMainCurrency", "SetMainCurrency", sysUser.Id);
                 return Ok(new ResponseData<bool>(HttpStatusCode.OK, "", false));
             }
             catch (Exception ex)
