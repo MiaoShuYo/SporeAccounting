@@ -32,4 +32,18 @@ public class ExchangeRateRecordImp : IExchangeRateRecordServer
             throw;
         }
     }
+
+    /// <summary>
+    /// 查询汇率记录
+    /// </summary>
+    /// <param name="convertCurrency"></param>
+    /// <returns></returns>
+    public ExchangeRateRecord? Query(string convertCurrency)
+    {
+        //查询最新的汇率记录
+        return _sporeAccountingDbContext.ExchangeRateRecords
+            .Where(e => e.ConvertCurrency == convertCurrency)
+            .OrderByDescending(e => e.Date)
+            .FirstOrDefault();
+    }
 }

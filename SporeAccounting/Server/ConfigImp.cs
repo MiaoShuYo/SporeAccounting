@@ -34,6 +34,25 @@ public class ConfigImp : IConfigServer
     }
 
     /// <summary>
+    /// 查询用户配置
+    /// </summary>
+    /// <param name="userId"></param>
+    /// <param name="configTypeEnum"></param>
+    /// <returns></returns>
+    public Config? Query(string userId, ConfigTypeEnum configTypeEnum)
+    {
+        try
+        {
+            return _sporeAccountingDbContext.Configs.FirstOrDefault(c =>
+                c.UserId == userId && c.ConfigTypeEnum == configTypeEnum);
+        }
+        catch (Exception e)
+        {
+            throw;
+        }
+    }
+
+    /// <summary>
     /// 更新用户配置
     /// </summary>
     /// <param name="userId"></param>

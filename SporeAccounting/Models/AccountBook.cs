@@ -18,13 +18,6 @@ public class AccountBook : BaseModel
     public string Name { get; set; }
 
     /// <summary>
-    /// 账簿余额
-    /// </summary>
-    [Column(TypeName = "decimal(18,2)")]
-    [Required]
-    public decimal Balance { get; set; }
-
-    /// <summary>
     /// 备注
     /// </summary>
     [Column(TypeName = "nvarchar(100)")]
@@ -42,4 +35,10 @@ public class AccountBook : BaseModel
     /// 导航属性
     /// </summary>
     public SysUser User { get; set; }
+
+    /// <summary>
+    /// 导航属性
+    /// </summary>
+    public ICollection<IncomeExpenditureRecord> IncomeExpenditureRecords { get; set; } =
+        new List<IncomeExpenditureRecord>();
 }

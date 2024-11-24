@@ -19,9 +19,4 @@ public class AccountBookInfoViewModel
     /// 账簿描述
     /// </summary>
     public string Remarks { get; set; }
-
-    /// <summary>
-    /// 账簿余额
-    /// </summary>
-    public decimal Balance { get; set; }
 }

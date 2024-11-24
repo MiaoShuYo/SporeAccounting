@@ -12,4 +12,11 @@ public interface IExchangeRateRecordServer
     /// </summary>
     /// <param name="exchangeRateRecord"></param>
     void Add(List<ExchangeRateRecord> exchangeRateRecord);
+
+    /// <summary>
+    /// 查询汇率记录
+    /// </summary>
+    /// <param name="convertCurrency"></param>
+    /// <returns></returns>
+    ExchangeRateRecord? Query(string convertCurrency);
 }

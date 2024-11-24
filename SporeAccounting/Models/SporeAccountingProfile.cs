@@ -82,8 +82,62 @@ public class SporeAccountingProfile : Profile
             .ForMember(d => d.Name, opt =>
                 opt.MapFrom(s => s.Name))
             .ForMember(d => d.Remarks, opt =>
-                opt.MapFrom(s => s.Remarks))
-            .ForMember(d => d.Balance, opt =>
-                opt.MapFrom(s => s.Balance));
+                opt.MapFrom(s => s.Remarks));
+
+        CreateMap<IncomeExpenditureRecordAddViewModel, IncomeExpenditureRecord>()
+            .ForMember(d => d.BeforAmount, opt => opt
+                .MapFrom(s => s.BeforAmount))
+            .ForMember(d => d.AfterAmount, opt => opt
+                .MapFrom(s => s.AfterAmount))
+            .ForMember(d => d.IncomeExpenditureClassificationId, opt => opt
+                .MapFrom(s => s.IncomeExpenditureClassificationId))
+            .ForMember(d => d.RecordDate, opt => opt
+                .MapFrom(s => s.RecordDate))
+            .ForMember(d => d.CurrencyId, opt => opt
+                .MapFrom(s => s.CurrencyId))
+            .ForMember(d => d.Remark, opt => opt
+                .MapFrom(s => s.Remark))
+            .ForMember(d => d.AccountBookId, opt => opt
+                .MapFrom(s => s.AccountBookId));
+        CreateMap<IncomeExpenditureRecordEditViewModel, IncomeExpenditureRecord>()
+            .ForMember(d => d.BeforAmount, opt => opt
+                .MapFrom(s => s.BeforAmount))
+            .ForMember(d => d.AfterAmount, opt => opt
+                .MapFrom(s => s.AfterAmount))
+            .ForMember(d => d.IncomeExpenditureClassificationId, opt => opt
+                .MapFrom(s => s.IncomeExpenditureClassificationId))
+            .ForMember(d => d.RecordDate, opt => opt
+                .MapFrom(s => s.RecordDate))
+            .ForMember(d => d.CurrencyId, opt => opt
+                .MapFrom(s => s.CurrencyId))
+            .ForMember(d => d.Remark, opt => opt
+                .MapFrom(s => s.Remark))
+            .ForMember(d => d.AccountBookId, opt => opt
+                .MapFrom(s => s.AccountBookId))
+            .ForMember(d => d.Id, opt => opt
+                .MapFrom(s => s.IncomeExpenditureRecordId));
+        CreateMap<IncomeExpenditureRecord, IncomeExpenditureRecordInfoViewModel>()
+            .ForMember(d => d.BeforAmount, opt => opt
+                .MapFrom(s => s.BeforAmount))
+            .ForMember(d => d.AfterAmount, opt => opt
+                .MapFrom(s => s.AfterAmount))
+            .ForMember(d => d.IncomeExpenditureClassificationId, opt => opt
+                .MapFrom(s => s.IncomeExpenditureClassificationId))
+            .ForMember(d => d.RecordDate, opt => opt
+                .MapFrom(s => s.RecordDate))
+            .ForMember(d => d.CurrencyId, opt => opt
+                .MapFrom(s => s.CurrencyId))
+            .ForMember(d => d.Remark, opt => opt
+                .MapFrom(s => s.Remark))
+            .ForMember(d => d.AccountBookId, opt => opt
+                .MapFrom(s => s.AccountBookId))
+            .ForMember(d => d.IncomeExpenditureRecordId, opt => opt
+                .MapFrom(s => s.Id))
+            .ForMember(d => d.IncomeExpenditureClassificationName, opt => opt
+                .MapFrom(s => s.IncomeExpenditureClassification.Name))
+            .ForMember(d => d.AccountBookName, opt => opt
+                .MapFrom(s => s.AccountBook.Name))
+            .ForMember(d => d.CurrencyName, opt => opt
+                .MapFrom(s => s.Currency.Name));
     }
 }

@@ -1,6 +1,5 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-using Quartz.Xml.JobSchedulingData20;
 using SporeAccounting.BaseModels;
 
 namespace SporeAccounting.Models;
@@ -11,7 +10,6 @@ namespace SporeAccounting.Models;
 [Table("IncomeExpenditureRecord")]
 public class IncomeExpenditureRecord : BaseModel
 {
-    //记录内容包括转换前金额、转换后金额、分类、日期、转换前币种、备注
     /// <summary>
     /// 转换前金额
     /// </summary>
@@ -33,6 +31,21 @@ public class IncomeExpenditureRecord : BaseModel
     [ForeignKey("FK_IncomeExpenditureRecord_IncomeExpenditureClassification")]
     [Required]
     public string IncomeExpenditureClassificationId { get; set; }
+
+    /// <summary>
+    /// 记录日期
+    /// </summary>
+    [Column(TypeName = "datetime")]
+    [Required]
+    public DateTime RecordDate { get; set; } = DateTime.Now;
+
+    /// <summary>
+    /// 账簿Id
+    /// </summary>
+    [Column(TypeName = "nvarchar(36)")]
+    [ForeignKey("FK_IncomeExpenditureRecord_AccountBook")]
+    [Required]
+    public string AccountBookId { get; set; }
 
     /// <summary>
     /// 转换前币种Id
@@ -70,4 +83,8 @@ public class IncomeExpenditureRecord : BaseModel
     /// 导航属性
     /// </summary>
     public IncomeExpenditureClassification IncomeExpenditureClassification { get; set; }
+    /// <summary>
+    /// 导航属性
+    /// </summary>
+    public AccountBook AccountBook { get; set; }
 }

@@ -26,6 +26,7 @@ namespace SporeAccounting.Controllers
             _incomeExpenditureClassificationService = incomeExpenditureClassificationService;
             _mapper = mapper;
         }
+
         /// <summary>
         /// 查询父分类下的子分类
         /// </summary>
@@ -68,7 +69,7 @@ namespace SporeAccounting.Controllers
             {
                 string userId = GetUserId();
                 List<IncomeExpenditureClassification> classifications =
-                    _incomeExpenditureClassificationService.Query(type,userId).ToList();
+                    _incomeExpenditureClassificationService.Query(type, userId).ToList();
 
                 List<IncomeExpenditureClassificationInfoViewModel>
                     classificationInfoViewModels =
@@ -82,6 +83,7 @@ namespace SporeAccounting.Controllers
                 return Ok(new ResponseData<List<string>>(HttpStatusCode.InternalServerError, "服务器异常", null));
             }
         }
+
         /// <summary>
         /// 分页查询收支分类
         /// </summary>
@@ -116,6 +118,7 @@ namespace SporeAccounting.Controllers
                 return Ok(new ResponseData<bool>(HttpStatusCode.InternalServerError, "服务器异常", false));
             }
         }
+
         /// <summary>
         /// 新增收支分类
         /// </summary>
@@ -123,33 +126,41 @@ namespace SporeAccounting.Controllers
         /// <returns></returns>
         [HttpPost]
         [Route("Add")]
-        public ActionResult<ResponseData<bool>> Add([FromBody] IncomeExpenditureClassificationViewModel classificationAddViewModel)
+        public ActionResult<ResponseData<bool>> Add(
+            [FromBody] IncomeExpenditureClassificationViewModel classificationAddViewModel)
         {
             try
             {
                 //是否存在
-                bool isExist = _incomeExpenditureClassificationService.IsExist(classificationAddViewModel.Name, GetUserId());
+                bool isExist =
+                    _incomeExpenditureClassificationService.IsExist(classificationAddViewModel.Name, GetUserId());
                 if (isExist)
                 {
-                    return Ok(new ResponseData<bool>(HttpStatusCode.Conflict, $"分类{classificationAddViewModel.Name}已存在！", false));
+                    return Ok(new ResponseData<bool>(HttpStatusCode.Conflict,
+                        $"分类{classificationAddViewModel.Name}已存在！", false));
                 }
-                
+
                 if (!string.IsNullOrEmpty(classificationAddViewModel.ParentClassificationId))
                 {
                     //判断类型是否和父级的类型一样
                     IncomeExpenditureClassification parentClassification =
-                        _incomeExpenditureClassificationService.QueryById(classificationAddViewModel.ParentClassificationId);
+                        _incomeExpenditureClassificationService.QueryById(classificationAddViewModel
+                            .ParentClassificationId);
                     if (parentClassification.Type != classificationAddViewModel.Type)
                     {
-                        return Ok(new ResponseData<bool>(HttpStatusCode.Conflict, $"分类{classificationAddViewModel.Name}的类型和父级类型不一致！", false));
+                        return Ok(new ResponseData<bool>(HttpStatusCode.Conflict,
+                            $"分类{classificationAddViewModel.Name}的类型和父级类型不一致！", false));
                     }
+
                     //判断父级是否是子集
                     if (parentClassification.ParentClassificationId != null)
                     {
                         return Ok(new ResponseData<bool>(HttpStatusCode.Conflict, $"子分类不能再创建子类！", false));
                     }
                 }
-                IncomeExpenditureClassification classification = _mapper.Map<IncomeExpenditureClassification>(classificationAddViewModel);
+
+                IncomeExpenditureClassification classification =
+                    _mapper.Map<IncomeExpenditureClassification>(classificationAddViewModel);
                 classification.CreateUserId = GetUserId();
                 classification.CanDelete = true;
                 classification.CreateDateTime = DateTime.Now;
@@ -161,6 +172,7 @@ namespace SporeAccounting.Controllers
                 return Ok(new ResponseData<bool>(HttpStatusCode.InternalServerError, "服务器异常", false));
             }
         }
+
         /// <summary>
         /// 删除收支分类
         /// </summary>
@@ -177,17 +189,21 @@ namespace SporeAccounting.Controllers
                 {
                     return Ok(new ResponseData<bool>(HttpStatusCode.NotFound, $"分类不存在！", false));
                 }
+
                 bool canDelete = _incomeExpenditureClassificationService.CanDelete(classificationId);
                 if (!canDelete)
                 {
                     return Ok(new ResponseData<bool>(HttpStatusCode.Conflict, $"分类{classificationId}不可删除！", false));
                 }
+
                 //是否存在子类型
                 bool hasChild = _incomeExpenditureClassificationService.HasChild(classificationId);
                 if (hasChild)
                 {
-                    return Ok(new ResponseData<bool>(HttpStatusCode.Conflict, $"分类{classificationId}存在子分类，不允许删除！", false));
+                    return Ok(new ResponseData<bool>(HttpStatusCode.Conflict, $"分类{classificationId}存在子分类，不允许删除！",
+                        false));
                 }
+
                 _incomeExpenditureClassificationService.Delete(classificationId);
                 return Ok(new ResponseData<bool>(HttpStatusCode.OK, data: true));
             }
@@ -196,6 +212,7 @@ namespace SporeAccounting.Controllers
                 return Ok(new ResponseData<bool>(HttpStatusCode.InternalServerError, "服务器异常", false));
             }
         }
+
         /// <summary>
         /// 修改收支分类
         /// </summary>
@@ -203,7 +220,8 @@ namespace SporeAccounting.Controllers
         /// <returns></returns>
         [HttpPut]
         [Route("Update")]
-        public ActionResult<ResponseData<bool>> Update([FromBody] IncomeExpenditureClassificationEditViewModel classificationViewModel)
+        public ActionResult<ResponseData<bool>> Update(
+            [FromBody] IncomeExpenditureClassificationEditViewModel classificationViewModel)
         {
             try
             {
@@ -213,35 +231,44 @@ namespace SporeAccounting.Controllers
                 {
                     return Ok(new ResponseData<bool>(HttpStatusCode.NotFound, $"分类不存在！", false));
                 }
+
                 //判断类型是否和父级的类型一样
                 if (!string.IsNullOrEmpty(classificationViewModel.ParentClassificationId))
                 {
                     //判断类型是否和父级的类型一样
                     IncomeExpenditureClassification parentClassification =
-                        _incomeExpenditureClassificationService.QueryById(classificationViewModel.ParentClassificationId);
+                        _incomeExpenditureClassificationService.QueryById(
+                            classificationViewModel.ParentClassificationId);
                     if (parentClassification.Type != classificationViewModel.Type)
                     {
-                        return Ok(new ResponseData<bool>(HttpStatusCode.Conflict, $"分类{classificationViewModel.Name}的类型和父级类型不一致！", false));
+                        return Ok(new ResponseData<bool>(HttpStatusCode.Conflict,
+                            $"分类{classificationViewModel.Name}的类型和父级类型不一致！", false));
                     }
+
                     //判断父级是否是子集
                     if (parentClassification.ParentClassificationId != null)
                     {
                         return Ok(new ResponseData<bool>(HttpStatusCode.Conflict, $"子分类不能再创建子类！", false));
                     }
                 }
+
                 //不能将类型修改为其他，也不能把其他类型修改为别的类型
                 IncomeExpenditureClassification classificationOld =
                     _incomeExpenditureClassificationService.QueryById(classificationViewModel.Id);
                 if (classificationOld.Type == IncomeExpenditureTypeEnmu.Other)
                 {
-                    return Ok(new ResponseData<bool>(HttpStatusCode.Conflict, $"分类{classificationOld.Name}不允许修改！", false));
+                    return Ok(new ResponseData<bool>(HttpStatusCode.Conflict, $"分类{classificationOld.Name}不允许修改！",
+                        false));
                 }
-                if(classificationViewModel.Type== IncomeExpenditureTypeEnmu.Other)
+
+                if (classificationViewModel.Type == IncomeExpenditureTypeEnmu.Other)
                 {
-                    return Ok(new ResponseData<bool>(HttpStatusCode.Conflict, $"分类{classificationViewModel.Name}不允许修改为其他分类！", false));
+                    return Ok(new ResponseData<bool>(HttpStatusCode.Conflict,
+                        $"分类{classificationViewModel.Name}不允许修改为其他分类！", false));
                 }
-                
-                IncomeExpenditureClassification classification = _mapper.Map<IncomeExpenditureClassification>(classificationViewModel);
+
+                IncomeExpenditureClassification classification =
+                    _mapper.Map<IncomeExpenditureClassification>(classificationViewModel);
                 classification.UpdateDateTime = DateTime.Now;
                 classification.UpdateUserId = GetUserId();
                 _incomeExpenditureClassificationService.Update(classification);

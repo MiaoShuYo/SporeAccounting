@@ -30,7 +30,7 @@ public interface IIncomeExpenditureRecordServer
     /// </summary>
     /// <param name="incomeExpenditureRecordId"></param>
     /// <returns></returns>
-    IncomeExpenditureRecord Query(string incomeExpenditureRecordId);
+    IncomeExpenditureRecord? Query(string incomeExpenditureRecordId);
 
     /// <summary>
     /// 分页查询收支记录
@@ -41,6 +41,14 @@ public interface IIncomeExpenditureRecordServer
     /// <param name="startDate"></param>
     /// <param name="endDate"></param>
     /// <returns></returns>
-    IQueryable<IncomeExpenditureRecord> Query(int pageNumber, int pageSize, string userId, DateTime startDate,
+    (int rowCount, int pageCount, List<IncomeExpenditureRecord> incomeExpenditureClassifications) Query(int pageNumber,
+        int pageSize, string userId, DateTime startDate,
         DateTime endDate);
+
+    /// <summary>
+    /// 收支记录是否存在
+    /// </summary>
+    /// <param name="incomeExpenditureRecordId"></param>
+    /// <returns></returns>
+    bool IsExist(string incomeExpenditureRecordId);
 }

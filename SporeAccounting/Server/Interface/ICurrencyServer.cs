@@ -12,4 +12,10 @@ public interface ICurrencyServer
     /// </summary>
     /// <returns></returns>
     IQueryable<Currency> Query();
+    /// <summary>
+    /// 查询币种
+    /// </summary>
+    /// <param name="currencyId"></param>
+    /// <returns></returns>
+    Currency? Query(string currencyId);
 }

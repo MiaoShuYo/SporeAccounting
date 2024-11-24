@@ -15,6 +15,14 @@ public interface IConfigServer
     Config? Query(string configId);
 
     /// <summary>
+    /// 查询用户配置
+    /// </summary>
+    /// <param name="userId"></param>
+    /// <param name="configTypeEnum"></param>
+    /// <returns></returns>
+    Config? Query(string userId, ConfigTypeEnum configTypeEnum);
+
+    /// <summary>
     /// 更新用户配置
     /// </summary>
     /// <param name="userId"></param>
@@ -35,6 +43,7 @@ public interface IConfigServer
     /// <param name="configTypeEnum"></param>
     /// <returns></returns>
     bool IsExist(string userId, ConfigTypeEnum configTypeEnum);
+
     /// <summary>
     /// 用户配置是否存在
     /// </summary>

@@ -2,17 +2,19 @@ using SporeAccounting.Models;
 using SporeAccounting.Server.Interface;
 
 namespace SporeAccounting.Server;
+
 /// <summary>
 /// 币种服务实现
 /// </summary>
-public class CurrencyImp:ICurrencyServer
+public class CurrencyImp : ICurrencyServer
 {
-    
     private readonly SporeAccountingDBContext _dbContext;
+
     public CurrencyImp(SporeAccountingDBContext dbContext)
     {
         _dbContext = dbContext;
     }
+
     /// <summary>
     /// 查询全部币种
     /// </summary>
@@ -22,6 +24,23 @@ public class CurrencyImp:ICurrencyServer
         try
         {
             return _dbContext.Currencies;
+        }
+        catch (Exception e)
+        {
+            throw;
+        }
+    }
+
+    /// <summary>
+    /// 查询币种
+    /// </summary>
+    /// <param name="currencyId"></param>
+    /// <returns></returns>
+    public Currency? Query(string currencyId)
+    {
+        try
+        {
+            return _dbContext.Currencies.FirstOrDefault(c => c.Id == currencyId);
         }
         catch (Exception e)
         {
