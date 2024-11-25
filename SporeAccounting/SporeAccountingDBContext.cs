@@ -47,6 +47,7 @@ public class SporeAccountingDBContext : DbContext
     /// 用户配置表
     /// </summary>
     public DbSet<Config> Configs { get; set; }
+
     /// <summary>
     /// 账本表
     /// </summary>
@@ -68,14 +69,14 @@ public class SporeAccountingDBContext : DbContext
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-        string adminUserId = Guid.NewGuid().ToString();
+        string adminUserId = "b47637e2-603f-4df0-abe9-88d70fa870ee";
+        string adminRoleId = "cef80881-fe89-4b1f-85ad-83184777d61b";
         string salt = Guid.NewGuid().ToString("N");
-        string adminId = Guid.NewGuid().ToString();
         modelBuilder.Entity<SysRole>().HasData(new List<SysRole>()
         {
             new SysRole()
             {
-                Id = adminId,
+                Id = adminRoleId,
                 RoleName = "Administrator",
                 CanDelete = false,
                 IsDeleted = false,
@@ -84,6 +85,7 @@ public class SporeAccountingDBContext : DbContext
             },
             new SysRole()
             {
+                Id = "10389aa0-b6f2-4241-9a77-ca8020656bb6",
                 RoleName = "Consumer",
                 CanDelete = false,
                 IsDeleted = false,
@@ -98,7 +100,7 @@ public class SporeAccountingDBContext : DbContext
                 UserName = "admin",
                 Email = "admin@miaoshu.xyz",
                 PhoneNumber = "",
-                RoleId = adminId,
+                RoleId = adminRoleId,
                 IsDeleted = false,
                 CanDelete = false,
                 CreateDateTime = DateTime.Now,
@@ -109,7 +111,7 @@ public class SporeAccountingDBContext : DbContext
         );
         modelBuilder.Entity<IncomeExpenditureClassification>().HasData(new IncomeExpenditureClassification
         {
-            Id = Guid.NewGuid().ToString(),
+            Id = "10ce6d08-3de2-466e-a9bb-e15cb4eec56f",
             Name = "其他",
             Type = IncomeExpenditureTypeEnmu.Other,
             CreateDateTime = DateTime.Now,
@@ -121,65 +123,74 @@ public class SporeAccountingDBContext : DbContext
         {
             new Currency()
             {
+                Id = "e7b3e54d-dbf3-432e-b6fb-b251ffa844b6",
                 Name = "人民币",
                 Abbreviation = "CNY",
-                CreateUserId = adminId,
+                CreateUserId = adminUserId,
                 CreateDateTime = DateTime.Now
             },
             new Currency()
             {
+                Id = "e25b4885-cf61-4249-b86f-0130defd1d57",
                 Name = "美元",
                 Abbreviation = "USD",
-                CreateUserId = adminId,
+                CreateUserId = adminUserId,
                 CreateDateTime = DateTime.Now
             },
             new Currency()
             {
+                Id = "409f7f1d-3430-4f82-9180-520ac1dadbc9",
                 Name = "欧元",
                 Abbreviation = "EUR",
-                CreateUserId = adminId,
+                CreateUserId = adminUserId,
                 CreateDateTime = DateTime.Now
             },
             new Currency()
             {
+                Id = "422a920d-12e9-4263-a1b6-9d6e4e3366ea",
                 Name = "日元",
                 Abbreviation = "JPY",
-                CreateUserId = adminId,
+                CreateUserId = adminUserId,
                 CreateDateTime = DateTime.Now
             },
             new Currency()
             {
+                Id = "4b6a9c6f-d77f-4087-af5d-2d4f85375bda",
                 Name = "英镑",
                 Abbreviation = "GBP",
-                CreateUserId = adminId,
+                CreateUserId = adminUserId,
                 CreateDateTime = DateTime.Now
             },
             new Currency()
             {
+                Id = "551b2b37-dfd8-49df-bfc5-c78f068b2d01",
                 Name = "澳门币",
                 Abbreviation = "MOP",
-                CreateUserId = adminId,
+                CreateUserId = adminUserId,
                 CreateDateTime = DateTime.Now
             },
             new Currency()
             {
+                Id = "098e71cf-4630-467b-a530-cea4b30e9070",
                 Name = "港元",
                 Abbreviation = "HKD",
-                CreateUserId = adminId,
+                CreateUserId = adminUserId,
                 CreateDateTime = DateTime.Now
             },
             new Currency()
             {
+                Id = "7b01d6fa-e673-4bfd-8112-3e988971d91c",
                 Name = "韩圆",
                 Abbreviation = "KRW",
-                CreateUserId = adminId,
+                CreateUserId = adminUserId,
                 CreateDateTime = DateTime.Now
             },
             new Currency()
             {
+                Id = "a374bbfa-99bd-4f14-9f11-49260528d7a4",
                 Name = "新台币",
                 Abbreviation = "TWD",
-                CreateUserId = adminId,
+                CreateUserId = adminUserId,
                 CreateDateTime = DateTime.Now
             }
         });

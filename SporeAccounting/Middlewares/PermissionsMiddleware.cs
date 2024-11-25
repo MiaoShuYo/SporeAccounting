@@ -64,9 +64,9 @@ public class PermissionsMiddleware
                 var roleId = claimsPrincipal.FindFirst(ClaimTypes.Role)?.Value;
                 // 在上下文中存储用户信息
                 httpContext.Request.Headers.Add("UserId",userId);
-                string pathUrlNotParam = string.Join("/", requestPath.Split("/").Take(3));
+                string pathUrlNotParam = string.Join("/", requestPath);
                 bool isUse = sysRoleUrlServer.IsRoleUseUrl(roleId, pathUrlNotParam);
-                if (isUse)
+                if (!isUse)
                 {
                     httpContext.Response.StatusCode = StatusCodes.Status403Forbidden;
                     await httpContext.Response.WriteAsync("权限不足：用户无权访问此资源。");
@@ -74,7 +74,7 @@ public class PermissionsMiddleware
                 }
                 await _next(httpContext);
             }
-            catch (Exception)
+            catch (Exception ex)
             {
                 // Token 无效
                 httpContext.Response.StatusCode = StatusCodes.Status401Unauthorized;

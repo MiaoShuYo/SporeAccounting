@@ -132,6 +132,7 @@ namespace SporeAccounting
                 typeof(IncomeExpenditureClassificationImp));
             builder.Services.AddScoped(typeof(ICurrencyServer), typeof(CurrencyImp));
             builder.Services.AddScoped(typeof(IExchangeRateRecordServer), typeof(ExchangeRateRecordImp));
+            builder.Services.AddScoped(typeof(IAccountBookServer), typeof(AccountBookImp));
             builder.Services.AddHttpClient();
             // 添加定时任务
             builder.Services.AddQuartz(q =>
