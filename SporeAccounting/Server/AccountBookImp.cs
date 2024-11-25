@@ -1,4 +1,5 @@
-﻿using SporeAccounting.Models;
+﻿using Microsoft.EntityFrameworkCore;
+using SporeAccounting.Models;
 using SporeAccounting.Server.Interface;
 
 namespace SporeAccounting.Server;
@@ -188,8 +189,13 @@ public class AccountBookImp : IAccountBookServer
     {
         try
         {
-            return _sporeAccountingDbContext.IncomeExpenditureRecords
+            return _sporeAccountingDbContext.AccountBooks
+                .Include(p => p.IncomeExpenditureRecords)
                 .Any(p => p.Id == accountBookId);
+            
+            // 也可以这么查询
+            // return _sporeAccountingDbContext.IncomeExpenditureRecords
+            //     .Any(p => p.Id == accountBookId);
         }
         catch (Exception e)
         {
