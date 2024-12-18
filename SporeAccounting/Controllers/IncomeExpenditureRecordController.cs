@@ -109,7 +109,7 @@ namespace SporeAccounting.Controllers
                         return Ok(new ResponseData<bool>(HttpStatusCode.NotFound, "汇率不存在"));
                     }
 
-                    incomeExpenditureRecordAddViewModel.AfterAmount *= exchangeRateRecord.ExchangeRate;
+                    incomeExpenditureRecordAddViewModel.AfterAmount = exchangeRateRecord.ExchangeRate*incomeExpenditureRecordAddViewModel.BeforAmount;
                 }
 
                 IncomeExpenditureRecord incomeExpenditureRecord =
@@ -206,7 +206,9 @@ namespace SporeAccounting.Controllers
                         return Ok(new ResponseData<bool>(HttpStatusCode.NotFound, "汇率不存在"));
                     }
 
-                    incomeExpenditureRecordUpdateViewModel.AfterAmount *= exchangeRateRecord.ExchangeRate;
+                    incomeExpenditureRecordUpdateViewModel.AfterAmount = exchangeRateRecord.ExchangeRate *
+                                                                         incomeExpenditureRecordUpdateViewModel
+                                                                             .BeforAmount;
                 }
 
 

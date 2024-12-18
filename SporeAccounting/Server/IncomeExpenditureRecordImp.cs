@@ -99,6 +99,21 @@ public class IncomeExpenditureRecordImp : IIncomeExpenditureRecordServer
     }
 
     /// <summary>
+    /// 获取全部收支记录
+    /// </summary>
+    public List<IncomeExpenditureRecord> Query()
+    {
+        try
+        {
+            return _sporeAccountingDbContext.IncomeExpenditureRecords.ToList();
+        }
+        catch (Exception e)
+        {
+            throw;
+        }
+    }
+
+    /// <summary>
     /// 分页查询收支记录
     /// </summary>
     /// <param name="pageNumber"></param>
@@ -151,6 +166,23 @@ public class IncomeExpenditureRecordImp : IIncomeExpenditureRecordServer
         try
         {
             return _sporeAccountingDbContext.IncomeExpenditureRecords.Any(x => x.Id == incomeExpenditureRecordId);
+        }
+        catch (Exception e)
+        {
+            throw;
+        }
+    }
+
+    /// <summary>
+    /// 更新收支记录
+    /// </summary>
+    /// <param name="records"></param>
+    public void UpdateRecord(List<IncomeExpenditureRecord> records)
+    {
+        try
+        {
+            _sporeAccountingDbContext.IncomeExpenditureRecords.UpdateRange(records);
+            _sporeAccountingDbContext.SaveChanges();
         }
         catch (Exception e)
         {

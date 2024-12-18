@@ -154,6 +154,7 @@ namespace SporeAccounting
             var app = builder.Build();
             //¿ªÆô¼àÌıÖ÷±ÒÖÖ
             SetMainCurrency.Start(app.Services);
+            UpdateConversionAmount.Start(app.Services);
             // Configure the HTTP request pipeline.
             if (app.Environment.IsDevelopment())
             {

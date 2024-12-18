@@ -11,6 +11,7 @@ using SporeAccounting.BaseModels.ViewModel.Response;
 using SporeAccounting.Models;
 using SporeAccounting.Models.ViewModels;
 using SporeAccounting.MQ;
+using SporeAccounting.MQ.Message.Model;
 using SporeAccounting.Server.Interface;
 
 namespace SporeAccounting.Controllers
@@ -66,7 +67,12 @@ namespace SporeAccounting.Controllers
                 sysUser.RoleId = role.Id;
                 _sysUserServer.Add(sysUser);
                 //发布设置主币种消息
-                _ = _rabbitMqPublisher.Publish("SetMainCurrency", "SetMainCurrency", sysUser.Id);
+                MainCurrency mainCurrency = new MainCurrency()
+                {
+                    UserId = sysUser.Id,
+                    Currency = "e7b3e54d-dbf3-432e-b6fb-b251ffa844b6"
+                };
+                _ = _rabbitMqPublisher.Publish<MainCurrency>("SetMainCurrency", "SetMainCurrency", mainCurrency);
                 return Ok(new ResponseData<bool>(HttpStatusCode.OK, "", false));
             }
             catch (Exception ex)

@@ -33,6 +33,11 @@ public interface IIncomeExpenditureRecordServer
     IncomeExpenditureRecord? Query(string incomeExpenditureRecordId);
 
     /// <summary>
+    /// 获取全部收支记录
+    /// </summary>
+    List<IncomeExpenditureRecord> Query();
+
+    /// <summary>
     /// 分页查询收支记录
     /// </summary>
     /// <param name="pageNumber"></param>
@@ -51,4 +56,9 @@ public interface IIncomeExpenditureRecordServer
     /// <param name="incomeExpenditureRecordId"></param>
     /// <returns></returns>
     bool IsExist(string incomeExpenditureRecordId);
+    /// <summary>
+    /// 更新收支记录
+    /// </summary>
+    /// <param name="records"></param>
+    void UpdateRecord(List<IncomeExpenditureRecord> records);
 }

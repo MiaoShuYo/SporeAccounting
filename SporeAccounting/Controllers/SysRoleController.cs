@@ -1,12 +1,10 @@
-﻿using System.Data;
-using System.Net;
-using AutoMapper;
-using Microsoft.AspNetCore.Http;
+﻿using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
 using SporeAccounting.BaseModels;
 using SporeAccounting.Models;
 using SporeAccounting.Models.ViewModels;
 using SporeAccounting.Server.Interface;
+using System.Net;
 
 namespace SporeAccounting.Controllers
 {
@@ -19,7 +17,11 @@ namespace SporeAccounting.Controllers
     {
         private readonly ISysRoleServer _sysRoleServer;
         private readonly IMapper _mapper;
-
+        /// <summary>
+        /// 构造函数
+        /// </summary>
+        /// <param name="sysRoleServer"></param>
+        /// <param name="mapper"></param>
         public SysRoleController(ISysRoleServer sysRoleServer, IMapper mapper)
         {
             _sysRoleServer = sysRoleServer;
