@@ -119,12 +119,13 @@ namespace SporeAccounting
             });
             builder.Services.AddSingleton<RabbitMQConnection>();
             builder.Services.AddSingleton<RabbitMQPublisher>();
-            builder.Services.AddSingleton<RabbitMQSubscriber>();
+            //builder.Services.AddSingleton<RabbitMQSubscriber>();
 
             #endregion
 
             builder.Services.AddDbContext<SporeAccountingDBContext>(ServiceLifetime.Scoped);
             builder.Services.AddScoped(typeof(ISysUserServer), typeof(SysUserImp));
+            builder.Services.AddScoped(typeof(IConfigServer), typeof(ConfigImp));
             builder.Services.AddScoped(typeof(ISysRoleServer), typeof(SysRoleImp));
             builder.Services.AddScoped(typeof(ISysRoleUrlServer), typeof(SysRoleUrlImp));
             builder.Services.AddScoped(typeof(ISysUrlServer), typeof(SysUrlImp));
@@ -134,6 +135,10 @@ namespace SporeAccounting
             builder.Services.AddScoped(typeof(IExchangeRateRecordServer), typeof(ExchangeRateRecordImp));
             builder.Services.AddScoped(typeof(IAccountBookServer), typeof(AccountBookImp));
             builder.Services.AddHttpClient();
+            // 注册通用订阅服务
+            builder.Services.AddSingleton<RabbitMQSubscriberService>();
+            // 注册后台服务，用于启动订阅
+            builder.Services.AddHostedService<RabbitMQBackgroundService>();
             // 添加定时任务
             builder.Services.AddQuartz(q =>
             {

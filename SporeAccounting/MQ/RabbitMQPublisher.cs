@@ -30,9 +30,16 @@ public class RabbitMQPublisher
     /// <param name="message"></param>
     public async System.Threading.Tasks.Task Publish<T>(string queue, string routingKey, T message)
     {
-        await using var channel = await _connection.CreateChannel();
-        await channel.QueueDeclareAsync(queue, durable: true);
-        var body = System.Text.Encoding.UTF8.GetBytes(System.Text.Json.JsonSerializer.Serialize(message));
-        await channel.BasicPublishAsync(exchange: string.Empty, routingKey: routingKey, body: body);
+        try
+        {
+            await using var channel = await _connection.CreateChannel();
+            await channel.QueueDeclareAsync(queue, durable: true,false,false,null);
+            var body = System.Text.Encoding.UTF8.GetBytes(System.Text.Json.JsonSerializer.Serialize(message));
+            await channel.BasicPublishAsync(exchange: string.Empty, routingKey: routingKey, body: body);
+        }
+        catch
+        {
+            throw;
+        }
     }
 }
