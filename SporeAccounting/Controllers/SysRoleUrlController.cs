@@ -65,21 +65,21 @@ namespace SporeAccounting.Controllers
         /// <summary>
         /// 新增角色可访问的URL
         /// </summary>
-        /// <param name="roleUrlViewModel"></param>
+        /// <param name="roleUrlAddViewModel"></param>
         /// <returns></returns>
         [HttpPost]
         [Route("Add")]
-        public ActionResult<ResponseData<bool>> Add([FromBody] SysRoleUrlViewModel roleUrlViewModel)
+        public ActionResult<ResponseData<bool>> Add([FromBody] SysRoleUrlAddViewModel roleUrlAddViewModel)
         {
             try
             {
-                bool isExist = _sysRoleUrlServer.IsExist(roleUrlViewModel.RoleId, roleUrlViewModel.UrlId);
+                bool isExist = _sysRoleUrlServer.IsExist(roleUrlAddViewModel.RoleId, roleUrlAddViewModel.UrlId);
                 if (isExist)
                 {
-                    return Ok(new ResponseData<bool>(HttpStatusCode.Conflict, $"角色{roleUrlViewModel.RoleId}已存在{roleUrlViewModel.UrlId}！", false));
+                    return Ok(new ResponseData<bool>(HttpStatusCode.Conflict, $"角色{roleUrlAddViewModel.RoleId}已存在{roleUrlAddViewModel.UrlId}！", false));
                 }
 
-                SysRoleUrl roleUrl = _mapper.Map<SysRoleUrl>(roleUrlViewModel);
+                SysRoleUrl roleUrl = _mapper.Map<SysRoleUrl>(roleUrlAddViewModel);
                 //TODO：这里暂时写死，等权限和授权完成后再改为动态获取
                 roleUrl.CreateUserId = GetUserId();
                 roleUrl.CreateDateTime = DateTime.Now;
@@ -124,20 +124,20 @@ namespace SporeAccounting.Controllers
         /// <summary>
         /// 修改角色可访问的URL
         /// </summary>
-        /// <param name="roleUrl"></param>
+        /// <param name="roleUrlEdit"></param>
         /// <returns></returns>
         [HttpPut]
         [Route("Edit")]
-        public ActionResult<ResponseData<bool>> Edit([FromBody] SysRoleUrlViewModel roleUrl)
+        public ActionResult<ResponseData<bool>> Edit([FromBody] SysRoleUrlEditViewModel roleUrlEdit)
         {
             try
             {
-                bool isExist = _sysRoleUrlServer.IsExist(roleUrl.RoleId, roleUrl.UrlId);
+                bool isExist = _sysRoleUrlServer.IsExist(roleUrlEdit.RoleId, roleUrlEdit.UrlId);
                 if (!isExist)
                 {
-                    return Ok(new ResponseData<bool>(HttpStatusCode.Conflict, $"角色{roleUrl.RoleId}存在{roleUrl.UrlId}！", false));
+                    return Ok(new ResponseData<bool>(HttpStatusCode.Conflict, $"角色{roleUrlEdit.RoleId}存在{roleUrlEdit.UrlId}！", false));
                 }
-                _sysRoleUrlServer.Edit(roleUrl.Id, roleUrl.RoleId, roleUrl.UrlId);
+                _sysRoleUrlServer.Edit(roleUrlEdit.Id, roleUrlEdit.RoleId, roleUrlEdit.UrlId);
                 return Ok(new ResponseData<bool>(HttpStatusCode.OK, data: true));
             }
             catch (Exception e)

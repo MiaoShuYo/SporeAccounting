@@ -1,15 +1,11 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
 namespace SporeAccounting.Models.ViewModels;
-
-public class SysRoleUrlViewModel
+/// <summary>
+/// 新增角色Url视图模型
+/// </summary>
+public class SysRoleUrlAddViewModel
 {
-    /// <summary>
-    /// RoleUrl Id
-    /// </summary>
-    [MaxLength(36)]
-    [Required(ErrorMessage = "Id不能为空")]
-    public string Id { get; set; }
     /// <summary>
     /// 角色id
     /// </summary>

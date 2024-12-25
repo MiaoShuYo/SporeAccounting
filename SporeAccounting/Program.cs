@@ -12,14 +12,20 @@ using SporeAccounting.Server;
 using SporeAccounting.Server.Interface;
 using SporeAccounting.Middlewares;
 using SporeAccounting.MQ;
-using SporeAccounting.MQ.Message;
 using SporeAccounting.MQ.Model;
 using SporeAccounting.Task.Timer;
 
 namespace SporeAccounting
 {
+    /// <summary>
+    /// 程序入口
+    /// </summary>
     public class Program
     {
+        /// <summary>
+        /// 程序入口
+        /// </summary>
+        /// <param name="args"></param>
         public static void Main(string[] args)
         {
             var builder = WebApplication.CreateBuilder(args);
@@ -157,9 +163,6 @@ namespace SporeAccounting
             });
 
             var app = builder.Build();
-            //开启监听主币种
-            SetMainCurrency.Start(app.Services);
-            UpdateConversionAmount.Start(app.Services);
             // Configure the HTTP request pipeline.
             if (app.Environment.IsDevelopment())
             {

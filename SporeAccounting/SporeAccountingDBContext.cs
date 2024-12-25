@@ -57,16 +57,24 @@ public class SporeAccountingDBContext : DbContext
     /// 收支记录表
     /// </summary>
     public DbSet<IncomeExpenditureRecord> IncomeExpenditureRecords { get; set; }
-
+    /// <summary>
+    /// 收支分类表
+    /// </summary>
     public DbSet<IncomeExpenditureClassification> IncomeExpenditureClassifications { get; set; }
 
     IConfiguration _dbConfig;
-
+    /// <summary>
+    /// 数据库连接配置
+    /// </summary>
+    /// <param name="dbConfig"></param>
     public SporeAccountingDBContext(IConfiguration dbConfig)
     {
         _dbConfig = dbConfig;
     }
-
+    /// <summary>
+    /// 数据库连接配置
+    /// </summary>
+    /// <param name="modelBuilder"></param>
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         string adminUserId = "b47637e2-603f-4df0-abe9-88d70fa870ee";

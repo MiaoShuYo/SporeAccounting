@@ -15,13 +15,19 @@ public interface ISysUrlServer
     /// <summary>
     /// 删除URL
     /// </summary>
-    /// <param name="urlId"></param>
+    /// <param name="sysUrl"></param>
     void Delete(SysUrl sysUrl);
     /// <summary>
     /// 查询URL
     /// </summary>
     /// <param name="urlId"></param>
     SysUrl Query(string urlId);
+    /// <summary>
+    /// 查询URL
+    /// </summary>
+    /// <param name="url"></param>
+    /// <returns></returns>
+    SysUrl QueryByUrl(string url);
     /// <summary>
     /// 查询URL列表
     /// </summary>

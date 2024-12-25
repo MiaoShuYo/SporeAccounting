@@ -58,7 +58,7 @@ public class SporeAccountingProfile : Profile
             .ForMember(d => d.Url, opt =>
                 opt.MapFrom(s => s.Url));
 
-        CreateMap<SysRoleUrlViewModel, SysRoleUrl>();
+        CreateMap<SysRoleUrlAddViewModel, SysRoleUrl>();
 
         CreateMap<IncomeExpenditureClassification, IncomeExpenditureClassificationInfoViewModel>();
         CreateMap<IncomeExpenditureClassificationViewModel, IncomeExpenditureClassification>();

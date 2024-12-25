@@ -47,6 +47,35 @@ namespace SporeAccounting.MQ
                         CreateUserId = mainCurrency.UserId
                     });
                 });
+            await _subscriberService.SubscribeAsync<string>("UpdateConversionAmount", "UpdateConversionAmount",
+                async (mainCurrencyId) =>
+                {
+                    //1.获取所有收支记录
+                    var recordService = _serviceProvider.GetRequiredService<IIncomeExpenditureRecordServer>();
+                    var records = recordService.Query();
+
+                    //2.将所有记录的金额转换为新的主币种（记录中的币种转换为新的主币种）
+                    var currencyServer = _serviceProvider.GetRequiredService<ICurrencyServer>();
+                    var exchangeRateRecordServer = _serviceProvider.GetRequiredService<IExchangeRateRecordServer>();
+                    Currency? mainCurrency = currencyServer.Query(mainCurrencyId);
+                    if (mainCurrency == null)
+                    {
+                        return;
+                    }
+
+                    for (int i = 0; i < records.Count; i++)
+                    {
+                        var record = records[i];
+                        var currency = record.Currency;
+                        //获取记录币种和主币种的汇率
+                        ExchangeRateRecord? exchangeRateRecord =
+                            exchangeRateRecordServer.Query($"{mainCurrency.Abbreviation}_{currency.Abbreviation}");
+                        record.AfterAmount = exchangeRateRecord.ExchangeRate * record.BeforAmount;
+                    }
+
+                    //3.更新所有记录
+                    recordService.UpdateRecord(records);
+                });
         }
 
         public System.Threading.Tasks.Task StopAsync(CancellationToken cancellationToken)

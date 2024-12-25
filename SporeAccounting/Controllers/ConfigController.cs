@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using SporeAccounting.BaseModels;
 using SporeAccounting.Models;
 using SporeAccounting.Models.ViewModels;
+using SporeAccounting.MQ;
 using SporeAccounting.Server.Interface;
 
 namespace SporeAccounting.Controllers
@@ -20,17 +21,27 @@ namespace SporeAccounting.Controllers
         /// </summary>
         private readonly IConfigServer _configServer;
 
+        /// <summary>
+        /// 映射
+        /// </summary>
         private readonly IMapper _mapper;
+
+        /// <summary>
+        /// 发布消息
+        /// </summary>
+        private readonly RabbitMQPublisher _rabbitMqPublisher;
 
         /// <summary>
         /// 构造函数
         /// </summary>
         /// <param name="configServer"></param>
         /// <param name="mapper"></param>
-        public ConfigController(IConfigServer configServer, IMapper mapper)
+        /// <param name="rabbitMqPublisher"></param>
+        public ConfigController(IConfigServer configServer, IMapper mapper, RabbitMQPublisher rabbitMqPublisher)
         {
             _configServer = configServer;
             _mapper = mapper;
+            _rabbitMqPublisher = rabbitMqPublisher;
         }
 
         /// <summary>
@@ -74,8 +85,9 @@ namespace SporeAccounting.Controllers
 
                 _configServer.Update(userId, configViewModel.Id, configViewModel.Value);
 
-                //TODO:如果切换的是主币种，那么就将以前的所有金额全部转换成新的主币种的金额
-
+                //如果切换的是主币种，那么就将以前的所有金额全部转换成新的主币种的金额
+                _ = _rabbitMqPublisher.Publish<string>("UpdateConversionAmount", "UpdateConversionAmount", 
+                    configViewModel.Value);
                 return Ok(new ResponseData<bool>(HttpStatusCode.OK, data: true));
             }
             catch (Exception ex)

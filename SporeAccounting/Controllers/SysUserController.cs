@@ -108,17 +108,10 @@ namespace SporeAccounting.Controllers
                     return Ok(new ResponseData<bool>(HttpStatusCode.OK, "用户或密码错误！", false));
                 }
 
-                // 查询普通用户角色
-                SysRole role = _sysRoleServer.QueryByName("Consumer");
-                if (role == null)
-                {
-                    return Ok(new ResponseData<bool>(HttpStatusCode.NotFound, "普通用户角色不存在！", false));
-                }
-
                 //生成Token和刷新Token
                 TokenViewModel sysToken = new TokenViewModel();
                 sysToken.RefreshToken = GenerateRefreshToken();
-                sysToken.Token = GenerateToken(sysUser.Id, sysToken.RefreshToken, role.Id);
+                sysToken.Token = GenerateToken(sysUser.Id, sysToken.RefreshToken, sysUser.RoleId);
                 return Ok(new ResponseData<TokenViewModel>(HttpStatusCode.OK, data: sysToken));
             }
             catch (Exception ex)

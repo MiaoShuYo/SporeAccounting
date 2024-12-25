@@ -63,6 +63,23 @@ public class SysUrlImp : ISysUrlServer
     }
 
     /// <summary>
+    /// 查询URL
+    /// </summary>
+    /// <param name="url"></param>
+    /// <returns></returns>
+    public SysUrl QueryByUrl(string url)
+    {
+        try
+        {
+            return _dbContext.SysUrls.FirstOrDefault(p => p.Url == url && !p.IsDeleted);
+        }
+        catch (Exception e)
+        {
+            throw;
+        }
+    }
+
+    /// <summary>
     /// 查询URL列表
     /// </summary>
     /// <param name="sysRoleUrlPageViewModel"></param>
