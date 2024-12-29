@@ -94,6 +94,20 @@ public class SysRoleImp : ISysRoleServer
     }
 
     /// <summary>
+    /// 查询全部角色
+    /// </summary>
+    public List<SysRole> Query()
+    {
+        try
+        {
+            return _dbContext.SysRoles.Where(p => !p.IsDeleted).ToList();
+        }
+        catch (Exception ex)
+        {
+            throw ex;
+        }
+    }
+    /// <summary>
     /// 根据名字查询角色
     /// </summary>
     /// <param name="roleName"></param>

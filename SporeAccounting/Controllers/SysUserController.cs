@@ -4,6 +4,7 @@ using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
 using AutoMapper;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
 using SporeAccounting.BaseModels;
@@ -21,6 +22,7 @@ namespace SporeAccounting.Controllers
     /// </summary>
     [Route("api/[controller]/")]
     [ApiController]
+    [Authorize(Roles = "Consumer,Administrator")]
     public class SysUserController : BaseController
     {
         private readonly ISysUserServer _sysUserServer;
@@ -54,6 +56,7 @@ namespace SporeAccounting.Controllers
         /// <returns></returns>
         [HttpPost]
         [Route("Register")]
+        [AllowAnonymous]
         public ActionResult<ResponseData<bool>> Register(SysUserViewModel sysUserViewModel)
         {
             try
@@ -89,6 +92,7 @@ namespace SporeAccounting.Controllers
         /// <returns></returns>
         [HttpGet]
         [Route("Login/{userName}/{password}")]
+        [AllowAnonymous]
         public ActionResult<ResponseData<TokenViewModel>> Login([FromRoute] string userName,
             [FromRoute] string password)
         {
@@ -128,6 +132,7 @@ namespace SporeAccounting.Controllers
         /// <returns></returns>
         [HttpGet]
         [Route("RetrievePassword/{userName}/{email}")]
+        [AllowAnonymous]
         public ActionResult<ResponseData<string>> RetrievePassword([FromRoute] string userName,
             [FromRoute] string email)
         {

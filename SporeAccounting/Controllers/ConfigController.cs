@@ -1,5 +1,6 @@
 using System.Net;
 using AutoMapper;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SporeAccounting.BaseModels;
 using SporeAccounting.Models;
@@ -14,6 +15,7 @@ namespace SporeAccounting.Controllers
     /// </summary>
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize(Roles = "Consumer,Administrator")]
     public class ConfigController : BaseController
     {
         /// <summary>

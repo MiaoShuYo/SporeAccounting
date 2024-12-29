@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using SporeAccounting;
 
@@ -11,9 +12,11 @@ using SporeAccounting;
 namespace SporeAccounting.Migrations
 {
     [DbContext(typeof(SporeAccountingDBContext))]
-    partial class SporeAccountingDBContextModelSnapshot : ModelSnapshot
+    [Migration("20241228150621_SetSysUrlDes")]
+    partial class SetSysUrlDes
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -156,7 +159,7 @@ namespace SporeAccounting.Migrations
                         {
                             Id = "e7b3e54d-dbf3-432e-b6fb-b251ffa844b6",
                             Abbreviation = "CNY",
-                            CreateDateTime = new DateTime(2024, 12, 28, 23, 29, 14, 940, DateTimeKind.Local).AddTicks(3666),
+                            CreateDateTime = new DateTime(2024, 12, 28, 23, 6, 21, 164, DateTimeKind.Local).AddTicks(5320),
                             CreateUserId = "b47637e2-603f-4df0-abe9-88d70fa870ee",
                             IsDeleted = false,
                             Name = "人民币"
@@ -165,7 +168,7 @@ namespace SporeAccounting.Migrations
                         {
                             Id = "e25b4885-cf61-4249-b86f-0130defd1d57",
                             Abbreviation = "USD",
-                            CreateDateTime = new DateTime(2024, 12, 28, 23, 29, 14, 940, DateTimeKind.Local).AddTicks(3673),
+                            CreateDateTime = new DateTime(2024, 12, 28, 23, 6, 21, 164, DateTimeKind.Local).AddTicks(5330),
                             CreateUserId = "b47637e2-603f-4df0-abe9-88d70fa870ee",
                             IsDeleted = false,
                             Name = "美元"
@@ -174,7 +177,7 @@ namespace SporeAccounting.Migrations
                         {
                             Id = "409f7f1d-3430-4f82-9180-520ac1dadbc9",
                             Abbreviation = "EUR",
-                            CreateDateTime = new DateTime(2024, 12, 28, 23, 29, 14, 940, DateTimeKind.Local).AddTicks(3732),
+                            CreateDateTime = new DateTime(2024, 12, 28, 23, 6, 21, 164, DateTimeKind.Local).AddTicks(5337),
                             CreateUserId = "b47637e2-603f-4df0-abe9-88d70fa870ee",
                             IsDeleted = false,
                             Name = "欧元"
@@ -183,7 +186,7 @@ namespace SporeAccounting.Migrations
                         {
                             Id = "422a920d-12e9-4263-a1b6-9d6e4e3366ea",
                             Abbreviation = "JPY",
-                            CreateDateTime = new DateTime(2024, 12, 28, 23, 29, 14, 940, DateTimeKind.Local).AddTicks(3739),
+                            CreateDateTime = new DateTime(2024, 12, 28, 23, 6, 21, 164, DateTimeKind.Local).AddTicks(5343),
                             CreateUserId = "b47637e2-603f-4df0-abe9-88d70fa870ee",
                             IsDeleted = false,
                             Name = "日元"
@@ -192,7 +195,7 @@ namespace SporeAccounting.Migrations
                         {
                             Id = "4b6a9c6f-d77f-4087-af5d-2d4f85375bda",
                             Abbreviation = "GBP",
-                            CreateDateTime = new DateTime(2024, 12, 28, 23, 29, 14, 940, DateTimeKind.Local).AddTicks(3746),
+                            CreateDateTime = new DateTime(2024, 12, 28, 23, 6, 21, 164, DateTimeKind.Local).AddTicks(5350),
                             CreateUserId = "b47637e2-603f-4df0-abe9-88d70fa870ee",
                             IsDeleted = false,
                             Name = "英镑"
@@ -201,7 +204,7 @@ namespace SporeAccounting.Migrations
                         {
                             Id = "551b2b37-dfd8-49df-bfc5-c78f068b2d01",
                             Abbreviation = "MOP",
-                            CreateDateTime = new DateTime(2024, 12, 28, 23, 29, 14, 940, DateTimeKind.Local).AddTicks(3756),
+                            CreateDateTime = new DateTime(2024, 12, 28, 23, 6, 21, 164, DateTimeKind.Local).AddTicks(5360),
                             CreateUserId = "b47637e2-603f-4df0-abe9-88d70fa870ee",
                             IsDeleted = false,
                             Name = "澳门币"
@@ -210,7 +213,7 @@ namespace SporeAccounting.Migrations
                         {
                             Id = "098e71cf-4630-467b-a530-cea4b30e9070",
                             Abbreviation = "HKD",
-                            CreateDateTime = new DateTime(2024, 12, 28, 23, 29, 14, 940, DateTimeKind.Local).AddTicks(3762),
+                            CreateDateTime = new DateTime(2024, 12, 28, 23, 6, 21, 164, DateTimeKind.Local).AddTicks(5366),
                             CreateUserId = "b47637e2-603f-4df0-abe9-88d70fa870ee",
                             IsDeleted = false,
                             Name = "港元"
@@ -219,7 +222,7 @@ namespace SporeAccounting.Migrations
                         {
                             Id = "7b01d6fa-e673-4bfd-8112-3e988971d91c",
                             Abbreviation = "KRW",
-                            CreateDateTime = new DateTime(2024, 12, 28, 23, 29, 14, 940, DateTimeKind.Local).AddTicks(3769),
+                            CreateDateTime = new DateTime(2024, 12, 28, 23, 6, 21, 164, DateTimeKind.Local).AddTicks(5372),
                             CreateUserId = "b47637e2-603f-4df0-abe9-88d70fa870ee",
                             IsDeleted = false,
                             Name = "韩圆"
@@ -228,7 +231,7 @@ namespace SporeAccounting.Migrations
                         {
                             Id = "a374bbfa-99bd-4f14-9f11-49260528d7a4",
                             Abbreviation = "TWD",
-                            CreateDateTime = new DateTime(2024, 12, 28, 23, 29, 14, 940, DateTimeKind.Local).AddTicks(3775),
+                            CreateDateTime = new DateTime(2024, 12, 28, 23, 6, 21, 164, DateTimeKind.Local).AddTicks(5378),
                             CreateUserId = "b47637e2-603f-4df0-abe9-88d70fa870ee",
                             IsDeleted = false,
                             Name = "新台币"
@@ -332,7 +335,7 @@ namespace SporeAccounting.Migrations
                         {
                             Id = "10ce6d08-3de2-466e-a9bb-e15cb4eec56f",
                             CanDelete = false,
-                            CreateDateTime = new DateTime(2024, 12, 28, 23, 29, 14, 940, DateTimeKind.Local).AddTicks(3637),
+                            CreateDateTime = new DateTime(2024, 12, 28, 23, 6, 21, 164, DateTimeKind.Local).AddTicks(5285),
                             CreateUserId = "b47637e2-603f-4df0-abe9-88d70fa870ee",
                             IsDeleted = false,
                             Name = "其他",
@@ -451,7 +454,7 @@ namespace SporeAccounting.Migrations
                         {
                             Id = "cef80881-fe89-4b1f-85ad-83184777d61b",
                             CanDelete = false,
-                            CreateDateTime = new DateTime(2024, 12, 28, 23, 29, 14, 940, DateTimeKind.Local).AddTicks(2574),
+                            CreateDateTime = new DateTime(2024, 12, 28, 23, 6, 21, 164, DateTimeKind.Local).AddTicks(4126),
                             CreateUserId = "b47637e2-603f-4df0-abe9-88d70fa870ee",
                             IsDeleted = false,
                             RoleName = "Administrator"
@@ -460,7 +463,7 @@ namespace SporeAccounting.Migrations
                         {
                             Id = "10389aa0-b6f2-4241-9a77-ca8020656bb6",
                             CanDelete = false,
-                            CreateDateTime = new DateTime(2024, 12, 28, 23, 29, 14, 940, DateTimeKind.Local).AddTicks(2586),
+                            CreateDateTime = new DateTime(2024, 12, 28, 23, 6, 21, 164, DateTimeKind.Local).AddTicks(4136),
                             CreateUserId = "b47637e2-603f-4df0-abe9-88d70fa870ee",
                             IsDeleted = false,
                             RoleName = "Consumer"
@@ -537,6 +540,7 @@ namespace SporeAccounting.Migrations
                         .HasColumnType("nvarchar(36)");
 
                     b.Property<string>("Description")
+                        .IsRequired()
                         .HasColumnType("nvarchar(200)");
 
                     b.Property<bool>("IsDeleted")
@@ -626,14 +630,14 @@ namespace SporeAccounting.Migrations
                         {
                             Id = "b47637e2-603f-4df0-abe9-88d70fa870ee",
                             CanDelete = false,
-                            CreateDateTime = new DateTime(2024, 12, 28, 23, 29, 14, 940, DateTimeKind.Local).AddTicks(2639),
+                            CreateDateTime = new DateTime(2024, 12, 28, 23, 6, 21, 164, DateTimeKind.Local).AddTicks(4192),
                             CreateUserId = "b47637e2-603f-4df0-abe9-88d70fa870ee",
                             Email = "admin@miaoshu.xyz",
                             IsDeleted = false,
-                            Password = "LU3/N4MRQyPe9XqarjjWIf+E37f7LvuvporT/W450xk=",
+                            Password = "8816PyRD6fr1+G0/hAyaOeg5SuPSG3mPddSlpSt/PdA=",
                             PhoneNumber = "",
                             RoleId = "cef80881-fe89-4b1f-85ad-83184777d61b",
-                            Salt = "b6490ae1ade4411dac41045bfab1f3e6",
+                            Salt = "8ba3f33c5fe743f68ac92ce9381d8179",
                             UserName = "admin"
                         });
                 });

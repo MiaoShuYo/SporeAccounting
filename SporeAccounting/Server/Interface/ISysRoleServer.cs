@@ -26,7 +26,11 @@ public interface ISysRoleServer
     /// 查询角色
     /// </summary>
     /// <param name="roleName"></param>
-    List<SysRole> Query(string roleName);
+    List<SysRole> Query(string roleName);    
+    /// <summary>
+    /// 查询全部角色
+    /// </summary>
+    List<SysRole> Query();
     /// <summary>
     /// 根据名字查询角色
     /// </summary>

@@ -29,7 +29,7 @@ public class SysUrl : BaseModel
     /// URL描述
     /// </summary>
     [Column(TypeName = "nvarchar(200)")]
-    public string Description { get; set; }
+    public string? Description { get; set; }
 
     /// <summary>
     /// 是否可以删除

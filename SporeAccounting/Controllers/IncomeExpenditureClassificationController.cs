@@ -5,6 +5,7 @@ using SporeAccounting.Models.ViewModels;
 using SporeAccounting.Server.Interface;
 using System.Net;
 using AutoMapper;
+using Microsoft.AspNetCore.Authorization;
 using SporeAccounting.BaseModels.ViewModel.Response;
 
 
@@ -15,6 +16,7 @@ namespace SporeAccounting.Controllers
     /// </summary>
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize(Roles = "Consumer,Administrator")]
     public class IncomeExpenditureClassificationController : BaseController
     {
         private readonly IIncomeExpenditureClassificationServer _incomeExpenditureClassificationService;

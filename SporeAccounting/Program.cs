@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Quartz;
 using SporeAccounting.BaseModels;
+using SporeAccounting.Initialization;
 using SporeAccounting.Server;
 using SporeAccounting.Server.Interface;
 using SporeAccounting.Middlewares;
@@ -125,7 +126,6 @@ namespace SporeAccounting
             });
             builder.Services.AddSingleton<RabbitMQConnection>();
             builder.Services.AddSingleton<RabbitMQPublisher>();
-            //builder.Services.AddSingleton<RabbitMQSubscriber>();
 
             #endregion
 
@@ -168,8 +168,9 @@ namespace SporeAccounting
             {
                 app.UseSwagger();
                 app.UseSwaggerUI();
+                AddPath.Init(app.Services);
+                AddRolePath.Init(app.Services);
             }
-
             app.UseMiddleware<PermissionsMiddleware>();
             app.UseHttpsRedirection();
 

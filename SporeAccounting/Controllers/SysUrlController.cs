@@ -5,6 +5,7 @@ using SporeAccounting.Models;
 using SporeAccounting.Models.ViewModels;
 using SporeAccounting.Server.Interface;
 using System.Net;
+using Microsoft.AspNetCore.Authorization;
 using SporeAccounting.BaseModels.ViewModel.Response;
 
 namespace SporeAccounting.Controllers
@@ -14,6 +15,7 @@ namespace SporeAccounting.Controllers
     /// </summary>
     [Route("api/[controller]/")]
     [ApiController]
+    [Authorize(Roles = "Administrator")]
     public class SysUrlController : BaseController
     {
         private readonly ISysUrlServer _sysUrlServer;
@@ -36,7 +38,7 @@ namespace SporeAccounting.Controllers
         {
             try
             {
-                bool isExist = _sysUrlServer.IsExist(sysUrlViewModel.Url);
+                bool isExist = _sysUrlServer.IsExist(sysUrlViewModel.Url, sysUrlViewModel.RequestMethod);
                 if (isExist)
                 {
                     return Ok(new ResponseData<bool>(HttpStatusCode.BadRequest, $"URL{sysUrlViewModel.Url}已存在"));

@@ -13,6 +13,11 @@ public interface ISysUrlServer
     /// <param name="sysUrl"></param>
     void Add(SysUrl sysUrl);
     /// <summary>
+    /// 批量新增URL
+    /// </summary>
+    /// <param name="sysUrls"></param>
+    void Add(List<SysUrl> sysUrls);
+    /// <summary>
     /// 删除URL
     /// </summary>
     /// <param name="sysUrl"></param>
@@ -22,6 +27,11 @@ public interface ISysUrlServer
     /// </summary>
     /// <param name="urlId"></param>
     SysUrl Query(string urlId);
+    /// <summary>
+    /// 获取所有URL
+    /// </summary>
+    /// <returns></returns>
+    List<SysUrl> Query();
     /// <summary>
     /// 查询URL
     /// </summary>
@@ -43,8 +53,9 @@ public interface ISysUrlServer
     /// URL是否存在
     /// </summary>
     /// <param name="url"></param>
+    /// <param name="method"></param>
     /// <returns></returns>
-    bool IsExist(string url);
+    bool IsExist(string url,string method);
     /// <summary>
     /// URL是否存在
     /// </summary>

@@ -1,5 +1,6 @@
 using System.Net;
 using AutoMapper;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using SporeAccounting.BaseModels;
@@ -15,6 +16,7 @@ namespace SporeAccounting.Controllers
     /// </summary>
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize(Roles = "Consumer,Administrator")]
     public class IncomeExpenditureRecordController : BaseController
     {
         /// <summary>

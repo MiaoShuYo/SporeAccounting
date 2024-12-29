@@ -31,6 +31,22 @@ public class SysUrlImp : ISysUrlServer
     }
 
     /// <summary>
+    /// 批量新增URL
+    /// </summary>
+    /// <param name="sysUrls"></param>
+    public void Add(List<SysUrl> sysUrls)
+    {
+        try
+        {
+            _dbContext.SysUrls.AddRange(sysUrls);
+            _dbContext.SaveChanges();
+        }
+        catch (Exception e)
+        {
+            throw;
+        }
+    }
+    /// <summary>
     /// 删除URL
     /// </summary>
     /// <param name="sysUrl"></param>
@@ -55,6 +71,22 @@ public class SysUrlImp : ISysUrlServer
         try
         {
             return _dbContext.SysUrls.FirstOrDefault(p => p.Id == urlId && !p.IsDeleted);
+        }
+        catch (Exception e)
+        {
+            throw;
+        }
+    }
+
+    /// <summary>
+    /// 获取所有URL
+    /// </summary>
+    /// <returns></returns>
+    public List<SysUrl> Query()
+    {
+        try
+        {
+            return _dbContext.SysUrls.Where(x => !x.IsDeleted).ToList();
         }
         catch (Exception e)
         {
@@ -125,12 +157,13 @@ public class SysUrlImp : ISysUrlServer
     /// URL是否存在
     /// </summary>
     /// <param name="url"></param>
+    /// <param name="method"></param>
     /// <returns></returns>
-    public bool IsExist(string url)
+    public bool IsExist(string url,string method)
     {
         try
         {
-            return _dbContext.SysUrls.Any(x => x.Url == url && !x.IsDeleted);
+            return _dbContext.SysUrls.Any(x => x.Url == url && !x.IsDeleted && x.RequestMethod == method);
         }
         catch (Exception e)
         {

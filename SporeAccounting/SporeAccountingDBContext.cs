@@ -126,7 +126,7 @@ public class SporeAccountingDBContext : DbContext
             CreateUserId = adminUserId,
             CanDelete = false,
         });
-
+        
         modelBuilder.Entity<Currency>().HasData(new List<Currency>()
         {
             new Currency()

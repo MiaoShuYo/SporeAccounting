@@ -14,6 +14,11 @@ public interface ISysRoleUrlServer
     /// <param name="roleUrl"></param>
     void Add(SysRoleUrl roleUrl);
     /// <summary>
+    /// 批量新增角色可访问的URL
+    /// </summary>
+    /// <param name="roleUrls"></param>
+    void Add(List<SysRoleUrl> roleUrls);
+    /// <summary>
     /// 删除角色可访问的URL
     /// </summary>
     /// <param name="roleId"></param>

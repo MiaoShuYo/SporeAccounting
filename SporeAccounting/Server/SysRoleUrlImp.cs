@@ -33,6 +33,23 @@ public class SysRoleUrlImp : ISysRoleUrlServer
             throw;
         }
     }
+
+    /// <summary>
+    /// 批量新增角色可访问的URL
+    /// </summary>
+    /// <param name="roleUrls"></param>
+    public void Add(List<SysRoleUrl> roleUrls)
+    {
+        try
+        {
+            _dbContext.SysRoleUrls.AddRange(roleUrls);
+            _dbContext.SaveChanges();
+        }
+        catch (Exception e)
+        {
+            throw;
+        }
+    }
     /// <summary>
     /// 删除角色可访问的URL
     /// </summary>

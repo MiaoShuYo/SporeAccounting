@@ -6,6 +6,7 @@ using SporeAccounting.Models;
 using SporeAccounting.Models.ViewModels;
 using SporeAccounting.Server.Interface;
 using System.Net;
+using Microsoft.AspNetCore.Authorization;
 
 namespace SporeAccounting.Controllers
 {
@@ -14,6 +15,7 @@ namespace SporeAccounting.Controllers
     /// </summary>
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize(Roles = "Administrator")]
     public class SysRoleUrlController : BaseController
     {
         private readonly ISysRoleUrlServer _sysRoleUrlServer;
