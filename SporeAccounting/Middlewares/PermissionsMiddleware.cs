@@ -13,7 +13,7 @@ namespace SporeAccounting.Middlewares;
 public class PermissionsMiddleware
 {
     private readonly RequestDelegate _next;
-    
+
     /// <summary>
     /// 权限中间件
     /// </summary>
@@ -31,7 +31,7 @@ public class PermissionsMiddleware
     /// <param name="sysRoleUrlServer"></param>
     /// <param name="configuration"></param>
     public async System.Threading.Tasks.Task Invoke(HttpContext httpContext, ISysRoleUrlServer sysRoleUrlServer,
-        IConfiguration configuration,ISysUrlServer sysUrlServer)
+        IConfiguration configuration, ISysUrlServer sysUrlServer)
     {
         //请求的路径
         string? requestPath = httpContext.Request.Path.Value;
@@ -44,6 +44,8 @@ public class PermissionsMiddleware
             return;
         }
 
+        var requestPathArray = requestPath.Split("/");
+        requestPath = $"/{requestPathArray[1]}/{requestPathArray[2]}/{requestPathArray[3]}";
         //解析token
         string? token = httpContext.Request.Headers["Authorization"].FirstOrDefault()?.Split(" ").Last();
         if (token == null)
@@ -69,7 +71,7 @@ public class PermissionsMiddleware
                 }, out SecurityToken validatedToken);
                 // 访问 Claims
                 var userId = claimsPrincipal.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-                var roleId = claimsPrincipal.FindFirst(ClaimTypes.Role)?.Value;
+                var roleId = claimsPrincipal.FindFirst("roleId")?.Value;
                 // 在上下文中存储用户信息
                 httpContext.Request.Headers.Append("UserId", userId);
                 string pathUrlNotParam = string.Join("/", requestPath);

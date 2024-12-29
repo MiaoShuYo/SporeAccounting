@@ -18,6 +18,13 @@ public class AccountBook : BaseModel
     public string Name { get; set; }
 
     /// <summary>
+    /// 账簿余额
+    /// </summary>
+    [Column(TypeName = "decimal(10,2)")]
+    [Required] 
+    public decimal Balance { get; set; } = 0;
+
+    /// <summary>
     /// 备注
     /// </summary>
     [Column(TypeName = "nvarchar(100)")]

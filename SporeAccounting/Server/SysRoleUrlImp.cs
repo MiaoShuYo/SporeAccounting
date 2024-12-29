@@ -125,7 +125,7 @@ public class SysRoleUrlImp : ISysRoleUrlServer
     {
         try
         {
-            return _dbContext.SysRoleUrls.Any(x => x.RoleId == roleId && x.Url.Url == url);
+            return _dbContext.SysRoleUrls.Any(x => x.RoleId == roleId && x.UrlId == url);
         }
         catch (Exception e)
         {

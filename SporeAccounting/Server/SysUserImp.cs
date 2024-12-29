@@ -44,7 +44,7 @@ public class SysUserImp : ISysUserServer
     {
         try
         {
-            SysUser sysUser = _dbContext.SysUsers.FirstOrDefault(p => p.UserName == userName);
+            SysUser sysUser = _dbContext.SysUsers.Include(i=>i.Role).FirstOrDefault(p => p.UserName == userName);
             return sysUser;
         }
         catch (Exception ex)

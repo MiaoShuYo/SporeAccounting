@@ -115,7 +115,7 @@ namespace SporeAccounting.Controllers
                 //生成Token和刷新Token
                 TokenViewModel sysToken = new TokenViewModel();
                 sysToken.RefreshToken = GenerateRefreshToken();
-                sysToken.Token = GenerateToken(sysUser.Id, sysToken.RefreshToken, sysUser.RoleId);
+                sysToken.Token = GenerateToken(sysUser.Id, sysToken.RefreshToken, sysUser.Role.RoleName, sysUser.RoleId);
                 return Ok(new ResponseData<TokenViewModel>(HttpStatusCode.OK, data: sysToken));
             }
             catch (Exception ex)
@@ -198,7 +198,7 @@ namespace SporeAccounting.Controllers
                 }
 
                 //使用刷新token刷新token
-                string newToken = GenerateToken(userId, refreshToken, role.Id);
+                string newToken = GenerateToken(userId, refreshToken, role.Id,sysUser.Role.RoleName);
                 return Ok(new ResponseData<string>(HttpStatusCode.OK, data: newToken));
             }
             catch (Exception ex)
@@ -342,14 +342,16 @@ namespace SporeAccounting.Controllers
         /// </summary>
         /// <param name="userId"></param>
         /// <param name="refreshToken"></param>
+        /// <param name="roleName"></param>
         /// <param name="roleId"></param>
         /// <returns></returns>
-        private string GenerateToken(string userId, string refreshToken, string roleId)
+        private string GenerateToken(string userId, string refreshToken,string roleName, string roleId)
         {
             var claims = new[]
             {
                 new Claim(JwtRegisteredClaimNames.Sub, userId),
-                new Claim(ClaimTypes.Role, roleId),
+                new Claim(ClaimTypes.Role, roleName),
+                new Claim("roleId", roleId),
                 new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
                 new Claim("refreshToken", refreshToken)
             };

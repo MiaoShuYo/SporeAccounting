@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace SporeAccounting.Models.ViewModels;
 /// <summary>
@@ -25,4 +26,10 @@ public class AccountBookUpdateViewModel
     /// </summary>
     [Required(ErrorMessage = "账簿余额不能为空")]
     public decimal Balance { get; set; }
+
+    /// <summary>
+    /// 备注
+    /// </summary>
+    [MaxLength(100)]
+    public string? Remarks { get; set; }
 }

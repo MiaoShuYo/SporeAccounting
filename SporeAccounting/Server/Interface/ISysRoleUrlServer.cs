@@ -53,9 +53,9 @@ public interface ISysRoleUrlServer
     /// 角色是否可以访问URL
     /// </summary>
     /// <param name="roleId"></param>
-    /// <param name="url"></param>
+    /// <param name="urlId"></param>
     /// <returns></returns>
-    bool IsRoleUseUrl(string roleId, string url);
+    bool IsRoleUseUrl(string roleId, string urlId);
 
     /// <summary>
     /// 是否可以删除

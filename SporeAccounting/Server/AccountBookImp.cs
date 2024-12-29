@@ -67,7 +67,13 @@ public class AccountBookImp : IAccountBookServer
     {
         try
         {
-            _sporeAccountingDbContext.AccountBooks.Update(accountBook);
+            AccountBook dbAccountBook= _sporeAccountingDbContext.AccountBooks.FirstOrDefault(p => p.Id == accountBook.Id);
+            dbAccountBook.Name = accountBook.Name;
+            dbAccountBook.Remarks = accountBook.Remarks;
+            dbAccountBook.UpdateDateTime = accountBook.UpdateDateTime;
+            dbAccountBook.UpdateUserId = accountBook.UpdateUserId;
+
+            _sporeAccountingDbContext.AccountBooks.Update(dbAccountBook);
             _sporeAccountingDbContext.SaveChanges();
         }
         catch (Exception e)
@@ -111,7 +117,6 @@ public class AccountBookImp : IAccountBookServer
             int rowCount = query.Count();
             int pageCount = (int)Math.Ceiling(rowCount / (double)pageSize);
             IQueryable<AccountBook> accountBooks = query
-                .Where(w => w.UserId == userId)
                 .OrderByDescending(p => p.CreateDateTime)
                 .Skip((pageNumber - 1) * pageSize)
                 .Take(pageSize);
@@ -191,7 +196,7 @@ public class AccountBookImp : IAccountBookServer
         {
             return _sporeAccountingDbContext.AccountBooks
                 .Include(p => p.IncomeExpenditureRecords)
-                .Any(p => p.Id == accountBookId);
+                .Any(p => p.IncomeExpenditureRecords.Any(pp=>pp.AccountBookId== accountBookId));
             
             // 也可以这么查询
             // return _sporeAccountingDbContext.IncomeExpenditureRecords

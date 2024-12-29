@@ -76,6 +76,15 @@ public class SporeAccountingProfile : Profile
         CreateMap<AccountBookAddViewmModel, AccountBook>()
             .ForMember(d => d.Name, opt =>
                 opt.MapFrom(s => s.Name));
+        CreateMap<AccountBookUpdateViewModel, AccountBook>()
+            .ForMember(d => d.Name, opt =>
+                opt.MapFrom(s => s.Name))
+            .ForMember(d => d.Remarks, opt =>
+                opt.MapFrom(s => s.Remarks))
+            .ForMember(d => d.Balance, opt =>
+                opt.MapFrom(s => s.Balance))
+            .ForMember(d => d.Id, opt =>
+                opt.MapFrom(s => s.AccountBookId));
         CreateMap<AccountBook, AccountBookInfoViewModel>()
             .ForMember(d => d.AccountBookId, opt =>
                 opt.MapFrom(s => s.Id))
