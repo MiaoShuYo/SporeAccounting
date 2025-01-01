@@ -33,9 +33,10 @@ public interface IIncomeExpenditureRecordServer
     IncomeExpenditureRecord? Query(string incomeExpenditureRecordId);
 
     /// <summary>
-    /// 获取全部收支记录
+    /// 获取用户的全部收支记录
     /// </summary>
-    List<IncomeExpenditureRecord> Query();
+    /// <param name="userId"></param>
+    List<IncomeExpenditureRecord> QueryByUserId(string userId);
 
     /// <summary>
     /// 分页查询收支记录

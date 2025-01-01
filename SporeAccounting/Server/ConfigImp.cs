@@ -44,7 +44,7 @@ public class ConfigImp : IConfigServer
         try
         {
             return _sporeAccountingDbContext.Configs.FirstOrDefault(c =>
-                c.UserId == userId && c.ConfigTypeEnum == configTypeEnum);
+                c.UserId == userId && c.ConfigType == configTypeEnum);
         }
         catch (Exception e)
         {
@@ -104,7 +104,7 @@ public class ConfigImp : IConfigServer
         try
         {
             return _sporeAccountingDbContext.Configs.Any(c =>
-                c.UserId == userId && c.ConfigTypeEnum == configTypeEnum);
+                c.UserId == userId && c.ConfigType == configTypeEnum);
         }
         catch (Exception e)
         {

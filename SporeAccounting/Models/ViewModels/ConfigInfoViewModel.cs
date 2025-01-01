@@ -18,5 +18,5 @@ public class ConfigInfoViewModel
     /// <summary>
     /// 配置类型
     /// </summary>
-    public ConfigTypeEnum ConfigTypeEnum { get; set; }
+    public ConfigTypeEnum ConfigType { get; set; }
 }

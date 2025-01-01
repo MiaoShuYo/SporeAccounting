@@ -57,12 +57,19 @@ public class SporeAccountingDBContext : DbContext
     /// 收支记录表
     /// </summary>
     public DbSet<IncomeExpenditureRecord> IncomeExpenditureRecords { get; set; }
+
     /// <summary>
     /// 收支分类表
     /// </summary>
     public DbSet<IncomeExpenditureClassification> IncomeExpenditureClassifications { get; set; }
 
+    /// <summary>
+    /// 预算表
+    /// </summary>
+   // public DbSet<Budget> Budgets { get; set; }
+
     IConfiguration _dbConfig;
+
     /// <summary>
     /// 数据库连接配置
     /// </summary>
@@ -126,7 +133,7 @@ public class SporeAccountingDBContext : DbContext
             CreateUserId = adminUserId,
             CanDelete = false,
         });
-        
+
         modelBuilder.Entity<Currency>().HasData(new List<Currency>()
         {
             new Currency()
@@ -204,7 +211,10 @@ public class SporeAccountingDBContext : DbContext
         });
         base.OnModelCreating(modelBuilder);
     }
-
+    /// <summary>
+    /// 数据库连接配置
+    /// </summary>
+    /// <param name="optionsBuilder"></param>
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
         var serverVersion = ServerVersion.AutoDetect(_dbConfig.GetConnectionString("MySQLConnection"));

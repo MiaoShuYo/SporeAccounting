@@ -99,13 +99,15 @@ public class IncomeExpenditureRecordImp : IIncomeExpenditureRecordServer
     }
 
     /// <summary>
-    /// 获取全部收支记录
+    /// 获取用户的全部收支记录
     /// </summary>
-    public List<IncomeExpenditureRecord> Query()
+    /// <param name="userId"></param>
+    public List<IncomeExpenditureRecord> QueryByUserId(string userId)
     {
         try
         {
-            return _sporeAccountingDbContext.IncomeExpenditureRecords.ToList();
+            return _sporeAccountingDbContext.IncomeExpenditureRecords
+                .Where(p => p.UserId == userId).ToList();
         }
         catch (Exception e)
         {

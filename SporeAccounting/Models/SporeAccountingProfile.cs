@@ -70,8 +70,8 @@ public class SporeAccountingProfile : Profile
                 opt.MapFrom(s => s.Id))
             .ForMember(d => d.Value, opt =>
                 opt.MapFrom(s => s.Value))
-            .ForMember(d => d.ConfigTypeEnum, opt =>
-                opt.MapFrom(s => s.ConfigTypeEnum));
+            .ForMember(d => d.ConfigType, opt =>
+                opt.MapFrom(s => s.ConfigType));
 
         CreateMap<AccountBookAddViewmModel, AccountBook>()
             .ForMember(d => d.Name, opt =>

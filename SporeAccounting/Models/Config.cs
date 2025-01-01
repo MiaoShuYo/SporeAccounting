@@ -15,7 +15,7 @@ public class Config : BaseModel
     /// </summary>
     [Column(TypeName = "int")]
     [Required]
-    public ConfigTypeEnum ConfigTypeEnum { get; set; }
+    public ConfigTypeEnum ConfigType { get; set; }
 
     /// <summary>
     /// 用户id

@@ -10,14 +10,19 @@ using SporeAccounting.Server.Interface;
 namespace SporeAccounting.MQ
 {
     /// <summary>
-    /// RabbitMQBackgroundService
+    /// RabbitMQ后台服务
     /// </summary>
     public class RabbitMQBackgroundService : IHostedService
     {
         private readonly RabbitMQSubscriberService _subscriberService;
         private readonly ILogger<RabbitMQBackgroundService> _logger;
         private readonly IServiceProvider _serviceProvider;
-
+        /// <summary>
+        /// 构造函数
+        /// </summary>
+        /// <param name="subscriberService"></param>
+        /// <param name="logger"></param>
+        /// <param name="serviceProvider"></param>
         public RabbitMQBackgroundService(RabbitMQSubscriberService subscriberService,
             ILogger<RabbitMQBackgroundService> logger,
             IServiceProvider serviceProvider)
@@ -42,23 +47,23 @@ namespace SporeAccounting.MQ
                         Id = Guid.NewGuid().ToString(),
                         UserId = mainCurrency.UserId,
                         Value = mainCurrency.Currency,
-                        ConfigTypeEnum = ConfigTypeEnum.Currency,
+                        ConfigType = ConfigTypeEnum.Currency,
                         CreateDateTime = DateTime.Now,
                         CreateUserId = mainCurrency.UserId
                     });
                 });
-            await _subscriberService.SubscribeAsync<string>("UpdateConversionAmount", "UpdateConversionAmount",
-                async (mainCurrencyId) =>
+            await _subscriberService.SubscribeAsync<MainCurrency>("UpdateConversionAmount", "UpdateConversionAmount",
+                async (mainCurrency) =>
                 {
                     //1.获取所有收支记录
                     var recordService = _serviceProvider.GetRequiredService<IIncomeExpenditureRecordServer>();
-                    var records = recordService.Query();
+                    var records = recordService.QueryByUserId(mainCurrency.UserId);
 
                     //2.将所有记录的金额转换为新的主币种（记录中的币种转换为新的主币种）
                     var currencyServer = _serviceProvider.GetRequiredService<ICurrencyServer>();
                     var exchangeRateRecordServer = _serviceProvider.GetRequiredService<IExchangeRateRecordServer>();
-                    Currency? mainCurrency = currencyServer.Query(mainCurrencyId);
-                    if (mainCurrency == null)
+                    Currency? query = currencyServer.Query( mainCurrency.Currency);
+                    if (query == null)
                     {
                         return;
                     }
@@ -69,8 +74,9 @@ namespace SporeAccounting.MQ
                         var currency = record.Currency;
                         //获取记录币种和主币种的汇率
                         ExchangeRateRecord? exchangeRateRecord =
-                            exchangeRateRecordServer.Query($"{mainCurrency.Abbreviation}_{currency.Abbreviation}");
-                        record.AfterAmount = exchangeRateRecord.ExchangeRate * record.BeforAmount;
+                            exchangeRateRecordServer.Query($"{query.Abbreviation}_{currency.Abbreviation}");
+                        if (exchangeRateRecord != null)
+                            record.AfterAmount = exchangeRateRecord.ExchangeRate * record.BeforAmount;
                     }
 
                     //3.更新所有记录
