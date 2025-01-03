@@ -148,5 +148,19 @@ public class SporeAccountingProfile : Profile
                 .MapFrom(s => s.AccountBook.Name))
             .ForMember(d => d.CurrencyName, opt => opt
                 .MapFrom(s => s.Currency.Name));
+
+        CreateMap<BudgetAddViewModel, Budget>()
+            .ForMember(d => d.IncomeExpenditureClassificationId, opt => opt
+                .MapFrom(s => s.IncomeExpenditureClassificationId))
+            .ForMember(d => d.Amount, opt => opt
+                .MapFrom(s => s.Amount))
+            .ForMember(d => d.Period, opt => opt
+                .MapFrom(s => s.Period))
+            .ForMember(d => d.Remark, opt => opt
+                .MapFrom(s => s.Remark))
+            .ForMember(d => d.StartTime, opt => opt
+                .MapFrom(s => s.StartTime))
+            .ForMember(d => d.EndTime, opt => opt
+                .MapFrom(s => s.EndTime));
     }
 }

@@ -140,6 +140,7 @@ namespace SporeAccounting
             builder.Services.AddScoped(typeof(ICurrencyServer), typeof(CurrencyImp));
             builder.Services.AddScoped(typeof(IExchangeRateRecordServer), typeof(ExchangeRateRecordImp));
             builder.Services.AddScoped(typeof(IAccountBookServer), typeof(AccountBookImp));
+            builder.Services.AddScoped(typeof(IBudgetServer), typeof(BudgetImp));
             builder.Services.AddHttpClient();
             // 注册通用订阅服务
             builder.Services.AddSingleton<RabbitMQSubscriberService>();

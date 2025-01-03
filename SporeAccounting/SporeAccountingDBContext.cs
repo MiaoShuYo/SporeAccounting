@@ -66,7 +66,7 @@ public class SporeAccountingDBContext : DbContext
     /// <summary>
     /// 预算表
     /// </summary>
-   // public DbSet<Budget> Budgets { get; set; }
+    public DbSet<Budget> Budgets { get; set; }
 
     IConfiguration _dbConfig;
 
