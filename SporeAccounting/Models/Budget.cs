@@ -74,6 +74,6 @@ public class Budget : BaseModel
     /// <summary>
     /// 导航属性
     /// </summary>
-    public ICollection<IncomeExpenditureClassification> IncomeExpenditureClassifications { get; set; }
-        = new List<IncomeExpenditureClassification>();
+    public IncomeExpenditureClassification Classification { get; set; }
+        = new IncomeExpenditureClassification();
 }

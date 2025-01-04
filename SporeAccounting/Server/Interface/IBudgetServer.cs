@@ -35,8 +35,22 @@ public interface IBudgetServer
     /// <summary>
     /// 用户是否存在该类型预算
     /// </summary>
-    /// <param name="IncomeExpenditureClassificationId"></param>
+    /// <param name="classificationId"></param>
     /// <param name="userId"></param>
     /// <returns></returns>
-    bool IsExist(string IncomeExpenditureClassificationId, string userId);
+    bool IsExistByClassificationId(string classificationId, string userId);
+    
+    /// <summary>
+    /// 是否存在
+    /// </summary>
+    /// <param name="id"></param>
+    /// <returns></returns>
+    bool IsExist(string id);
+    /// <summary>
+    /// 是否是当前用户的
+    /// </summary>
+    /// <param name="id"></param>
+    /// <param name="userId"></param>
+    /// <returns></returns>
+    bool IsYou(string id, string userId);
 }

@@ -151,7 +151,7 @@ public class SporeAccountingProfile : Profile
 
         CreateMap<BudgetAddViewModel, Budget>()
             .ForMember(d => d.IncomeExpenditureClassificationId, opt => opt
-                .MapFrom(s => s.IncomeExpenditureClassificationId))
+                .MapFrom(s => s.ClassificationId))
             .ForMember(d => d.Amount, opt => opt
                 .MapFrom(s => s.Amount))
             .ForMember(d => d.Period, opt => opt
@@ -162,5 +162,40 @@ public class SporeAccountingProfile : Profile
                 .MapFrom(s => s.StartTime))
             .ForMember(d => d.EndTime, opt => opt
                 .MapFrom(s => s.EndTime));
+        CreateMap<BudgetUpdateViewModel, Budget>()
+            .ForMember(d=>d.IncomeExpenditureClassificationId, opt=>opt
+                .MapFrom(s=>s.ClassificationId))
+            .ForMember(d=>d.Amount, opt=>opt
+                .MapFrom(s=>s.Amount))
+            .ForMember(d=>d.StartTime, opt=>opt
+                .MapFrom(s=>s.StartTime))
+            .ForMember(d=>d.Remark, opt=>opt
+                .MapFrom(s=>s.Remark))
+            .ForMember(d=>d.Period, opt=>opt
+                .MapFrom(s=>s.Period))
+            .ForMember(d=>d.Remaining, opt=>opt
+                .MapFrom(s=>s.Remaining))
+            .ForMember(d=>d.EndTime, opt=>opt
+                .MapFrom(s=>s.EndTime))
+            .ForMember(d=>d.Id, opt=>opt
+                .MapFrom(s=>s.Id));
+        CreateMap<Budget, BudgetViewModel>()
+            .ForMember(d => d.Amount, opt => opt
+                .MapFrom(s => s.Amount))
+            .ForMember(d => d.Id, opt => opt
+                .MapFrom(s => s.Id))
+            .ForMember(d => d.Remark, opt => opt
+                .MapFrom(s => s.Remark))
+            .ForMember(d => d.StartTime, opt => opt
+                .MapFrom(s => s.StartTime))
+            .ForMember(d => d.Period, opt => opt
+                .MapFrom(s => s.Period))
+            .ForMember(d => d.ClassificationName, opt => opt
+                .MapFrom(s => s.Classification.Name))
+            .ForMember(d => d.EndTime, opt => opt
+                .MapFrom(s => s.EndTime))
+            .ForMember(d=>d.Remaining, opt=>opt
+                .MapFrom(s=>s.Remaining));
+
     }
 }

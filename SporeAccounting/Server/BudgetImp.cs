@@ -38,6 +38,7 @@ public class BudgetImp : IBudgetServer
             throw;
         }
     }
+
     /// <summary>
     /// 删除预算
     /// </summary>
@@ -55,6 +56,7 @@ public class BudgetImp : IBudgetServer
             throw;
         }
     }
+
     /// <summary>
     /// 修改预算
     /// </summary>
@@ -71,6 +73,7 @@ public class BudgetImp : IBudgetServer
             throw;
         }
     }
+
     /// <summary>
     /// 查询预算
     /// </summary>
@@ -88,16 +91,51 @@ public class BudgetImp : IBudgetServer
         }
     }
     /// <summary>
-    /// 用户是否存在该类型预算
+    /// 是否存在
     /// </summary>
-    /// <param name="IncomeExpenditureClassificationId"></param>
-    /// <param name="userId"></param>
+    /// <param name="id"></param>
     /// <returns></returns>
-    public bool IsExist(string IncomeExpenditureClassificationId, string userId)
+    public bool IsExist(string id)
     {
         try
         {
-            return _sporeAccountingDbContext.Budgets.Any(b => b.IncomeExpenditureClassificationId == IncomeExpenditureClassificationId && b.UserId == userId);
+            return _sporeAccountingDbContext.Budgets.Any(b => b.Id == id);
+        }
+        catch (Exception e)
+        {
+            throw;
+        }
+    }
+    /// <summary>
+    /// 是否是当前用户的
+    /// </summary>
+    /// <param name="id"></param>
+    /// <param name="userId"></param>
+    /// <returns></returns>
+    public bool IsYou(string id, string userId)
+    {
+        try
+        {
+            return _sporeAccountingDbContext.Budgets.Any(b => b.Id == id && b.UserId == userId);
+        }
+        catch (Exception e)
+        {
+            throw;
+        }
+    }
+
+    /// <summary>
+    /// 用户是否存在该类型预算
+    /// </summary>
+    /// <param name="classificationId"></param>
+    /// <param name="userId"></param>
+    /// <returns></returns>
+    public bool IsExistByClassificationId(string classificationId, string userId)
+    {
+        try
+        {
+            return _sporeAccountingDbContext.Budgets.Any(b =>
+                b.IncomeExpenditureClassificationId == classificationId && b.UserId == userId);
         }
         catch (Exception e)
         {

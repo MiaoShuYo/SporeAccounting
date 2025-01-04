@@ -3,10 +3,16 @@
 namespace SporeAccounting.Models.ViewModels;
 
 /// <summary>
-/// 预算添加视图模型
+/// 预算更新视图模型
 /// </summary>
-public class BudgetAddViewModel
+public class BudgetUpdateViewModel
 {
+    /// <summary>
+    /// 预算Id
+    /// </summary>
+    [Required(ErrorMessage = "预算Id不能为空")]
+    public string Id { get; set; }
+
     /// <summary>
     /// 预算金额
     /// </summary>
@@ -30,6 +36,12 @@ public class BudgetAddViewModel
     /// </summary>
     [Required(ErrorMessage = "结束时间不能为空")]
     public DateTime EndTime { get; set; }
+
+    /// <summary>
+    /// 剩余预算
+    /// </summary>
+    [Required(ErrorMessage = "剩余预算不能为空")]
+    public decimal Remaining { get; set; }
 
     /// <summary>
     /// 收支分类
