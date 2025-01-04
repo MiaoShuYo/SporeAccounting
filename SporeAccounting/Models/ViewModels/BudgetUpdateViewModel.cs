@@ -44,12 +44,6 @@ public class BudgetUpdateViewModel
     public decimal Remaining { get; set; }
 
     /// <summary>
-    /// 收支分类
-    /// </summary>
-    [Required(ErrorMessage = "收支分类不能为空")]
-    public string ClassificationId { get; set; }
-
-    /// <summary>
     /// 备注
     /// </summary>
     [MaxLength(200)]

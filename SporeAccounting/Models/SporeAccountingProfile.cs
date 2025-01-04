@@ -163,8 +163,6 @@ public class SporeAccountingProfile : Profile
             .ForMember(d => d.EndTime, opt => opt
                 .MapFrom(s => s.EndTime));
         CreateMap<BudgetUpdateViewModel, Budget>()
-            .ForMember(d=>d.IncomeExpenditureClassificationId, opt=>opt
-                .MapFrom(s=>s.ClassificationId))
             .ForMember(d=>d.Amount, opt=>opt
                 .MapFrom(s=>s.Amount))
             .ForMember(d=>d.StartTime, opt=>opt
