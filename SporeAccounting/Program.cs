@@ -162,6 +162,16 @@ namespace SporeAccounting
                 //启用 Quartz 的托管服务，`WaitForJobsToComplete = true` 表示在应用程序停止时等待任务完成后再关闭。
                 options.WaitForJobsToComplete = true;
             });
+            // 配置跨域
+            builder.Services.AddCors(options =>
+            {
+                options.AddPolicy("AllowAll", cp =>
+                {
+                    cp.AllowAnyOrigin()
+                        .AllowAnyMethod()
+                        .AllowAnyHeader();
+                });
+            });
 
             var app = builder.Build();
             // Configure the HTTP request pipeline.
@@ -172,6 +182,8 @@ namespace SporeAccounting
                 AddPath.Init(app.Services);
                 AddRolePath.Init(app.Services);
             }
+
+            app.UseCors("AllowAll");
             app.UseMiddleware<PermissionsMiddleware>();
             app.UseHttpsRedirection();
 
