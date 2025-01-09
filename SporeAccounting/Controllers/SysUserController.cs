@@ -76,7 +76,7 @@ namespace SporeAccounting.Controllers
                     Currency = "e7b3e54d-dbf3-432e-b6fb-b251ffa844b6"
                 };
                 _ = _rabbitMqPublisher.Publish<MainCurrency>("SetMainCurrency", "SetMainCurrency", mainCurrency);
-                return Ok(new ResponseData<bool>(HttpStatusCode.OK, "", false));
+                return Ok(new ResponseData<bool>(HttpStatusCode.OK, "", true));
             }
             catch (Exception ex)
             {
