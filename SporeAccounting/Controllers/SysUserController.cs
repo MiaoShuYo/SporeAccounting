@@ -61,6 +61,24 @@ namespace SporeAccounting.Controllers
         {
             try
             {
+                //验证用户是否存在
+                bool isExist = _sysUserServer.IsExist(sysUserViewModel.UserName);
+                if (isExist)
+                {
+                    return Ok(new ResponseData<bool>(HttpStatusCode.Found, "用户已存在", false));
+                }
+                //邮箱是否存在
+                isExist = _sysUserServer.IsExistByEmail(sysUserViewModel.Email);
+                if (isExist)
+                {
+                    return Ok(new ResponseData<bool>(HttpStatusCode.Found, "邮箱已存在", false));
+                }
+                //手机号是否存在
+                isExist = _sysUserServer.IsExistByPhoneNumber(sysUserViewModel.PhoneNumber);
+                if (isExist)
+                {
+                    return Ok(new ResponseData<bool>(HttpStatusCode.Found, "手机号已存在", false));
+                }
                 var role = _sysRoleServer.QueryByName("Consumer");
                 SysUser sysUser = _mapper.Map<SysUser>(sysUserViewModel);
                 sysUser.Salt = Guid.NewGuid().ToString("N");
@@ -109,7 +127,7 @@ namespace SporeAccounting.Controllers
                 //验证密码
                 if (sysUser.Password != passwordHash)
                 {
-                    return Ok(new ResponseData<bool>(HttpStatusCode.OK, "用户或密码错误！", false));
+                    return Ok(new ResponseData<bool>(HttpStatusCode.BadRequest, "用户或密码错误！", false));
                 }
 
                 //生成Token和刷新Token
@@ -131,10 +149,10 @@ namespace SporeAccounting.Controllers
         /// <param name="email"></param>
         /// <returns></returns>
         [HttpGet]
-        [Route("RetrievePassword/{userName}/{email}")]
+        [Route("RetrievePassword/{userName}/{email}/{phone}")]
         [AllowAnonymous]
         public ActionResult<ResponseData<string>> RetrievePassword([FromRoute] string userName,
-            [FromRoute] string email)
+            [FromRoute] string email, [FromRoute] string phone)
         {
             try
             {
@@ -144,12 +162,16 @@ namespace SporeAccounting.Controllers
                 {
                     return Ok(new ResponseData<bool>(HttpStatusCode.BadRequest, "用户不存在！", false));
                 }
-
+                //验证邮箱是否正确
                 if (sysUser.Email != email)
                 {
                     return Ok(new ResponseData<bool>(HttpStatusCode.BadRequest, "邮箱不正确！", false));
                 }
-
+                //验证手机号是否正确
+                if (sysUser.PhoneNumber != phone)
+                {
+                    return Ok(new ResponseData<bool>(HttpStatusCode.BadRequest, "手机号不正确！", false));
+                }
                 //生成12位随机密码
                 string newPassword = GenerateRandomPassword(12);
                 sysUser.Password = HashPasswordWithSalt(newPassword, sysUser.Salt);

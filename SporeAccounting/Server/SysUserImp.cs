@@ -44,7 +44,7 @@ public class SysUserImp : ISysUserServer
     {
         try
         {
-            SysUser sysUser = _dbContext.SysUsers.Include(i=>i.Role).FirstOrDefault(p => p.UserName == userName);
+            SysUser sysUser = _dbContext.SysUsers.Include(i => i.Role).FirstOrDefault(p => p.UserName == userName);
             return sysUser;
         }
         catch (Exception ex)
@@ -109,6 +109,7 @@ public class SysUserImp : ISysUserServer
                     .Where(p =>
                         p.UserName.Contains(userPage.UserName));
             }
+
             //总行数
             int rowCount = 0;
             //总页数
@@ -123,7 +124,7 @@ public class SysUserImp : ISysUserServer
                 .OrderByDescending(p => p.CreateDateTime)
                 .Skip(skip)
                 .Take(userPage.PageSize);
-          
+
             return (rowCount, pageCount, usersList);
         }
         catch (Exception ex)
@@ -131,6 +132,7 @@ public class SysUserImp : ISysUserServer
             throw ex;
         }
     }
+
     /// <summary>
     /// 删除用户（逻辑删除）
     /// </summary>
@@ -141,7 +143,7 @@ public class SysUserImp : ISysUserServer
         {
             var sysUser = _dbContext.SysUsers.FirstOrDefault(p => p.Id == userId);
             sysUser.IsDeleted = true;
-            sysUser.DeleteDateTime= DateTime.Now;
+            sysUser.DeleteDateTime = DateTime.Now;
             _dbContext.SysUsers.Update(sysUser);
             _dbContext.SaveChanges();
         }
@@ -162,6 +164,58 @@ public class SysUserImp : ISysUserServer
         {
             var sysUser = _dbContext.SysUsers.FirstOrDefault(p => p.Id == userId);
             return sysUser.CanDelete;
+        }
+        catch (Exception ex)
+        {
+            throw ex;
+        }
+    }
+
+    /// <summary>
+    /// 是否存在
+    /// </summary>
+    /// <param name="userName"></param>
+    /// <returns></returns>
+    public bool IsExist(string userName)
+    {
+        try
+        {
+            return _dbContext.SysUsers.Any(p => p.UserName == userName);
+        }
+        catch (Exception ex)
+        {
+            throw ex;
+        }
+    }
+
+    /// <summary>
+    /// 邮箱是否存在
+    /// </summary>
+    /// <param name="email"></param>
+    /// <returns></returns>
+    public bool IsExistByEmail(string email)
+    {
+        try
+        {
+            return _dbContext.SysUsers.Any(p => p.Email == email);
+        }
+        catch (Exception ex)
+        {
+            throw ex;
+        }
+    }
+
+    /// <summary>
+    /// 手机号是否存在
+    /// </summary>
+    /// <param name="phoneNumber"></param>
+    /// <returns></returns>
+    /// <exception cref="Exception"></exception>
+    public bool IsExistByPhoneNumber(string phoneNumber)
+    {
+        try
+        {
+            return _dbContext.SysUsers.Any(p => p.PhoneNumber == phoneNumber);
         }
         catch (Exception ex)
         {

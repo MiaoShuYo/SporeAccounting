@@ -46,4 +46,22 @@ public interface ISysUserServer
     /// <param name="userId"></param>
     /// <returns></returns>
     bool CanDelete(string userId);
+    /// <summary>
+    /// 是否存在
+    /// </summary>
+    /// <param name="userName"></param>
+    /// <returns></returns>
+    bool IsExist(string userName);
+    /// <summary>
+    /// 邮箱是否存在
+    /// </summary>
+    /// <param name="email"></param>
+    /// <returns></returns>
+    bool IsExistByEmail(string email);
+    /// <summary>
+    /// 手机号是否存在
+    /// </summary>
+    /// <param name="phoneNumber"></param>
+    /// <returns></returns>
+    bool IsExistByPhoneNumber(string phoneNumber);
 }
