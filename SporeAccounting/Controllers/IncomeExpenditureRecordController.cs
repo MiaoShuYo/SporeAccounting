@@ -84,7 +84,7 @@ namespace SporeAccounting.Controllers
                 {
                     return Ok(new ResponseData<bool>(HttpStatusCode.NotFound, "未设置主币种"));
                 }
-
+                decimal afterAmount = 0;
                 // 如果选择的币种不是设置的主币种，则将金额转换为主币种的金额
                 if (config.Value != incomeExpenditureRecordAddViewModel.CurrencyId)
                 {
@@ -111,11 +111,16 @@ namespace SporeAccounting.Controllers
                         return Ok(new ResponseData<bool>(HttpStatusCode.NotFound, "汇率不存在"));
                     }
 
-                    incomeExpenditureRecordAddViewModel.AfterAmount = exchangeRateRecord.ExchangeRate*incomeExpenditureRecordAddViewModel.BeforAmount;
+                    afterAmount = exchangeRateRecord.ExchangeRate*incomeExpenditureRecordAddViewModel.Amount;
+                }
+                else
+                {
+                    afterAmount= incomeExpenditureRecordAddViewModel.Amount;
                 }
 
                 IncomeExpenditureRecord incomeExpenditureRecord =
                     _mapper.Map<IncomeExpenditureRecord>(incomeExpenditureRecordAddViewModel);
+                incomeExpenditureRecord.AfterAmount = afterAmount;
                 incomeExpenditureRecord.UserId = userId;
                 incomeExpenditureRecord.CreateDateTime = DateTime.Now;
                 incomeExpenditureRecord.CreateUserId = userId;
@@ -144,7 +149,7 @@ namespace SporeAccounting.Controllers
                 {
                     return Ok(new ResponseData<bool>(HttpStatusCode.NotFound, "记录不存在"));
                 }
-
+                
                 _incomeExpenditureRecordServer.Delete(id);
                 return Ok(new ResponseData<bool>(HttpStatusCode.OK, data: true));
             }

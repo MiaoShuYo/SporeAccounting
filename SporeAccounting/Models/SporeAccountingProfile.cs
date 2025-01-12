@@ -95,9 +95,7 @@ public class SporeAccountingProfile : Profile
 
         CreateMap<IncomeExpenditureRecordAddViewModel, IncomeExpenditureRecord>()
             .ForMember(d => d.BeforAmount, opt => opt
-                .MapFrom(s => s.BeforAmount))
-            .ForMember(d => d.AfterAmount, opt => opt
-                .MapFrom(s => s.AfterAmount))
+                .MapFrom(s => s.Amount))
             .ForMember(d => d.IncomeExpenditureClassificationId, opt => opt
                 .MapFrom(s => s.IncomeExpenditureClassificationId))
             .ForMember(d => d.RecordDate, opt => opt

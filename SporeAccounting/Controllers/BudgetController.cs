@@ -1,5 +1,6 @@
 using System.Net;
 using AutoMapper;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using SporeAccounting.BaseModels;
@@ -14,6 +15,7 @@ namespace SporeAccounting.Controllers
     /// </summary>
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize(Roles = "Consumer,Administrator")]
     public class BudgetController : BaseController
     {
         /// <summary>
@@ -53,7 +55,9 @@ namespace SporeAccounting.Controllers
                     return Ok(new ResponseData<bool>(HttpStatusCode.Found, "用户已存在该类型预算", false));
                 }
                 Budget budgetDb = _mapper.Map<Budget>(budget);
+                budgetDb.Remaining = budgetDb.Amount;
                 budgetDb.UserId = userId;
+                budgetDb.CreateUserId = userId;
                 budgetDb.CreateDateTime = DateTime.Now;
                 _budgetServer.Add(budgetDb);
                 return Ok(new ResponseData<bool>(HttpStatusCode.OK, "添加成功", true));

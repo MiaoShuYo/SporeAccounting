@@ -141,6 +141,7 @@ namespace SporeAccounting
             builder.Services.AddScoped(typeof(IExchangeRateRecordServer), typeof(ExchangeRateRecordImp));
             builder.Services.AddScoped(typeof(IAccountBookServer), typeof(AccountBookImp));
             builder.Services.AddScoped(typeof(IBudgetServer), typeof(BudgetImp));
+            builder.Services.AddScoped(typeof(IIncomeExpenditureRecordServer), typeof(IncomeExpenditureRecordImp));
             builder.Services.AddHttpClient();
             // 注册通用订阅服务
             builder.Services.AddSingleton<RabbitMQSubscriberService>();
@@ -174,11 +175,11 @@ namespace SporeAccounting
             });
 
             var app = builder.Build();
+            app.UseSwagger();
+            app.UseSwaggerUI();
             // Configure the HTTP request pipeline.
             if (app.Environment.IsDevelopment())
             {
-                app.UseSwagger();
-                app.UseSwaggerUI();
                 AddPath.Init(app.Services);
                 AddRolePath.Init(app.Services);
             }

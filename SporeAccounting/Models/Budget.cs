@@ -15,6 +15,7 @@ public class Budget : BaseModel
     /// </summary>
     [Required]
     [Column(TypeName = "nvarchar(36)")]
+    [ForeignKey("FK_Budget_IncomeExpenditureClassification")]
     public string IncomeExpenditureClassificationId { get; set; }
 
     /// <summary>
@@ -69,11 +70,10 @@ public class Budget : BaseModel
     /// <summary>
     /// 导航属性
     /// </summary>
-    public SysUser SysUser { get; set; }
+    public SysUser User { get; set; }
 
     /// <summary>
     /// 导航属性
     /// </summary>
     public IncomeExpenditureClassification Classification { get; set; }
-        = new IncomeExpenditureClassification();
 }

@@ -12,8 +12,8 @@ using SporeAccounting;
 namespace SporeAccounting.Migrations
 {
     [DbContext(typeof(SporeAccountingDBContext))]
-    [Migration("20241121055946_InitExchangeRateRecord_Currency")]
-    partial class InitExchangeRateRecord_Currency
+    [Migration("20250112103829_InitDataBase")]
+    partial class InitDataBase
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -24,6 +24,162 @@ namespace SporeAccounting.Migrations
                 .HasAnnotation("Relational:MaxIdentifierLength", 64);
 
             MySqlModelBuilderExtensions.AutoIncrementColumns(modelBuilder);
+
+            modelBuilder.Entity("SporeAccounting.Models.AccountBook", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasColumnType("nvarchar(36)");
+
+                    b.Property<decimal>("Balance")
+                        .HasColumnType("decimal(10,2)");
+
+                    b.Property<DateTime>("CreateDateTime")
+                        .HasColumnType("datetime");
+
+                    b.Property<string>("CreateUserId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(36)");
+
+                    b.Property<DateTime?>("DeleteDateTime")
+                        .HasColumnType("datetime");
+
+                    b.Property<string>("DeleteUserId")
+                        .HasColumnType("nvarchar(36)");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<string>("Remarks")
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<DateTime?>("UpdateDateTime")
+                        .HasColumnType("datetime");
+
+                    b.Property<string>("UpdateUserId")
+                        .HasColumnType("nvarchar(36)");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(36)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("AccountBook");
+                });
+
+            modelBuilder.Entity("SporeAccounting.Models.Budget", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasColumnType("nvarchar(36)");
+
+                    b.Property<decimal>("Amount")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<DateTime>("CreateDateTime")
+                        .HasColumnType("datetime");
+
+                    b.Property<string>("CreateUserId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(36)");
+
+                    b.Property<DateTime?>("DeleteDateTime")
+                        .HasColumnType("datetime");
+
+                    b.Property<string>("DeleteUserId")
+                        .HasColumnType("nvarchar(36)");
+
+                    b.Property<DateTime>("EndTime")
+                        .HasColumnType("datetime");
+
+                    b.Property<string>("IncomeExpenditureClassificationId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(36)");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<int>("Period")
+                        .HasColumnType("int");
+
+                    b.Property<decimal>("Remaining")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<string>("Remark")
+                        .HasMaxLength(200)
+                        .HasColumnType("varchar(200)");
+
+                    b.Property<DateTime>("StartTime")
+                        .HasColumnType("datetime");
+
+                    b.Property<DateTime?>("UpdateDateTime")
+                        .HasColumnType("datetime");
+
+                    b.Property<string>("UpdateUserId")
+                        .HasColumnType("nvarchar(36)");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(36)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("IncomeExpenditureClassificationId");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("Budget");
+                });
+
+            modelBuilder.Entity("SporeAccounting.Models.Config", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasColumnType("nvarchar(36)");
+
+                    b.Property<int>("ConfigType")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("CreateDateTime")
+                        .HasColumnType("datetime");
+
+                    b.Property<string>("CreateUserId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(36)");
+
+                    b.Property<DateTime?>("DeleteDateTime")
+                        .HasColumnType("datetime");
+
+                    b.Property<string>("DeleteUserId")
+                        .HasColumnType("nvarchar(36)");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<DateTime?>("UpdateDateTime")
+                        .HasColumnType("datetime");
+
+                    b.Property<string>("UpdateUserId")
+                        .HasColumnType("nvarchar(36)");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(36)");
+
+                    b.Property<string>("Value")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(100)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("Config");
+                });
 
             modelBuilder.Entity("SporeAccounting.Models.Currency", b =>
                 {
@@ -67,82 +223,82 @@ namespace SporeAccounting.Migrations
                     b.HasData(
                         new
                         {
-                            Id = "3c3459a1-71d4-42de-ac06-1fefa680f0bd",
+                            Id = "e7b3e54d-dbf3-432e-b6fb-b251ffa844b6",
                             Abbreviation = "CNY",
-                            CreateDateTime = new DateTime(2024, 11, 21, 13, 59, 46, 580, DateTimeKind.Local).AddTicks(486),
-                            CreateUserId = "865db296-5455-4444-8022-b96f3cebdcfb",
+                            CreateDateTime = new DateTime(2025, 1, 12, 18, 38, 29, 126, DateTimeKind.Local).AddTicks(4394),
+                            CreateUserId = "b47637e2-603f-4df0-abe9-88d70fa870ee",
                             IsDeleted = false,
                             Name = "人民币"
                         },
                         new
                         {
-                            Id = "1549bf32-772b-42b9-ab63-965e3275fb40",
+                            Id = "e25b4885-cf61-4249-b86f-0130defd1d57",
                             Abbreviation = "USD",
-                            CreateDateTime = new DateTime(2024, 11, 21, 13, 59, 46, 580, DateTimeKind.Local).AddTicks(505),
-                            CreateUserId = "865db296-5455-4444-8022-b96f3cebdcfb",
+                            CreateDateTime = new DateTime(2025, 1, 12, 18, 38, 29, 126, DateTimeKind.Local).AddTicks(4402),
+                            CreateUserId = "b47637e2-603f-4df0-abe9-88d70fa870ee",
                             IsDeleted = false,
                             Name = "美元"
                         },
                         new
                         {
-                            Id = "a22f451d-27cc-455d-860c-15caab73330c",
+                            Id = "409f7f1d-3430-4f82-9180-520ac1dadbc9",
                             Abbreviation = "EUR",
-                            CreateDateTime = new DateTime(2024, 11, 21, 13, 59, 46, 580, DateTimeKind.Local).AddTicks(512),
-                            CreateUserId = "865db296-5455-4444-8022-b96f3cebdcfb",
+                            CreateDateTime = new DateTime(2025, 1, 12, 18, 38, 29, 126, DateTimeKind.Local).AddTicks(4409),
+                            CreateUserId = "b47637e2-603f-4df0-abe9-88d70fa870ee",
                             IsDeleted = false,
                             Name = "欧元"
                         },
                         new
                         {
-                            Id = "b7dc9376-f54e-4d20-8b91-0a73970d6f3a",
+                            Id = "422a920d-12e9-4263-a1b6-9d6e4e3366ea",
                             Abbreviation = "JPY",
-                            CreateDateTime = new DateTime(2024, 11, 21, 13, 59, 46, 580, DateTimeKind.Local).AddTicks(518),
-                            CreateUserId = "865db296-5455-4444-8022-b96f3cebdcfb",
+                            CreateDateTime = new DateTime(2025, 1, 12, 18, 38, 29, 126, DateTimeKind.Local).AddTicks(4417),
+                            CreateUserId = "b47637e2-603f-4df0-abe9-88d70fa870ee",
                             IsDeleted = false,
                             Name = "日元"
                         },
                         new
                         {
-                            Id = "3e04f1f5-5aa7-42dd-802c-e59c8d72aee9",
+                            Id = "4b6a9c6f-d77f-4087-af5d-2d4f85375bda",
                             Abbreviation = "GBP",
-                            CreateDateTime = new DateTime(2024, 11, 21, 13, 59, 46, 580, DateTimeKind.Local).AddTicks(524),
-                            CreateUserId = "865db296-5455-4444-8022-b96f3cebdcfb",
+                            CreateDateTime = new DateTime(2025, 1, 12, 18, 38, 29, 126, DateTimeKind.Local).AddTicks(4424),
+                            CreateUserId = "b47637e2-603f-4df0-abe9-88d70fa870ee",
                             IsDeleted = false,
                             Name = "英镑"
                         },
                         new
                         {
-                            Id = "a27f9290-3eb4-454d-b879-1cc1af2cc272",
+                            Id = "551b2b37-dfd8-49df-bfc5-c78f068b2d01",
                             Abbreviation = "MOP",
-                            CreateDateTime = new DateTime(2024, 11, 21, 13, 59, 46, 580, DateTimeKind.Local).AddTicks(538),
-                            CreateUserId = "865db296-5455-4444-8022-b96f3cebdcfb",
+                            CreateDateTime = new DateTime(2025, 1, 12, 18, 38, 29, 126, DateTimeKind.Local).AddTicks(4433),
+                            CreateUserId = "b47637e2-603f-4df0-abe9-88d70fa870ee",
                             IsDeleted = false,
                             Name = "澳门币"
                         },
                         new
                         {
-                            Id = "8866428c-e3b8-4b54-87ca-b602f6ddf895",
+                            Id = "098e71cf-4630-467b-a530-cea4b30e9070",
                             Abbreviation = "HKD",
-                            CreateDateTime = new DateTime(2024, 11, 21, 13, 59, 46, 580, DateTimeKind.Local).AddTicks(545),
-                            CreateUserId = "865db296-5455-4444-8022-b96f3cebdcfb",
+                            CreateDateTime = new DateTime(2025, 1, 12, 18, 38, 29, 126, DateTimeKind.Local).AddTicks(4440),
+                            CreateUserId = "b47637e2-603f-4df0-abe9-88d70fa870ee",
                             IsDeleted = false,
                             Name = "港元"
                         },
                         new
                         {
-                            Id = "1265bb8c-492f-4ead-959d-4b590933e3bd",
+                            Id = "7b01d6fa-e673-4bfd-8112-3e988971d91c",
                             Abbreviation = "KRW",
-                            CreateDateTime = new DateTime(2024, 11, 21, 13, 59, 46, 580, DateTimeKind.Local).AddTicks(551),
-                            CreateUserId = "865db296-5455-4444-8022-b96f3cebdcfb",
+                            CreateDateTime = new DateTime(2025, 1, 12, 18, 38, 29, 126, DateTimeKind.Local).AddTicks(4446),
+                            CreateUserId = "b47637e2-603f-4df0-abe9-88d70fa870ee",
                             IsDeleted = false,
                             Name = "韩圆"
                         },
                         new
                         {
-                            Id = "6f8b420d-91ea-492b-bd42-bcf5baed4305",
+                            Id = "a374bbfa-99bd-4f14-9f11-49260528d7a4",
                             Abbreviation = "TWD",
-                            CreateDateTime = new DateTime(2024, 11, 21, 13, 59, 46, 580, DateTimeKind.Local).AddTicks(557),
-                            CreateUserId = "865db296-5455-4444-8022-b96f3cebdcfb",
+                            CreateDateTime = new DateTime(2025, 1, 12, 18, 38, 29, 126, DateTimeKind.Local).AddTicks(4453),
+                            CreateUserId = "b47637e2-603f-4df0-abe9-88d70fa870ee",
                             IsDeleted = false,
                             Name = "新台币"
                         });
@@ -243,14 +399,82 @@ namespace SporeAccounting.Migrations
                     b.HasData(
                         new
                         {
-                            Id = "895fe1d5-bebb-480d-b0c8-895024501b13",
+                            Id = "10ce6d08-3de2-466e-a9bb-e15cb4eec56f",
                             CanDelete = false,
-                            CreateDateTime = new DateTime(2024, 11, 21, 13, 59, 46, 580, DateTimeKind.Local).AddTicks(464),
-                            CreateUserId = "236e4d5c-b7e2-4f57-a92e-ccb6b1ff460b",
+                            CreateDateTime = new DateTime(2025, 1, 12, 18, 38, 29, 126, DateTimeKind.Local).AddTicks(4366),
+                            CreateUserId = "b47637e2-603f-4df0-abe9-88d70fa870ee",
                             IsDeleted = false,
                             Name = "其他",
                             Type = -1
                         });
+                });
+
+            modelBuilder.Entity("SporeAccounting.Models.IncomeExpenditureRecord", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasColumnType("nvarchar(36)");
+
+                    b.Property<string>("AccountBookId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(36)");
+
+                    b.Property<decimal>("AfterAmount")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal>("BeforAmount")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<DateTime>("CreateDateTime")
+                        .HasColumnType("datetime");
+
+                    b.Property<string>("CreateUserId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(36)");
+
+                    b.Property<string>("CurrencyId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(36)");
+
+                    b.Property<DateTime?>("DeleteDateTime")
+                        .HasColumnType("datetime");
+
+                    b.Property<string>("DeleteUserId")
+                        .HasColumnType("nvarchar(36)");
+
+                    b.Property<string>("IncomeExpenditureClassificationId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(36)");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<DateTime>("RecordDate")
+                        .HasColumnType("datetime");
+
+                    b.Property<string>("Remark")
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<DateTime?>("UpdateDateTime")
+                        .HasColumnType("datetime");
+
+                    b.Property<string>("UpdateUserId")
+                        .HasColumnType("nvarchar(36)");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(36)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AccountBookId");
+
+                    b.HasIndex("CurrencyId");
+
+                    b.HasIndex("IncomeExpenditureClassificationId");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("IncomeExpenditureRecord");
                 });
 
             modelBuilder.Entity("SporeAccounting.Models.SysRole", b =>
@@ -294,19 +518,19 @@ namespace SporeAccounting.Migrations
                     b.HasData(
                         new
                         {
-                            Id = "865db296-5455-4444-8022-b96f3cebdcfb",
+                            Id = "cef80881-fe89-4b1f-85ad-83184777d61b",
                             CanDelete = false,
-                            CreateDateTime = new DateTime(2024, 11, 21, 13, 59, 46, 579, DateTimeKind.Local).AddTicks(9584),
-                            CreateUserId = "236e4d5c-b7e2-4f57-a92e-ccb6b1ff460b",
+                            CreateDateTime = new DateTime(2025, 1, 12, 18, 38, 29, 126, DateTimeKind.Local).AddTicks(2827),
+                            CreateUserId = "b47637e2-603f-4df0-abe9-88d70fa870ee",
                             IsDeleted = false,
                             RoleName = "Administrator"
                         },
                         new
                         {
-                            Id = "ecef295d-4ef0-4eb1-a829-2c9b6bdf594d",
+                            Id = "10389aa0-b6f2-4241-9a77-ca8020656bb6",
                             CanDelete = false,
-                            CreateDateTime = new DateTime(2024, 11, 21, 13, 59, 46, 579, DateTimeKind.Local).AddTicks(9603),
-                            CreateUserId = "236e4d5c-b7e2-4f57-a92e-ccb6b1ff460b",
+                            CreateDateTime = new DateTime(2025, 1, 12, 18, 38, 29, 126, DateTimeKind.Local).AddTicks(2838),
+                            CreateUserId = "b47637e2-603f-4df0-abe9-88d70fa870ee",
                             IsDeleted = false,
                             RoleName = "Consumer"
                         });
@@ -382,11 +606,14 @@ namespace SporeAccounting.Migrations
                         .HasColumnType("nvarchar(36)");
 
                     b.Property<string>("Description")
-                        .IsRequired()
                         .HasColumnType("nvarchar(200)");
 
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("tinyint(1)");
+
+                    b.Property<string>("RequestMethod")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(10)");
 
                     b.Property<DateTime?>("UpdateDateTime")
                         .HasColumnType("datetime");
@@ -466,18 +693,59 @@ namespace SporeAccounting.Migrations
                     b.HasData(
                         new
                         {
-                            Id = "236e4d5c-b7e2-4f57-a92e-ccb6b1ff460b",
+                            Id = "b47637e2-603f-4df0-abe9-88d70fa870ee",
                             CanDelete = false,
-                            CreateDateTime = new DateTime(2024, 11, 21, 13, 59, 46, 579, DateTimeKind.Local).AddTicks(9659),
-                            CreateUserId = "236e4d5c-b7e2-4f57-a92e-ccb6b1ff460b",
+                            CreateDateTime = new DateTime(2025, 1, 12, 18, 38, 29, 126, DateTimeKind.Local).AddTicks(2953),
+                            CreateUserId = "b47637e2-603f-4df0-abe9-88d70fa870ee",
                             Email = "admin@miaoshu.xyz",
                             IsDeleted = false,
-                            Password = "gKXP4spr6oPv3q5WH/9Pa6bILVVMkudkQ7SU32voE6E=",
+                            Password = "+8uQJ9YW65afXGP37c0LPYMHjBkHUr6dsiT6hPZ4W+k=",
                             PhoneNumber = "",
-                            RoleId = "865db296-5455-4444-8022-b96f3cebdcfb",
-                            Salt = "51f48b4501fb49c18f453e12fa429ccf",
+                            RoleId = "cef80881-fe89-4b1f-85ad-83184777d61b",
+                            Salt = "91bf43e0c3fb4ac397819207ee9f521f",
                             UserName = "admin"
                         });
+                });
+
+            modelBuilder.Entity("SporeAccounting.Models.AccountBook", b =>
+                {
+                    b.HasOne("SporeAccounting.Models.SysUser", "User")
+                        .WithMany("AccountBooks")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("SporeAccounting.Models.Budget", b =>
+                {
+                    b.HasOne("SporeAccounting.Models.IncomeExpenditureClassification", "Classification")
+                        .WithMany("Budgets")
+                        .HasForeignKey("IncomeExpenditureClassificationId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("SporeAccounting.Models.SysUser", "User")
+                        .WithMany("Budgets")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Classification");
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("SporeAccounting.Models.Config", b =>
+                {
+                    b.HasOne("SporeAccounting.Models.SysUser", "User")
+                        .WithMany("Configs")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("SporeAccounting.Models.IncomeExpenditureClassification", b =>
@@ -487,6 +755,41 @@ namespace SporeAccounting.Migrations
                         .HasForeignKey("ParentId");
 
                     b.Navigation("Parent");
+                });
+
+            modelBuilder.Entity("SporeAccounting.Models.IncomeExpenditureRecord", b =>
+                {
+                    b.HasOne("SporeAccounting.Models.AccountBook", "AccountBook")
+                        .WithMany("IncomeExpenditureRecords")
+                        .HasForeignKey("AccountBookId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("SporeAccounting.Models.Currency", "Currency")
+                        .WithMany("IncomeExpenditureRecords")
+                        .HasForeignKey("CurrencyId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("SporeAccounting.Models.IncomeExpenditureClassification", "IncomeExpenditureClassification")
+                        .WithMany("IncomeExpenditureRecords")
+                        .HasForeignKey("IncomeExpenditureClassificationId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("SporeAccounting.Models.SysUser", "User")
+                        .WithMany("IncomeExpenditureRecords")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("AccountBook");
+
+                    b.Navigation("Currency");
+
+                    b.Navigation("IncomeExpenditureClassification");
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("SporeAccounting.Models.SysRoleUrl", b =>
@@ -519,9 +822,23 @@ namespace SporeAccounting.Migrations
                     b.Navigation("Role");
                 });
 
+            modelBuilder.Entity("SporeAccounting.Models.AccountBook", b =>
+                {
+                    b.Navigation("IncomeExpenditureRecords");
+                });
+
+            modelBuilder.Entity("SporeAccounting.Models.Currency", b =>
+                {
+                    b.Navigation("IncomeExpenditureRecords");
+                });
+
             modelBuilder.Entity("SporeAccounting.Models.IncomeExpenditureClassification", b =>
                 {
+                    b.Navigation("Budgets");
+
                     b.Navigation("Children");
+
+                    b.Navigation("IncomeExpenditureRecords");
                 });
 
             modelBuilder.Entity("SporeAccounting.Models.SysRole", b =>
@@ -534,6 +851,17 @@ namespace SporeAccounting.Migrations
             modelBuilder.Entity("SporeAccounting.Models.SysUrl", b =>
                 {
                     b.Navigation("RoleUrls");
+                });
+
+            modelBuilder.Entity("SporeAccounting.Models.SysUser", b =>
+                {
+                    b.Navigation("AccountBooks");
+
+                    b.Navigation("Budgets");
+
+                    b.Navigation("Configs");
+
+                    b.Navigation("IncomeExpenditureRecords");
                 });
 #pragma warning restore 612, 618
         }
