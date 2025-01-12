@@ -75,39 +75,45 @@ public class IncomeExpenditureRecordImp : IIncomeExpenditureRecordServer
     public void Delete(string incomeExpenditureRecordId)
     {
         //开启事务
-        _sporeAccountingDbContext.Database.BeginTransaction();
-        try
+        using (var transaction = _sporeAccountingDbContext.Database.BeginTransaction())
         {
-            var incomeExpenditureRecord = _sporeAccountingDbContext.IncomeExpenditureRecords
-                .FirstOrDefault(x => x.Id == incomeExpenditureRecordId);
-            if (incomeExpenditureRecord != null)
+            try
             {
-                // 查找记录范围内的预算
-                var budget = _sporeAccountingDbContext.Budgets
-                    .FirstOrDefault(x => x.UserId == incomeExpenditureRecord.UserId
-                                         && x.StartTime <= incomeExpenditureRecord.RecordDate &&
-                                         x.EndTime >= incomeExpenditureRecord.RecordDate);
-                if (budget != null)
+                var incomeExpenditureRecord = _sporeAccountingDbContext.IncomeExpenditureRecords
+                    .FirstOrDefault(x => x.Id == incomeExpenditureRecordId);
+                if (incomeExpenditureRecord != null)
                 {
-                    if (incomeExpenditureRecord.IncomeExpenditureClassification.Type
-                        == IncomeExpenditureTypeEnmu.Income)
+                    // 查找记录范围内的预算
+                    var budget = _sporeAccountingDbContext.Budgets
+                        .FirstOrDefault(x => x.UserId == incomeExpenditureRecord.UserId
+                                             && x.StartTime <= incomeExpenditureRecord.RecordDate &&
+                                             x.EndTime >= incomeExpenditureRecord.RecordDate);
+                    if (budget != null)
                     {
-                        budget.Remaining += incomeExpenditureRecord.AfterAmount;
+                        // 查询分类
+                        var classification = _sporeAccountingDbContext.IncomeExpenditureClassifications
+                            .FirstOrDefault(x => x.Id == incomeExpenditureRecord.IncomeExpenditureClassificationId);
+                        if (classification.Type
+                            == IncomeExpenditureTypeEnmu.Income)
+                        {
+                            budget.Remaining += incomeExpenditureRecord.AfterAmount;
+                        }
+
+                        _sporeAccountingDbContext.Budgets.Update(budget);
                     }
 
-                    _sporeAccountingDbContext.Budgets.Update(budget);
+                    _sporeAccountingDbContext.IncomeExpenditureRecords.Remove(incomeExpenditureRecord);
+                    _sporeAccountingDbContext.SaveChanges();
+                    //提交事务
+                    transaction.Commit();
                 }
-
-                _sporeAccountingDbContext.IncomeExpenditureRecords.Remove(incomeExpenditureRecord);
-                //提交事务
-                _sporeAccountingDbContext.Database.CommitTransaction();
             }
-        }
-        catch (Exception e)
-        {
-            //回滚事务
-            _sporeAccountingDbContext.Database.RollbackTransaction();
-            throw;
+            catch (Exception e)
+            {
+                //回滚事务
+                transaction.Rollback();
+                throw;
+            }
         }
     }
 
