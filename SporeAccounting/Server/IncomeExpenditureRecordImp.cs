@@ -37,7 +37,8 @@ public class IncomeExpenditureRecordImp : IIncomeExpenditureRecordServer
                 var budget = _sporeAccountingDbContext.Budgets
                     .FirstOrDefault(x => x.UserId == incomeExpenditureRecord.UserId
                                          && x.StartTime <= incomeExpenditureRecord.RecordDate &&
-                                         x.EndTime >= incomeExpenditureRecord.RecordDate);
+                                         x.EndTime >= incomeExpenditureRecord.RecordDate
+                                         && x.IncomeExpenditureClassificationId==incomeExpenditureRecord.IncomeExpenditureClassificationId);
 
                 if (budget != null)
                 {
@@ -87,7 +88,8 @@ public class IncomeExpenditureRecordImp : IIncomeExpenditureRecordServer
                     var budget = _sporeAccountingDbContext.Budgets
                         .FirstOrDefault(x => x.UserId == incomeExpenditureRecord.UserId
                                              && x.StartTime <= incomeExpenditureRecord.RecordDate &&
-                                             x.EndTime >= incomeExpenditureRecord.RecordDate);
+                                             x.EndTime >= incomeExpenditureRecord.RecordDate
+                                             && x.IncomeExpenditureClassificationId==incomeExpenditureRecord.IncomeExpenditureClassificationId);
                     if (budget != null)
                     {
                         // 查询分类
