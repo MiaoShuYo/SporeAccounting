@@ -38,7 +38,8 @@ public class IncomeExpenditureRecordImp : IIncomeExpenditureRecordServer
                     .FirstOrDefault(x => x.UserId == incomeExpenditureRecord.UserId
                                          && x.StartTime <= incomeExpenditureRecord.RecordDate &&
                                          x.EndTime >= incomeExpenditureRecord.RecordDate
-                                         && x.IncomeExpenditureClassificationId==incomeExpenditureRecord.IncomeExpenditureClassificationId);
+                                         && x.IncomeExpenditureClassificationId ==
+                                         incomeExpenditureRecord.IncomeExpenditureClassificationId);
 
                 if (budget != null)
                 {
@@ -89,7 +90,8 @@ public class IncomeExpenditureRecordImp : IIncomeExpenditureRecordServer
                         .FirstOrDefault(x => x.UserId == incomeExpenditureRecord.UserId
                                              && x.StartTime <= incomeExpenditureRecord.RecordDate &&
                                              x.EndTime >= incomeExpenditureRecord.RecordDate
-                                             && x.IncomeExpenditureClassificationId==incomeExpenditureRecord.IncomeExpenditureClassificationId);
+                                             && x.IncomeExpenditureClassificationId == incomeExpenditureRecord
+                                                 .IncomeExpenditureClassificationId);
                     if (budget != null)
                     {
                         // 查询分类
@@ -126,14 +128,56 @@ public class IncomeExpenditureRecordImp : IIncomeExpenditureRecordServer
     /// <returns></returns>
     public void Update(IncomeExpenditureRecord incomeExpenditureRecord)
     {
-        try
+        using (var transaction = _sporeAccountingDbContext.Database.BeginTransaction())
         {
-            _sporeAccountingDbContext.IncomeExpenditureRecords.Update(incomeExpenditureRecord);
-            _sporeAccountingDbContext.SaveChanges();
-        }
-        catch (Exception e)
-        {
-            throw;
+            try
+            {
+                // 查询原记录
+                var oldIncomeExpenditureRecord = _sporeAccountingDbContext.IncomeExpenditureRecords
+                    .FirstOrDefault(x => x.Id == incomeExpenditureRecord.Id);
+                // 查找记录范围内的预算
+                var budget = _sporeAccountingDbContext.Budgets
+                    .FirstOrDefault(x => x.UserId == incomeExpenditureRecord.UserId
+                                         && x.StartTime <= incomeExpenditureRecord.RecordDate &&
+                                         x.EndTime >= incomeExpenditureRecord.RecordDate
+                                         && x.IncomeExpenditureClassificationId ==
+                                         incomeExpenditureRecord.IncomeExpenditureClassificationId);
+                if (budget != null)
+                {
+                    // 查询分类
+                    var classification = _sporeAccountingDbContext.IncomeExpenditureClassifications
+                        .FirstOrDefault(x => x.Id == incomeExpenditureRecord.IncomeExpenditureClassificationId);
+                    if (classification.Type
+                        == IncomeExpenditureTypeEnmu.Income)
+                    {
+                        //如果是支出，需要减去原来的金额
+                        budget.Remaining = (budget.Amount - incomeExpenditureRecord.AfterAmount);
+                    }
+                    else
+                    {
+                        //如果是收入，需要加上原来的金额
+                        budget.Remaining = (budget.Amount + incomeExpenditureRecord.AfterAmount);
+                    }
+
+                    _sporeAccountingDbContext.Budgets.Update(budget);
+                }
+                oldIncomeExpenditureRecord.AfterAmount = incomeExpenditureRecord.AfterAmount;
+                oldIncomeExpenditureRecord.BeforAmount = incomeExpenditureRecord.BeforAmount;
+                oldIncomeExpenditureRecord.RecordDate = incomeExpenditureRecord.RecordDate;
+                oldIncomeExpenditureRecord.Remark = incomeExpenditureRecord.Remark;
+                oldIncomeExpenditureRecord.IncomeExpenditureClassificationId =
+                    incomeExpenditureRecord.IncomeExpenditureClassificationId;
+                _sporeAccountingDbContext.IncomeExpenditureRecords.Update(oldIncomeExpenditureRecord);
+                _sporeAccountingDbContext.SaveChanges();
+                //提交事务
+                transaction.Commit();
+            }
+            catch (Exception e)
+            {
+                //回滚事务
+                transaction.Rollback();
+                throw;
+            }
         }
     }
 

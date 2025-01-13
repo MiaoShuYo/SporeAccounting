@@ -15,16 +15,10 @@ public class IncomeExpenditureRecordEditViewModel
     public string IncomeExpenditureRecordId { get; set; }
 
     /// <summary>
-    /// 转换前金额
-    /// </summary>
-    [Required(ErrorMessage = "转换前金额不能为空")]
-    public decimal BeforAmount { get; set; }
-
-    /// <summary>
     /// 转换后金额
     /// </summary>
-    [Required(ErrorMessage = "转换后金额不能为空")]
-    public decimal AfterAmount { get; set; }
+    [Required(ErrorMessage = "金额不能为空")]
+    public decimal Amount { get; set; }
 
     /// <summary>
     /// 收支分类Id
