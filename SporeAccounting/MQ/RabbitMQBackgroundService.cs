@@ -53,22 +53,30 @@ namespace SporeAccounting.MQ
                 async (mainCurrency) =>
                 {
                     //1.获取所有收支记录
-                    var recordService = _serviceProvider.GetRequiredService<IIncomeExpenditureRecordServer>();
+                    using var scope = _serviceProvider.CreateScope();
+                    var recordService = scope.ServiceProvider.GetRequiredService<IIncomeExpenditureRecordServer>();
                     var records = recordService.QueryByUserId(mainCurrency.UserId);
 
                     //2.将所有记录的金额转换为新的主币种（记录中的币种转换为新的主币种）
-                    var currencyServer = _serviceProvider.GetRequiredService<ICurrencyServer>();
-                    var exchangeRateRecordServer = _serviceProvider.GetRequiredService<IExchangeRateRecordServer>();
+                    var currencyServer = scope.ServiceProvider.GetRequiredService<ICurrencyServer>();
+                    var exchangeRateRecordServer = scope.ServiceProvider.GetRequiredService<IExchangeRateRecordServer>();
                     Currency? query = currencyServer.Query(mainCurrency.Currency);
                     if (query == null)
                     {
                         return;
                     }
-                    
-                    //获取记录币种和主币种的汇率
+                    Currency? oldCurrency = currencyServer.Query(mainCurrency.OldCurrency);
+                    if (oldCurrency == null)
+                    {
+                        return;
+                    }
+                    //获取预算币种和主币种的汇率
                     ExchangeRateRecord? exchangeRateRecord =
-                        exchangeRateRecordServer.Query($"{query.Abbreviation}_{mainCurrency.OldCurrency}");
-
+                        exchangeRateRecordServer.Query($"{oldCurrency.Abbreviation}_{query.Abbreviation}");
+                    if(exchangeRateRecord == null)
+                    {
+                        return;
+                    }
                     for (int i = 0; i < records.Count; i++)
                     {
                         var record = records[i];
@@ -85,21 +93,26 @@ namespace SporeAccounting.MQ
                 async (mainCurrency) =>
                 {
                     //1.获取所有预算
-                    var budgetServer = _serviceProvider.GetRequiredService<IBudgetServer>();
+                    using var scope = _serviceProvider.CreateScope();
+                    var budgetServer = scope.ServiceProvider.GetRequiredService<IBudgetServer>();
                     var budgets = budgetServer.Query(mainCurrency.UserId);
 
                     //2.将所有预算的金额转换为新的主币种（预算中的币种转换为新的主币种）
-                    var currencyServer = _serviceProvider.GetRequiredService<ICurrencyServer>();
-                    var exchangeRateRecordServer = _serviceProvider.GetRequiredService<IExchangeRateRecordServer>();
+                    var currencyServer = scope.ServiceProvider.GetRequiredService<ICurrencyServer>();
+                    var exchangeRateRecordServer = scope.ServiceProvider.GetRequiredService<IExchangeRateRecordServer>();
                     Currency? query = currencyServer.Query(mainCurrency.Currency);
                     if (query == null)
                     {
                         return;
                     }
-
+                    Currency? oldCurrency = currencyServer.Query(mainCurrency.OldCurrency);
+                    if (oldCurrency == null)
+                    {
+                        return;
+                    }
                     //获取预算币种和主币种的汇率
                     ExchangeRateRecord? exchangeRateRecord =
-                        exchangeRateRecordServer.Query($"{query.Abbreviation}_{mainCurrency.OldCurrency}");
+                        exchangeRateRecordServer.Query($"{oldCurrency.Abbreviation}_{query.Abbreviation}");
                     if(exchangeRateRecord == null)
                     {
                         return;

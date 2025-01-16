@@ -33,6 +33,11 @@ namespace SporeAccounting.Controllers
         /// 发布消息
         /// </summary>
         private readonly RabbitMQPublisher _rabbitMqPublisher;
+        
+        /// <summary>
+        /// 货币服务
+        /// </summary>
+        private readonly ICurrencyServer _currencyServer;
 
         /// <summary>
         /// 构造函数
@@ -40,11 +45,16 @@ namespace SporeAccounting.Controllers
         /// <param name="configServer"></param>
         /// <param name="mapper"></param>
         /// <param name="rabbitMqPublisher"></param>
-        public ConfigController(IConfigServer configServer, IMapper mapper, RabbitMQPublisher rabbitMqPublisher)
+        /// <param name="currencyServer"></param>
+        public ConfigController(IConfigServer configServer,
+            IMapper mapper, 
+            RabbitMQPublisher rabbitMqPublisher,
+            ICurrencyServer currencyServer)
         {
             _configServer = configServer;
             _mapper = mapper;
             _rabbitMqPublisher = rabbitMqPublisher;
+            _currencyServer = currencyServer;
         }
 
         /// <summary>
