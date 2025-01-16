@@ -14,4 +14,9 @@ public class MainCurrency
     /// 主币种
     /// </summary>
     public string Currency { get; set; }
+
+    /// <summary>
+    /// 旧币种
+    /// </summary>
+    public string OldCurrency { get; set; }
 }

@@ -73,6 +73,22 @@ public class BudgetImp : IBudgetServer
             throw;
         }
     }
+    /// <summary>
+    /// 修改预算
+    /// </summary>
+    /// <param name="budgets"></param>
+    public void Update(List<Budget> budgets)
+    {
+        try
+        {
+            _sporeAccountingDbContext.Budgets.UpdateRange(budgets);
+            _sporeAccountingDbContext.SaveChanges();
+        }
+        catch (Exception e)
+        {
+            throw;
+        }
+    }
 
     /// <summary>
     /// 查询预算

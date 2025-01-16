@@ -26,6 +26,12 @@ public interface IBudgetServer
     void Update(Budget budget);
 
     /// <summary>
+    /// 修改预算
+    /// </summary>
+    /// <param name="budgets"></param>
+    void Update(List<Budget> budgets);
+
+    /// <summary>
     /// 查询预算
     /// </summary>
     /// <param name="userId"></param>

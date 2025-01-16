@@ -86,6 +86,7 @@ namespace SporeAccounting.Controllers
                     return Ok(new ResponseData<bool>(HttpStatusCode.NotFound, "用户配置不存在"));
                 }
 
+                string oldValue = _configServer.Query(userId, configViewModel.ConfigTypeEnum).Value;
                 _configServer.Update(userId, configViewModel.Id, configViewModel.Value);
 
                 //如果切换的是主币种，那么就将以前的所有金额全部转换成新的主币种的金额
@@ -95,7 +96,15 @@ namespace SporeAccounting.Controllers
                         new MainCurrency()
                         {
                             UserId = userId,
-                            Currency = configViewModel.Value
+                            Currency = configViewModel.Value,
+                            OldCurrency = oldValue
+                        });
+                    _ = _rabbitMqPublisher.Publish<MainCurrency>("UpdateBudgetAmount",
+                        "UpdateBudgetAmount", new MainCurrency()
+                        {
+                            UserId = userId,
+                            Currency = configViewModel.Value,
+                            OldCurrency = oldValue
                         });
                 }
 

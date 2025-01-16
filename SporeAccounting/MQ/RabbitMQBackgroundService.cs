@@ -1,9 +1,4 @@
-﻿using System.Threading;
-using System.Threading.Tasks;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
-using SporeAccounting.Models;
+﻿using SporeAccounting.Models;
 using SporeAccounting.MQ.Message.Model;
 using SporeAccounting.Server.Interface;
 
@@ -17,6 +12,7 @@ namespace SporeAccounting.MQ
         private readonly RabbitMQSubscriberService _subscriberService;
         private readonly ILogger<RabbitMQBackgroundService> _logger;
         private readonly IServiceProvider _serviceProvider;
+
         /// <summary>
         /// 构造函数
         /// </summary>
@@ -36,7 +32,7 @@ namespace SporeAccounting.MQ
         {
             _logger.LogInformation("Starting RabbitMQ subscription service...");
 
-            // 配置多个队列订阅
+            //设置主币种
             await _subscriberService.SubscribeAsync<MainCurrency>("SetMainCurrency", "SetMainCurrency",
                 (mainCurrency) =>
                 {
@@ -52,6 +48,7 @@ namespace SporeAccounting.MQ
                         CreateUserId = mainCurrency.UserId
                     });
                 });
+            //根据新的主币种更新所有收支记录的金额
             await _subscriberService.SubscribeAsync<MainCurrency>("UpdateConversionAmount", "UpdateConversionAmount",
                 async (mainCurrency) =>
                 {
@@ -62,25 +59,60 @@ namespace SporeAccounting.MQ
                     //2.将所有记录的金额转换为新的主币种（记录中的币种转换为新的主币种）
                     var currencyServer = _serviceProvider.GetRequiredService<ICurrencyServer>();
                     var exchangeRateRecordServer = _serviceProvider.GetRequiredService<IExchangeRateRecordServer>();
-                    Currency? query = currencyServer.Query( mainCurrency.Currency);
+                    Currency? query = currencyServer.Query(mainCurrency.Currency);
                     if (query == null)
                     {
                         return;
                     }
+                    
+                    //获取记录币种和主币种的汇率
+                    ExchangeRateRecord? exchangeRateRecord =
+                        exchangeRateRecordServer.Query($"{query.Abbreviation}_{mainCurrency.OldCurrency}");
 
                     for (int i = 0; i < records.Count; i++)
                     {
                         var record = records[i];
-                        var currency = record.Currency;
-                        //获取记录币种和主币种的汇率
-                        ExchangeRateRecord? exchangeRateRecord =
-                            exchangeRateRecordServer.Query($"{query.Abbreviation}_{currency.Abbreviation}");
                         if (exchangeRateRecord != null)
                             record.AfterAmount = exchangeRateRecord.ExchangeRate * record.BeforAmount;
                     }
 
                     //3.更新所有记录
                     recordService.UpdateRecord(records);
+                });
+
+            //根据新的主币种更新预算金额
+            await _subscriberService.SubscribeAsync<MainCurrency>("UpdateBudgetAmount", "UpdateBudgetAmount",
+                async (mainCurrency) =>
+                {
+                    //1.获取所有预算
+                    var budgetServer = _serviceProvider.GetRequiredService<IBudgetServer>();
+                    var budgets = budgetServer.Query(mainCurrency.UserId);
+
+                    //2.将所有预算的金额转换为新的主币种（预算中的币种转换为新的主币种）
+                    var currencyServer = _serviceProvider.GetRequiredService<ICurrencyServer>();
+                    var exchangeRateRecordServer = _serviceProvider.GetRequiredService<IExchangeRateRecordServer>();
+                    Currency? query = currencyServer.Query(mainCurrency.Currency);
+                    if (query == null)
+                    {
+                        return;
+                    }
+
+                    //获取预算币种和主币种的汇率
+                    ExchangeRateRecord? exchangeRateRecord =
+                        exchangeRateRecordServer.Query($"{query.Abbreviation}_{mainCurrency.OldCurrency}");
+                    if(exchangeRateRecord == null)
+                    {
+                        return;
+                    }
+                    for (int i = 0; i < budgets.Count; i++)
+                    {
+                        var budget = budgets[i];
+                        budget.Amount = exchangeRateRecord.ExchangeRate * budget.Amount;
+                        budget.Remaining = exchangeRateRecord.ExchangeRate * budget.Remaining;
+                    }
+
+                    //3.更新所有预算
+                    budgetServer.Update(budgets);
                 });
         }
 
