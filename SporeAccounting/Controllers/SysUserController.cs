@@ -67,18 +67,21 @@ namespace SporeAccounting.Controllers
                 {
                     return Ok(new ResponseData<bool>(HttpStatusCode.Found, "用户已存在", false));
                 }
+
                 //邮箱是否存在
                 isExist = _sysUserServer.IsExistByEmail(sysUserViewModel.Email);
                 if (isExist)
                 {
                     return Ok(new ResponseData<bool>(HttpStatusCode.Found, "邮箱已存在", false));
                 }
+
                 //手机号是否存在
                 isExist = _sysUserServer.IsExistByPhoneNumber(sysUserViewModel.PhoneNumber);
                 if (isExist)
                 {
                     return Ok(new ResponseData<bool>(HttpStatusCode.Found, "手机号已存在", false));
                 }
+
                 var role = _sysRoleServer.QueryByName("Consumer");
                 SysUser sysUser = _mapper.Map<SysUser>(sysUserViewModel);
                 sysUser.Salt = Guid.NewGuid().ToString("N");
@@ -118,7 +121,7 @@ namespace SporeAccounting.Controllers
             {
                 //验证用户
                 SysUser sysUser = _sysUserServer.GetByUserName(userName);
-                if (sysUser == null)
+                if (sysUser == null || sysUser.IsDeleted)
                 {
                     return Ok(new ResponseData<bool>(HttpStatusCode.BadRequest, "用户或密码错误！", false));
                 }
@@ -133,7 +136,8 @@ namespace SporeAccounting.Controllers
                 //生成Token和刷新Token
                 TokenViewModel sysToken = new TokenViewModel();
                 sysToken.RefreshToken = GenerateRefreshToken();
-                sysToken.Token = GenerateToken(sysUser.Id, sysToken.RefreshToken, sysUser.Role.RoleName, sysUser.RoleId);
+                sysToken.Token =
+                    GenerateToken(sysUser.Id, sysToken.RefreshToken, sysUser.Role.RoleName, sysUser.RoleId);
                 return Ok(new ResponseData<TokenViewModel>(HttpStatusCode.OK, data: sysToken));
             }
             catch (Exception ex)
@@ -162,16 +166,19 @@ namespace SporeAccounting.Controllers
                 {
                     return Ok(new ResponseData<bool>(HttpStatusCode.BadRequest, "用户不存在！", false));
                 }
+
                 //验证邮箱是否正确
                 if (sysUser.Email != email)
                 {
                     return Ok(new ResponseData<bool>(HttpStatusCode.BadRequest, "邮箱不正确！", false));
                 }
+
                 //验证手机号是否正确
                 if (sysUser.PhoneNumber != phone)
                 {
                     return Ok(new ResponseData<bool>(HttpStatusCode.BadRequest, "手机号不正确！", false));
                 }
+
                 //生成12位随机密码
                 string newPassword = GenerateRandomPassword(12);
                 sysUser.Password = HashPasswordWithSalt(newPassword, sysUser.Salt);
@@ -220,7 +227,7 @@ namespace SporeAccounting.Controllers
                 }
 
                 //使用刷新token刷新token
-                string newToken = GenerateToken(userId, refreshToken, role.Id,sysUser.Role.RoleName);
+                string newToken = GenerateToken(userId, refreshToken, role.Id, sysUser.Role.RoleName);
                 return Ok(new ResponseData<string>(HttpStatusCode.OK, data: newToken));
             }
             catch (Exception ex)
@@ -311,6 +318,32 @@ namespace SporeAccounting.Controllers
         }
 
         /// <summary>
+        /// 注销用户
+        /// </summary>
+        /// <returns></returns>
+        [HttpDelete]
+        [Route("LogoutUser")]
+        public ActionResult<ResponseData<bool>> LogoutUser()
+        {
+            try
+            {
+                string userId = GetUserId();
+                bool canDeleted = _sysUserServer.CanDelete(userId);
+                if (!canDeleted)
+                {
+                    return Ok(new ResponseData<bool>(HttpStatusCode.Conflict, $"用户不可删除", false));
+                }
+
+                _sysUserServer.Delete(userId);
+                return Ok(new ResponseData<bool>(HttpStatusCode.OK, data: true));
+            }
+            catch (Exception ex)
+            {
+                return Ok(new ResponseData<bool>(HttpStatusCode.InternalServerError, "服务端异常", false));
+            }
+        }
+
+        /// <summary>
         /// 修改用户信息
         /// </summary>
         /// <param name="sysUserEditView"></param>
@@ -343,6 +376,87 @@ namespace SporeAccounting.Controllers
         }
 
         /// <summary>
+        /// 修改用户名
+        /// </summary>
+        /// <param name="editUserName"></param>
+        /// <returns></returns>
+        [HttpPut]
+        [Route("EditUserName")]
+        public ActionResult<ResponseData<bool>> EditUserName([FromBody] SysUserEditUserNameViewModel editUserName)
+        {
+            try
+            {
+                string userId = GetUserId();
+                //是否重复
+                bool isExist = _sysUserServer.IsExist(editUserName.UserName, userId);
+                if (isExist)
+                {
+                    return Ok(new ResponseData<bool>(HttpStatusCode.Found, "用户名已存在", false));
+                }
+                SysUser sysUser = _sysUserServer.GetById(userId);
+                sysUser.UserName = editUserName.UserName;
+                _sysUserServer.Update(sysUser);
+                return Ok(new ResponseData<bool>(HttpStatusCode.OK, data: true));
+            }
+            catch (Exception ex)
+            {
+                return Ok(new ResponseData<bool>(HttpStatusCode.InternalServerError, "服务器异常", false));
+            }
+        }
+
+        /// <summary>
+        /// 修改用户安全设置
+        /// </summary>
+        /// <param name="editSecurity"></param>
+        /// <returns></returns>
+        [HttpPut]
+        [Route("EditUserSecurity")]
+        public ActionResult<ResponseData<bool>> EditUserSecurity([FromBody] SysUserEditSecurityViewModel editSecurity)
+        {
+            try
+            {
+                string userId = GetUserId();
+                SysUser sysUser = _sysUserServer.GetById(userId);
+                sysUser.Email = editSecurity.Email;
+                sysUser.PhoneNumber = editSecurity.PhoneNumber;
+                _sysUserServer.Update(sysUser);
+                return Ok(new ResponseData<bool>(HttpStatusCode.OK, data: true));
+            }
+            catch (Exception ex)
+            {
+                return Ok(new ResponseData<bool>(HttpStatusCode.InternalServerError, "服务器异常", false));
+            }
+        }
+        
+        /// <summary>
+        /// 修改密码
+        /// </summary>
+        /// <param name="resetPassword"></param>
+        /// <returns></returns>
+        [HttpPut]
+        [Route("ResetPassword")]
+        public ActionResult<ResponseData<bool>> ResetPassword([FromBody] SysUserResetPasswordViewModel resetPassword)
+        {
+            try
+            {
+                string userId = GetUserId();
+                SysUser sysUser = _sysUserServer.GetById(userId);
+                string passwordHash = HashPasswordWithSalt(resetPassword.OldPassword, sysUser.Salt);
+                if (sysUser.Password != passwordHash)
+                {
+                    return Ok(new ResponseData<bool>(HttpStatusCode.BadRequest, "原密码错误", false));
+                }
+                sysUser.Password = HashPasswordWithSalt(resetPassword.NewPassword, sysUser.Salt);
+                _sysUserServer.Update(sysUser);
+                return Ok(new ResponseData<bool>(HttpStatusCode.OK, data: true));
+            }
+            catch (Exception ex)
+            {
+                return Ok(new ResponseData<bool>(HttpStatusCode.InternalServerError, "服务器异常", false));
+            }
+        }
+        
+        /// <summary>
         /// 密码HASH
         /// </summary>
         /// <param name="password"></param>
@@ -367,7 +481,7 @@ namespace SporeAccounting.Controllers
         /// <param name="roleName"></param>
         /// <param name="roleId"></param>
         /// <returns></returns>
-        private string GenerateToken(string userId, string refreshToken,string roleName, string roleId)
+        private string GenerateToken(string userId, string refreshToken, string roleName, string roleId)
         {
             var claims = new[]
             {

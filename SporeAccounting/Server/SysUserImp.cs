@@ -222,4 +222,21 @@ public class SysUserImp : ISysUserServer
             throw ex;
         }
     }
+    /// <summary>
+    /// 用户是否存在
+    /// </summary>
+    /// <param name="userName"></param>
+    /// <param name="userId"></param>
+    /// <returns></returns>
+    public bool IsExist(string userName, string userId)
+    {
+        try
+        {
+            return _dbContext.SysUsers.Any(p => p.UserName == userName && p.Id != userId);
+        }
+        catch (Exception ex)
+        {
+            throw ex;
+        }
+    }
 }

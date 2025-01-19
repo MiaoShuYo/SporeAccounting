@@ -64,4 +64,11 @@ public interface ISysUserServer
     /// <param name="phoneNumber"></param>
     /// <returns></returns>
     bool IsExistByPhoneNumber(string phoneNumber);
+    /// <summary>
+    /// 用户名是否存在
+    /// </summary>
+    /// <param name="userName"></param>
+    /// <param name="userId"></param>
+    /// <returns></returns>
+    bool IsExist(string userName, string userId);
 }
