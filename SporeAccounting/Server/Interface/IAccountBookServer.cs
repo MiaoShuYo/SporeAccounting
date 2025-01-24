@@ -40,7 +40,7 @@ public interface IAccountBookServer
     /// <param name="userId"></param>
     /// <returns></returns>
     (int rowCount, int pageCount, IQueryable<AccountBook> accountBooks)  Query(int pageNumber, int pageSize, string userId);
-
+    
     /// <summary>
     /// 账本名称是否存在
     /// </summary>

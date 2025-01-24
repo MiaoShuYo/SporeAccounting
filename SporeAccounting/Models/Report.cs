@@ -20,9 +20,13 @@ public class Report : BaseModel
     /// <summary>
     /// 月份
     /// </summary>
-    [Required]
     [Column(TypeName = "int")]
-    public int Month { get; set; }
+    public int? Month { get; set; }
+    /// <summary>
+    /// 季度
+    /// </summary>
+    [Column(TypeName = "int")]
+    public int? Quarter { get; set; }
 
     /// <summary>
     /// 报表名称

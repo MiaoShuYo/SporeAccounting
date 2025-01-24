@@ -16,14 +16,15 @@ public class ReportImp : IReportServer
     }
 
     /// <summary>
-    /// 添加报表
+    /// 新增报表
     /// </summary>
-    /// <param name="report"></param>
-    public void Add(Report report)
+    /// <param name="reports"></param>
+    /// <returns></returns>
+    public void Add(List<Report> reports)
     {
         try
         {
-            _sporeAccountingDbContext.Reports.Add(report);
+            _sporeAccountingDbContext.Reports.AddRange(reports);
             _sporeAccountingDbContext.SaveChanges();
         }
         catch (Exception e)

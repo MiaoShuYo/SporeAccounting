@@ -72,6 +72,10 @@ public class SporeAccountingDBContext : DbContext
     /// 报表表
     /// </summary>
     public DbSet<Report> Reports { get; set; }
+    /// <summary>
+    /// 报表日志表
+    /// </summary>
+    public DbSet<ReportLog> ReportLogs { get; set; }
 
     IConfiguration _dbConfig;
 

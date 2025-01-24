@@ -15,7 +15,13 @@ public class ExchangeRateTimer : IJob
     private readonly IConfiguration _configuration;
     private readonly IServiceScopeFactory _serviceScopeFactory;
     private readonly ICurrencyServer _currencyServer;
-
+    /// <summary>
+    /// 构造函数
+    /// </summary>
+    /// <param name="httpClientFactory"></param>
+    /// <param name="configuration"></param>
+    /// <param name="serviceScopeFactory"></param>
+    /// <param name="currencyServer"></param>
     public ExchangeRateTimer(IHttpClientFactory httpClientFactory,
         IConfiguration configuration, IServiceScopeFactory serviceScopeFactory,
         ICurrencyServer currencyServer)
@@ -25,7 +31,11 @@ public class ExchangeRateTimer : IJob
         _serviceScopeFactory = serviceScopeFactory;
         _currencyServer = currencyServer;
     }
-
+    /// <summary>
+    /// 执行
+    /// </summary>
+    /// <param name="context"></param>
+    /// <returns></returns>
     public System.Threading.Tasks.Task Execute(IJobExecutionContext context)
     {
         string exchangeRateUrl = _configuration["ExchangeRate"];

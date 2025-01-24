@@ -10,9 +10,9 @@ public interface IReportServer
     /// <summary>
     /// 新增报表
     /// </summary>
-    /// <param name="report"></param>
+    /// <param name="reports"></param>
     /// <returns></returns>
-    void Add(Report report);
+    void Add(List<Report> reports);
     
     /// <summary>
     /// 删除报表

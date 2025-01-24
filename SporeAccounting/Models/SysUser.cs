@@ -78,13 +78,19 @@ public class SysUser : BaseModel
     /// 导航属性
     /// </summary>
     public ICollection<AccountBook> AccountBooks { get; set; } = new List<AccountBook>();
-    
+
     /// <summary>
     /// 导航属性
     /// </summary>
     public ICollection<Budget> Budgets { get; set; } = new List<Budget>();
+
     /// <summary>
     /// 导航属性
     /// </summary>
     public ICollection<Report> Reports { get; set; } = new List<Report>();
+
+    /// <summary>
+    /// 导航属性
+    /// </summary>
+    public ICollection<ReportLog> ExchangeRateRecords { get; set; } = new List<ReportLog>();
 }

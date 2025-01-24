@@ -157,6 +157,15 @@ namespace SporeAccounting
                     .WithIdentity("ExchangeRateTimerTrigger")
                     .StartNow()
                     .WithCronSchedule("0 0 1 * * ?"));
+                
+                var reportTimerJobKey = new JobKey("ReportTimer");
+                q.AddJob<ExchangeRateTimer>(opts => opts.WithIdentity(reportTimerJobKey));
+                q.AddTrigger(opts => opts
+                    .ForJob(reportTimerJobKey)
+                    .WithIdentity("ReportTimerTrigger")
+                    .StartNow()
+                    // 每月1号凌晨0点执行
+                    .WithCronSchedule("0 0 0 1 * ?"));
             });
             builder.Services.AddQuartzHostedService(options =>
             {
