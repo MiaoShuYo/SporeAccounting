@@ -83,4 +83,8 @@ public class SysUser : BaseModel
     /// 导航属性
     /// </summary>
     public ICollection<Budget> Budgets { get; set; } = new List<Budget>();
+    /// <summary>
+    /// 导航属性
+    /// </summary>
+    public ICollection<Report> Reports { get; set; } = new List<Report>();
 }

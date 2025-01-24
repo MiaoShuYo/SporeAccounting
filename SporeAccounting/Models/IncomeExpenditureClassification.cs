@@ -55,10 +55,16 @@ public class IncomeExpenditureClassification : BaseModel
     /// </summary>
     public ICollection<IncomeExpenditureRecord> IncomeExpenditureRecords { get; set; } =
         new List<IncomeExpenditureRecord>();
-    
+
     /// <summary>
     /// 导航属性
     /// </summary>
     public ICollection<Budget> Budgets { get; set; } =
         new List<Budget>();
+
+    /// <summary>
+    /// 导航属性
+    /// </summary>
+    public ICollection<Report> Reports { get; set; } =
+        new List<Report>();
 }

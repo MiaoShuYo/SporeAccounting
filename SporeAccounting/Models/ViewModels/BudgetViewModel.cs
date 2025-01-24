@@ -1,5 +1,7 @@
 ﻿namespace SporeAccounting.Models.ViewModels;
-
+/// <summary>
+/// 预算视图模型
+/// </summary>
 public class BudgetViewModel
 {
     /// <summary>

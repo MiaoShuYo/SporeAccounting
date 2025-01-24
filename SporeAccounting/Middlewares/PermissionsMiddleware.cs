@@ -18,7 +18,6 @@ public class PermissionsMiddleware
     /// 权限中间件
     /// </summary>
     /// <param name="next"></param>
-    /// <param name="sysUrlServer"></param>
     public PermissionsMiddleware(RequestDelegate next)
     {
         _next = next;
@@ -30,6 +29,7 @@ public class PermissionsMiddleware
     /// <param name="httpContext"></param>
     /// <param name="sysRoleUrlServer"></param>
     /// <param name="configuration"></param>
+    /// <param name="sysUrlServer"></param>
     public async System.Threading.Tasks.Task Invoke(HttpContext httpContext, ISysRoleUrlServer sysRoleUrlServer,
         IConfiguration configuration, ISysUrlServer sysUrlServer)
     {

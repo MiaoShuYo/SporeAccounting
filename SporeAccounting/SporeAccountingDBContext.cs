@@ -68,6 +68,11 @@ public class SporeAccountingDBContext : DbContext
     /// </summary>
     public DbSet<Budget> Budgets { get; set; }
 
+    /// <summary>
+    /// 报表表
+    /// </summary>
+    public DbSet<Report> Reports { get; set; }
+
     IConfiguration _dbConfig;
 
     /// <summary>
@@ -78,6 +83,7 @@ public class SporeAccountingDBContext : DbContext
     {
         _dbConfig = dbConfig;
     }
+
     /// <summary>
     /// 数据库连接配置
     /// </summary>
@@ -211,6 +217,7 @@ public class SporeAccountingDBContext : DbContext
         });
         base.OnModelCreating(modelBuilder);
     }
+
     /// <summary>
     /// 数据库连接配置
     /// </summary>

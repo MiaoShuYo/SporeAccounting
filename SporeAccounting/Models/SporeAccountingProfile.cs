@@ -191,5 +191,13 @@ public class SporeAccountingProfile : Profile
             .ForMember(d=>d.Remaining, opt=>opt
                 .MapFrom(s=>s.Remaining));
 
+        CreateMap<Report, ReportResponseViewModel>()
+            .ForMember(d => d.Amount, opt => opt
+                .MapFrom(s => s.Amount))
+            .ForMember(d => d.Month, opt => opt
+                .MapFrom(s => s.Month))
+            .ForMember(d => d.Year, opt => opt
+                .MapFrom(s => s.Year));
+
     }
 }
