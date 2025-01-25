@@ -50,11 +50,23 @@ public class IncomeExpenditureRecordImp : IIncomeExpenditureRecordServer
                         == IncomeExpenditureTypeEnmu.Income)
                     {
                         budget.Remaining -= incomeExpenditureRecord.AfterAmount;
+                        // 获取包含支出记录记录日期的报表记录
+                        var report = _sporeAccountingDbContext.Reports
+                            .FirstOrDefault(x => x.UserId == incomeExpenditureRecord.UserId
+                                                 && x.Year <= incomeExpenditureRecord.RecordDate.Year &&
+                                                 x.Month >= incomeExpenditureRecord.RecordDate.Month &&
+                                                 x.ClassificationId==incomeExpenditureRecord.IncomeExpenditureClassificationId);
+                        // 如果没有就说明程序还未将其写入报表，那么就不做任何处理
+                        if (report != null)
+                        {
+                            report.Amount += incomeExpenditureRecord.AfterAmount;
+                            _sporeAccountingDbContext.Reports.Update(report);
+                        }
                     }
 
                     _sporeAccountingDbContext.Budgets.Update(budget);
                 }
-
+                
                 _sporeAccountingDbContext.IncomeExpenditureRecords.Add(incomeExpenditureRecord);
                 _sporeAccountingDbContext.SaveChanges();
                 //提交事务
@@ -101,6 +113,18 @@ public class IncomeExpenditureRecordImp : IIncomeExpenditureRecordServer
                             == IncomeExpenditureTypeEnmu.Income)
                         {
                             budget.Remaining += incomeExpenditureRecord.AfterAmount;
+                            // 获取包含支出记录记录日期的报表记录
+                            var report = _sporeAccountingDbContext.Reports
+                                .FirstOrDefault(x => x.UserId == incomeExpenditureRecord.UserId
+                                                     && x.Year <= incomeExpenditureRecord.RecordDate.Year &&
+                                                     x.Month >= incomeExpenditureRecord.RecordDate.Month &&
+                                                     x.ClassificationId==incomeExpenditureRecord.IncomeExpenditureClassificationId);
+                            // 如果没有就说明程序还未将其写入报表，那么就不做任何处理
+                            if (report != null)
+                            {
+                                report.Amount -= incomeExpenditureRecord.AfterAmount;
+                                _sporeAccountingDbContext.Reports.Update(report);
+                            }
                         }
 
                         _sporeAccountingDbContext.Budgets.Update(budget);
@@ -152,6 +176,36 @@ public class IncomeExpenditureRecordImp : IIncomeExpenditureRecordServer
                     {
                         //如果是支出，需要减去原来的金额
                         budget.Remaining = (budget.Amount - incomeExpenditureRecord.AfterAmount);
+                        // 根据旧的支出记录判断是否修改了记录日期
+                        // 如果是修改了记录日期，那么就将原记录日期所在的报表对应的分类金额减去，将新记录日期所在报表对应的分类金额加上
+                        if (oldIncomeExpenditureRecord.RecordDate != incomeExpenditureRecord.RecordDate)
+                        {
+                            // 获取包含支出记录记录日期的报表记录
+                            var oldReport = _sporeAccountingDbContext.Reports
+                                .FirstOrDefault(x => x.UserId == incomeExpenditureRecord.UserId
+                                                     && x.Year <= oldIncomeExpenditureRecord.RecordDate.Year &&
+                                                     x.Month >= oldIncomeExpenditureRecord.RecordDate.Month &&
+                                                     x.ClassificationId==oldIncomeExpenditureRecord.IncomeExpenditureClassificationId);
+                            // 如果没有就说明程序还未将其写入报表，那么就不做任何处理
+                            if (oldReport != null)
+                            {
+                                oldReport.Amount -= oldIncomeExpenditureRecord.AfterAmount;
+                                _sporeAccountingDbContext.Reports.Update(oldReport);
+                            }
+
+                            // 获取包含支出记录记录日期的报表记录
+                            var newReport = _sporeAccountingDbContext.Reports
+                                .FirstOrDefault(x => x.UserId == incomeExpenditureRecord.UserId
+                                                     && x.Year <= incomeExpenditureRecord.RecordDate.Year &&
+                                                     x.Month >= incomeExpenditureRecord.RecordDate.Month &&
+                                                     x.ClassificationId==incomeExpenditureRecord.IncomeExpenditureClassificationId);
+                            // 如果没有就说明程序还未将其写入报表，那么就不做任何处理
+                            if (newReport != null)
+                            {
+                                newReport.Amount += incomeExpenditureRecord.AfterAmount;
+                                _sporeAccountingDbContext.Reports.Update(newReport);
+                            }
+                        }
                     }
                     else
                     {

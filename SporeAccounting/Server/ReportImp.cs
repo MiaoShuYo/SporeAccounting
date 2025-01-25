@@ -73,13 +73,14 @@ public class ReportImp : IReportServer
     /// </summary>
     /// <param name="userId"></param>
     /// <param name="year"></param>
+    /// <param name="reportType"></param>
     /// <returns></returns>
-    public List<Report> QueryReport(string userId, int year)
+    public List<Report> QueryReport(string userId, int year, ReportTypeEnum reportType)
     {
         try
         {
             IQueryable<Report> reports = _sporeAccountingDbContext.Reports
-                .Where(p => p.UserId == userId && p.Year == year);
+                .Where(p => p.UserId == userId && p.Year == year && p.Type == reportType);
 
             return reports.ToList();
         }

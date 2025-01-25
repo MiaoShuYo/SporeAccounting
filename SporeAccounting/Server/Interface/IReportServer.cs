@@ -33,6 +33,7 @@ public interface IReportServer
     /// </summary>
     /// <param name="userId"></param>
     /// <param name="year"></param>
+    /// <param name="reportType"></param>
     /// <returns></returns>
-    List<Report> QueryReport(string userId, int year);
+    List<Report> QueryReport(string userId, int year,ReportTypeEnum reportType);
 }

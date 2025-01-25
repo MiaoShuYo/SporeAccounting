@@ -47,7 +47,7 @@ namespace SporeAccounting.Controllers
             try
             {
                 string userId = GetUserId();
-                var reports = _reportServer.QueryReport(userId, report.Year);
+                var reports = _reportServer.QueryReport(userId, report.Year, report.ReportType);
                 List<ReportResponseViewModel> response = _mapper.Map<List<ReportResponseViewModel>>(reports);
                 return Ok(new ResponseData<List<ReportResponseViewModel>>(HttpStatusCode.OK, data: response));
             }
