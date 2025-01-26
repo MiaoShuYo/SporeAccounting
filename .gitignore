@@ -2,4 +2,6 @@
 .vs/
 SporeAccounting/obj/
 SporeAccounting/bin/
+Test/bin/
+Test/obj/
 .idea/
