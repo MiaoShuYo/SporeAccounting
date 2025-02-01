@@ -158,13 +158,29 @@ namespace SporeAccounting
                     .StartNow()
                     .WithCronSchedule("0 0 1 * * ?"));
                 
-                var reportTimerJobKey = new JobKey("ReportTimer");
-                q.AddJob<ExchangeRateTimer>(opts => opts.WithIdentity(reportTimerJobKey));
+                var reportYearTimerJobKey = new JobKey("ReportYearTimer");
+                q.AddJob<ReportYearTimer>(opts => opts.WithIdentity(reportYearTimerJobKey));
                 q.AddTrigger(opts => opts
-                    .ForJob(reportTimerJobKey)
-                    .WithIdentity("ReportTimerTrigger")
+                    .ForJob(reportYearTimerJobKey)
+                    .WithIdentity("ReportYearTimerTrigger")
                     .StartNow()
-                    .WithCronSchedule("0 0 1 * * ?"));
+                    .WithCronSchedule("0 0 1 1 *"));
+                
+                var reportMonthTimerJobKey = new JobKey("ReportMonthTimer");
+                q.AddJob<ReportMonthTimer>(opts => opts.WithIdentity(reportMonthTimerJobKey));
+                q.AddTrigger(opts => opts
+                    .ForJob(reportMonthTimerJobKey)
+                    .WithIdentity("ReportMonthTimerTrigger")
+                    .StartNow()
+                    .WithCronSchedule("0 0 28-31 * *"));
+                
+                var reportQuarterlyTimerJobKey = new JobKey("ReportQuarterlyTimer");
+                q.AddJob<ReportQuarterlyTimer>(opts => opts.WithIdentity(reportQuarterlyTimerJobKey));
+                q.AddTrigger(opts => opts
+                    .ForJob(reportQuarterlyTimerJobKey)
+                    .WithIdentity("ReportQuarterlyTimerTrigger")
+                    .StartNow()
+                    .WithCronSchedule("0 0 31 3,6,9,12 *"));
             });
             builder.Services.AddQuartzHostedService(options =>
             {
