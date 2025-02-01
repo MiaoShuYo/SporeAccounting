@@ -18,4 +18,11 @@ public interface ICurrencyServer
     /// <param name="currencyId"></param>
     /// <returns></returns>
     Currency? Query(string currencyId);
+
+    /// <summary>
+    /// 查询币种
+    /// </summary>
+    /// <param name="currencyAbbreviation"></param>
+    /// <returns></returns>
+    Currency? QueryByAbbreviation(string currencyAbbreviation);
 }

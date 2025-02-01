@@ -14,6 +14,10 @@ public class ConfigInfoViewModel
     /// 配置值
     /// </summary>
     public string Value { get; set; }
+    /// <summary>
+    /// 配置值的名称
+    /// </summary>
+    public string Name { get; set; }
 
     /// <summary>
     /// 配置类型

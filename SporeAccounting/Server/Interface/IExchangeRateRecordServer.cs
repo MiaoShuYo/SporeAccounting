@@ -19,4 +19,12 @@ public interface IExchangeRateRecordServer
     /// <param name="convertCurrency"></param>
     /// <returns></returns>
     ExchangeRateRecord? Query(string convertCurrency);
+
+    /// <summary>
+    /// 查询汇率记录
+    /// </summary>
+    /// <param name="skip"></param>
+    /// <param name="take"></param>
+    /// <returns></returns>
+    (int,List<ExchangeRateRecord>) Query(int skip, int take);
 }

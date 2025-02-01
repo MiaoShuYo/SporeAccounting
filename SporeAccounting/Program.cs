@@ -164,7 +164,8 @@ namespace SporeAccounting
                     .ForJob(reportYearTimerJobKey)
                     .WithIdentity("ReportYearTimerTrigger")
                     .StartNow()
-                    .WithCronSchedule("0 0 1 1 *"));
+                    // 每年1月1日0时0分0秒执行
+                    .WithCronSchedule("0 0 0 1 1 ?"));
                 
                 var reportMonthTimerJobKey = new JobKey("ReportMonthTimer");
                 q.AddJob<ReportMonthTimer>(opts => opts.WithIdentity(reportMonthTimerJobKey));
@@ -172,7 +173,8 @@ namespace SporeAccounting
                     .ForJob(reportMonthTimerJobKey)
                     .WithIdentity("ReportMonthTimerTrigger")
                     .StartNow()
-                    .WithCronSchedule("0 0 28-31 * *"));
+                    // 每月最后一天0时0分0秒执行
+                    .WithCronSchedule("0 0 0 L * ?"));
                 
                 var reportQuarterlyTimerJobKey = new JobKey("ReportQuarterlyTimer");
                 q.AddJob<ReportQuarterlyTimer>(opts => opts.WithIdentity(reportQuarterlyTimerJobKey));
@@ -180,7 +182,8 @@ namespace SporeAccounting
                     .ForJob(reportQuarterlyTimerJobKey)
                     .WithIdentity("ReportQuarterlyTimerTrigger")
                     .StartNow()
-                    .WithCronSchedule("0 0 31 3,6,9,12 *"));
+                    // 每季度最后一天0时0分0秒执行
+                    .WithCronSchedule("0 0 0 L 3,6,9,12 ?"));
             });
             builder.Services.AddQuartzHostedService(options =>
             {

@@ -33,7 +33,7 @@ namespace SporeAccounting.Controllers
         /// 发布消息
         /// </summary>
         private readonly RabbitMQPublisher _rabbitMqPublisher;
-        
+
         /// <summary>
         /// 货币服务
         /// </summary>
@@ -47,7 +47,7 @@ namespace SporeAccounting.Controllers
         /// <param name="rabbitMqPublisher"></param>
         /// <param name="currencyServer"></param>
         public ConfigController(IConfigServer configServer,
-            IMapper mapper, 
+            IMapper mapper,
             RabbitMQPublisher rabbitMqPublisher,
             ICurrencyServer currencyServer)
         {
@@ -119,6 +119,49 @@ namespace SporeAccounting.Controllers
                 }
 
                 return Ok(new ResponseData<bool>(HttpStatusCode.OK, data: true));
+            }
+            catch (Exception ex)
+            {
+                return Ok(new ResponseData<bool>(HttpStatusCode.InternalServerError, "服务器异常"));
+            }
+        }
+
+        /// <summary>
+        /// 根据配置类型获取配置
+        /// </summary>
+        /// <param name="configTypeEnum"></param>
+        /// <returns></returns>
+        [HttpGet]
+        [Route("QueryByConfigType/{configTypeEnum}")]
+        public ActionResult<ResponseData<ConfigInfoViewModel>> QueryByConfigType([FromRoute] ConfigTypeEnum configTypeEnum)
+        {
+            try
+            {
+                string userId = GetUserId();
+                Config? config = _configServer.Query(userId, configTypeEnum);
+                if (config != null)
+                {
+                    ConfigInfoViewModel configInfoViewModel = _mapper.Map<ConfigInfoViewModel>(config);
+                    if (configInfoViewModel.ConfigType == ConfigTypeEnum.Currency)
+                    {
+                        //获取对应的主币种
+                        Currency? currency = _currencyServer.Query(configInfoViewModel.Value);
+                        if (currency != null)
+                        {
+                            configInfoViewModel.Name = currency.Name;
+                        }
+                        else
+                        {
+                            return Ok(new ResponseData<bool>(HttpStatusCode.NotFound, "货币不存在"));
+                        }
+                    }
+
+                    return Ok(new ResponseData<ConfigInfoViewModel>(HttpStatusCode.OK, data: configInfoViewModel));
+                }
+                else
+                {
+                    return Ok(new ResponseData<bool>(HttpStatusCode.NotFound, "用户配置不存在"));
+                }
             }
             catch (Exception ex)
             {

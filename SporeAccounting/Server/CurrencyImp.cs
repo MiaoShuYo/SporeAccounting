@@ -47,4 +47,21 @@ public class CurrencyImp : ICurrencyServer
             throw;
         }
     }
+
+    /// <summary>
+    /// 查询币种
+    /// </summary>
+    /// <param name="currencyAbbreviation"></param>
+    /// <returns></returns>
+    public Currency? QueryByAbbreviation(string currencyAbbreviation)
+    {
+        try
+        {
+            return _dbContext.Currencies.FirstOrDefault(c => c.Abbreviation == currencyAbbreviation);
+        }
+        catch (Exception e)
+        {
+            throw;
+        }
+    }
 }

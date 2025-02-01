@@ -46,4 +46,24 @@ public class ExchangeRateRecordImp : IExchangeRateRecordServer
             .OrderByDescending(e => e.Date)
             .FirstOrDefault();
     }
+
+    /// <summary>
+    /// 查询汇率记录
+    /// </summary>
+    /// <param name="skip"></param>
+    /// <param name="take"></param>
+    /// <returns></returns>
+    public (int, List<ExchangeRateRecord>) Query(int skip, int take)
+    {
+        try
+        {
+            var exchangeRate = _sporeAccountingDbContext.ExchangeRateRecords
+                .OrderByDescending(o => o.CreateDateTime).ToList();
+            return (exchangeRate.Count(), exchangeRate.Skip(skip).Take(take).ToList());
+        }
+        catch (Exception e)
+        {
+            throw;
+        }
+    }
 }
