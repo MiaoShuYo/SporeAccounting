@@ -84,4 +84,9 @@ public interface IIncomeExpenditureClassificationServer
     /// <param name="classificationId"></param>
     /// <returns></returns>
     bool HasChild(string classificationId);
+    /// <summary>
+    /// 查询父级分类
+    /// </summary>
+    /// <returns></returns>
+    List<IncomeExpenditureClassification> QueryParent();
 }

@@ -56,6 +56,34 @@ namespace SporeAccounting.Controllers
                 return Ok(new ResponseData<List<string>>(HttpStatusCode.InternalServerError, "服务器异常", null));
             }
         }
+        
+        /// <summary>
+        /// 查询父级分类
+        /// </summary>
+        /// <returns></returns>
+        [HttpGet]
+        [Route("QueryParent")]
+        public ActionResult<ResponseData<List<IncomeExpenditureClassificationInfoViewModel>>>
+            QueryParent()
+        {
+            try
+            {
+                //查询父级分类
+                List<IncomeExpenditureClassification> classifications =
+                    _incomeExpenditureClassificationService.QueryParent().ToList();
+                //转换为视图模型
+                List<IncomeExpenditureClassificationInfoViewModel>
+                    classificationInfoViewModels =
+                        _mapper.Map<List<IncomeExpenditureClassificationInfoViewModel>>(classifications);
+
+                return Ok(new ResponseData<List<IncomeExpenditureClassificationInfoViewModel>>(HttpStatusCode.OK,
+                    data: classificationInfoViewModels));
+            }
+            catch (Exception e)
+            {
+                return Ok(new ResponseData<List<string>>(HttpStatusCode.InternalServerError, "服务器异常", null));
+            }
+        }
 
         /// <summary>
         /// 根据收支类型查询分类

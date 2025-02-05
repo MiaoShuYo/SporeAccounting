@@ -262,4 +262,21 @@ public class IncomeExpenditureClassificationImp : IIncomeExpenditureClassificati
             throw;
         }
     }
+    /// <summary>
+    /// 查询父级分类
+    /// </summary>
+    /// <returns></returns>
+    public List<IncomeExpenditureClassification> QueryParent()
+    {
+        try
+        {
+            return _sporeAccountingDbContext.IncomeExpenditureClassifications
+                .Where(p => p.ParentClassificationId == null).ToList();
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e);
+            throw;
+        }
+    }
 }
