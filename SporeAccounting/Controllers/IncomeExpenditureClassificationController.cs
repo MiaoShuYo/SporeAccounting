@@ -21,7 +21,11 @@ namespace SporeAccounting.Controllers
     {
         private readonly IIncomeExpenditureClassificationServer _incomeExpenditureClassificationService;
         private readonly IMapper _mapper;
-
+        /// <summary>
+        /// 构造函数
+        /// </summary>
+        /// <param name="incomeExpenditureClassificationService"></param>
+        /// <param name="mapper"></param>
         public IncomeExpenditureClassificationController(
             IIncomeExpenditureClassificationServer incomeExpenditureClassificationService, IMapper mapper)
         {
@@ -183,7 +187,7 @@ namespace SporeAccounting.Controllers
                     }
 
                     //判断父级是否是子集
-                    if (parentClassification.ParentClassificationId != null)
+                    if (parentClassification.ParentIncomeExpenditureClassificationId != null)
                     {
                         return Ok(new ResponseData<bool>(HttpStatusCode.Conflict, $"子分类不能再创建子类！", false));
                     }
@@ -276,7 +280,7 @@ namespace SporeAccounting.Controllers
                     }
 
                     //判断父级是否是子集
-                    if (parentClassification.ParentClassificationId != null)
+                    if (parentClassification.ParentIncomeExpenditureClassificationId != null)
                     {
                         return Ok(new ResponseData<bool>(HttpStatusCode.Conflict, $"子分类不能再创建子类！", false));
                     }

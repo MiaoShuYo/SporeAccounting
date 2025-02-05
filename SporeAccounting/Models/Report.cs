@@ -54,7 +54,7 @@ public class Report : BaseModel
     /// </summary>
     [Required]
     [Column(TypeName = "nvarchar(36)")]
-    [ForeignKey("FK_Report_SysUser_UserId")]
+    [ForeignKey("User")]
     public string UserId { get; set; }
 
     /// <summary>
@@ -62,7 +62,7 @@ public class Report : BaseModel
     /// </summary>
     [Required]
     [Column(TypeName = "nvarchar(36)")]
-    [ForeignKey("FK_Report_Classification_ClassificationId")]
+    [ForeignKey("Classification")]
     public string ClassificationId { get; set; }
 
     /// <summary>

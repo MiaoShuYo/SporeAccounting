@@ -20,7 +20,7 @@ public class Config : BaseModel
     /// <summary>
     /// 用户id
     /// </summary>
-    [ForeignKey("FK_Config_SysUser")]
+    [ForeignKey("User")]
     [Required]
     [Column(TypeName = "nvarchar(36)")]
     public string UserId { get; set; }

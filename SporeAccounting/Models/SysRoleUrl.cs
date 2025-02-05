@@ -14,14 +14,14 @@ public class SysRoleUrl : BaseModel
     /// </summary>
     [Column(TypeName = "nvarchar(36)")]
     [Required]
-    [ForeignKey("FK_SysRoleUrl_SysRole")]
+    [ForeignKey("Role")]
     public string RoleId { get; set; }
     /// <summary>
     /// 接口路径
     /// </summary>
     [Column(TypeName = "nvarchar(36)")]
     [Required]
-    [ForeignKey("FK_SysRoleUrl_SysUrl")]
+    [ForeignKey("Url")]
     public string UrlId { get; set; }
     /// <summary>
     /// 是否允许删除

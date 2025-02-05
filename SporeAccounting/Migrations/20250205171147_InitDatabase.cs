@@ -8,7 +8,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace SporeAccounting.Migrations
 {
     /// <inheritdoc />
-    public partial class InitDataBase : Migration
+    public partial class InitDatabase : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -67,8 +67,7 @@ namespace SporeAccounting.Migrations
                     Name = table.Column<string>(type: "nvarchar(20)", maxLength: 20, nullable: false),
                     Type = table.Column<int>(type: "int", nullable: false),
                     CanDelete = table.Column<bool>(type: "tinyint(1)", nullable: false),
-                    ParentClassificationId = table.Column<string>(type: "nvarchar(36)", nullable: true),
-                    ParentId = table.Column<string>(type: "nvarchar(36)", nullable: true),
+                    ParentIncomeExpenditureClassificationId = table.Column<string>(type: "nvarchar(36)", nullable: true),
                     CreateDateTime = table.Column<DateTime>(type: "datetime", nullable: false),
                     CreateUserId = table.Column<string>(type: "nvarchar(36)", nullable: false),
                     UpdateDateTime = table.Column<DateTime>(type: "datetime", nullable: true),
@@ -82,7 +81,7 @@ namespace SporeAccounting.Migrations
                     table.PrimaryKey("PK_IncomeExpenditureClassification", x => x.Id);
                     table.ForeignKey(
                         name: "FK_IncomeExpenditureClassification_IncomeExpenditureClassificat~",
-                        column: x => x.ParentId,
+                        column: x => x.ParentIncomeExpenditureClassificationId,
                         principalTable: "IncomeExpenditureClassification",
                         principalColumn: "Id");
                 })
@@ -296,6 +295,72 @@ namespace SporeAccounting.Migrations
                 .Annotation("MySql:CharSet", "utf8mb4");
 
             migrationBuilder.CreateTable(
+                name: "Report",
+                columns: table => new
+                {
+                    Id = table.Column<string>(type: "nvarchar(36)", nullable: false),
+                    Year = table.Column<int>(type: "int", nullable: false),
+                    Month = table.Column<int>(type: "int", nullable: true),
+                    Quarter = table.Column<int>(type: "int", nullable: true),
+                    Name = table.Column<string>(type: "nvarchar(100)", nullable: false),
+                    Type = table.Column<int>(type: "int", nullable: false),
+                    Amount = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
+                    UserId = table.Column<string>(type: "nvarchar(36)", nullable: false),
+                    ClassificationId = table.Column<string>(type: "nvarchar(36)", nullable: false),
+                    CreateDateTime = table.Column<DateTime>(type: "datetime", nullable: false),
+                    CreateUserId = table.Column<string>(type: "nvarchar(36)", nullable: false),
+                    UpdateDateTime = table.Column<DateTime>(type: "datetime", nullable: true),
+                    UpdateUserId = table.Column<string>(type: "nvarchar(36)", nullable: true),
+                    DeleteDateTime = table.Column<DateTime>(type: "datetime", nullable: true),
+                    DeleteUserId = table.Column<string>(type: "nvarchar(36)", nullable: true),
+                    IsDeleted = table.Column<bool>(type: "tinyint(1)", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Report", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Report_IncomeExpenditureClassification_ClassificationId",
+                        column: x => x.ClassificationId,
+                        principalTable: "IncomeExpenditureClassification",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_Report_SysUser_UserId",
+                        column: x => x.UserId,
+                        principalTable: "SysUser",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                })
+                .Annotation("MySql:CharSet", "utf8mb4");
+
+            migrationBuilder.CreateTable(
+                name: "ReportLog",
+                columns: table => new
+                {
+                    Id = table.Column<string>(type: "nvarchar(36)", nullable: false),
+                    UserId = table.Column<string>(type: "nvarchar(36)", nullable: false),
+                    ReportId = table.Column<string>(type: "nvarchar(36)", nullable: false),
+                    CreateDateTime = table.Column<DateTime>(type: "datetime", nullable: false),
+                    CreateUserId = table.Column<string>(type: "nvarchar(36)", nullable: false),
+                    UpdateDateTime = table.Column<DateTime>(type: "datetime", nullable: true),
+                    UpdateUserId = table.Column<string>(type: "nvarchar(36)", nullable: true),
+                    DeleteDateTime = table.Column<DateTime>(type: "datetime", nullable: true),
+                    DeleteUserId = table.Column<string>(type: "nvarchar(36)", nullable: true),
+                    IsDeleted = table.Column<bool>(type: "tinyint(1)", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_ReportLog", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_ReportLog_SysUser_UserId",
+                        column: x => x.UserId,
+                        principalTable: "SysUser",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                })
+                .Annotation("MySql:CharSet", "utf8mb4");
+
+            migrationBuilder.CreateTable(
                 name: "IncomeExpenditureRecord",
                 columns: table => new
                 {
@@ -351,35 +416,35 @@ namespace SporeAccounting.Migrations
                 columns: new[] { "Id", "Abbreviation", "CreateDateTime", "CreateUserId", "DeleteDateTime", "DeleteUserId", "IsDeleted", "Name", "UpdateDateTime", "UpdateUserId" },
                 values: new object[,]
                 {
-                    { "098e71cf-4630-467b-a530-cea4b30e9070", "HKD", new DateTime(2025, 1, 12, 18, 38, 29, 126, DateTimeKind.Local).AddTicks(4440), "b47637e2-603f-4df0-abe9-88d70fa870ee", null, null, false, "港元", null, null },
-                    { "409f7f1d-3430-4f82-9180-520ac1dadbc9", "EUR", new DateTime(2025, 1, 12, 18, 38, 29, 126, DateTimeKind.Local).AddTicks(4409), "b47637e2-603f-4df0-abe9-88d70fa870ee", null, null, false, "欧元", null, null },
-                    { "422a920d-12e9-4263-a1b6-9d6e4e3366ea", "JPY", new DateTime(2025, 1, 12, 18, 38, 29, 126, DateTimeKind.Local).AddTicks(4417), "b47637e2-603f-4df0-abe9-88d70fa870ee", null, null, false, "日元", null, null },
-                    { "4b6a9c6f-d77f-4087-af5d-2d4f85375bda", "GBP", new DateTime(2025, 1, 12, 18, 38, 29, 126, DateTimeKind.Local).AddTicks(4424), "b47637e2-603f-4df0-abe9-88d70fa870ee", null, null, false, "英镑", null, null },
-                    { "551b2b37-dfd8-49df-bfc5-c78f068b2d01", "MOP", new DateTime(2025, 1, 12, 18, 38, 29, 126, DateTimeKind.Local).AddTicks(4433), "b47637e2-603f-4df0-abe9-88d70fa870ee", null, null, false, "澳门币", null, null },
-                    { "7b01d6fa-e673-4bfd-8112-3e988971d91c", "KRW", new DateTime(2025, 1, 12, 18, 38, 29, 126, DateTimeKind.Local).AddTicks(4446), "b47637e2-603f-4df0-abe9-88d70fa870ee", null, null, false, "韩圆", null, null },
-                    { "a374bbfa-99bd-4f14-9f11-49260528d7a4", "TWD", new DateTime(2025, 1, 12, 18, 38, 29, 126, DateTimeKind.Local).AddTicks(4453), "b47637e2-603f-4df0-abe9-88d70fa870ee", null, null, false, "新台币", null, null },
-                    { "e25b4885-cf61-4249-b86f-0130defd1d57", "USD", new DateTime(2025, 1, 12, 18, 38, 29, 126, DateTimeKind.Local).AddTicks(4402), "b47637e2-603f-4df0-abe9-88d70fa870ee", null, null, false, "美元", null, null },
-                    { "e7b3e54d-dbf3-432e-b6fb-b251ffa844b6", "CNY", new DateTime(2025, 1, 12, 18, 38, 29, 126, DateTimeKind.Local).AddTicks(4394), "b47637e2-603f-4df0-abe9-88d70fa870ee", null, null, false, "人民币", null, null }
+                    { "098e71cf-4630-467b-a530-cea4b30e9070", "HKD", new DateTime(2025, 2, 6, 1, 11, 46, 443, DateTimeKind.Local).AddTicks(1339), "b47637e2-603f-4df0-abe9-88d70fa870ee", null, null, false, "港元", null, null },
+                    { "409f7f1d-3430-4f82-9180-520ac1dadbc9", "EUR", new DateTime(2025, 2, 6, 1, 11, 46, 443, DateTimeKind.Local).AddTicks(1309), "b47637e2-603f-4df0-abe9-88d70fa870ee", null, null, false, "欧元", null, null },
+                    { "422a920d-12e9-4263-a1b6-9d6e4e3366ea", "JPY", new DateTime(2025, 2, 6, 1, 11, 46, 443, DateTimeKind.Local).AddTicks(1316), "b47637e2-603f-4df0-abe9-88d70fa870ee", null, null, false, "日元", null, null },
+                    { "4b6a9c6f-d77f-4087-af5d-2d4f85375bda", "GBP", new DateTime(2025, 2, 6, 1, 11, 46, 443, DateTimeKind.Local).AddTicks(1322), "b47637e2-603f-4df0-abe9-88d70fa870ee", null, null, false, "英镑", null, null },
+                    { "551b2b37-dfd8-49df-bfc5-c78f068b2d01", "MOP", new DateTime(2025, 2, 6, 1, 11, 46, 443, DateTimeKind.Local).AddTicks(1332), "b47637e2-603f-4df0-abe9-88d70fa870ee", null, null, false, "澳门币", null, null },
+                    { "7b01d6fa-e673-4bfd-8112-3e988971d91c", "KRW", new DateTime(2025, 2, 6, 1, 11, 46, 443, DateTimeKind.Local).AddTicks(1346), "b47637e2-603f-4df0-abe9-88d70fa870ee", null, null, false, "韩圆", null, null },
+                    { "a374bbfa-99bd-4f14-9f11-49260528d7a4", "TWD", new DateTime(2025, 2, 6, 1, 11, 46, 443, DateTimeKind.Local).AddTicks(1352), "b47637e2-603f-4df0-abe9-88d70fa870ee", null, null, false, "新台币", null, null },
+                    { "e25b4885-cf61-4249-b86f-0130defd1d57", "USD", new DateTime(2025, 2, 6, 1, 11, 46, 443, DateTimeKind.Local).AddTicks(1302), "b47637e2-603f-4df0-abe9-88d70fa870ee", null, null, false, "美元", null, null },
+                    { "e7b3e54d-dbf3-432e-b6fb-b251ffa844b6", "CNY", new DateTime(2025, 2, 6, 1, 11, 46, 443, DateTimeKind.Local).AddTicks(1294), "b47637e2-603f-4df0-abe9-88d70fa870ee", null, null, false, "人民币", null, null }
                 });
 
             migrationBuilder.InsertData(
                 table: "IncomeExpenditureClassification",
-                columns: new[] { "Id", "CanDelete", "CreateDateTime", "CreateUserId", "DeleteDateTime", "DeleteUserId", "IsDeleted", "Name", "ParentClassificationId", "ParentId", "Type", "UpdateDateTime", "UpdateUserId" },
-                values: new object[] { "10ce6d08-3de2-466e-a9bb-e15cb4eec56f", false, new DateTime(2025, 1, 12, 18, 38, 29, 126, DateTimeKind.Local).AddTicks(4366), "b47637e2-603f-4df0-abe9-88d70fa870ee", null, null, false, "其他", null, null, -1, null, null });
+                columns: new[] { "Id", "CanDelete", "CreateDateTime", "CreateUserId", "DeleteDateTime", "DeleteUserId", "IsDeleted", "Name", "ParentIncomeExpenditureClassificationId", "Type", "UpdateDateTime", "UpdateUserId" },
+                values: new object[] { "10ce6d08-3de2-466e-a9bb-e15cb4eec56f", false, new DateTime(2025, 2, 6, 1, 11, 46, 443, DateTimeKind.Local).AddTicks(1183), "b47637e2-603f-4df0-abe9-88d70fa870ee", null, null, false, "其他", null, -1, null, null });
 
             migrationBuilder.InsertData(
                 table: "SysRole",
                 columns: new[] { "Id", "CanDelete", "CreateDateTime", "CreateUserId", "DeleteDateTime", "DeleteUserId", "IsDeleted", "RoleName", "UpdateDateTime", "UpdateUserId" },
                 values: new object[,]
                 {
-                    { "10389aa0-b6f2-4241-9a77-ca8020656bb6", false, new DateTime(2025, 1, 12, 18, 38, 29, 126, DateTimeKind.Local).AddTicks(2838), "b47637e2-603f-4df0-abe9-88d70fa870ee", null, null, false, "Consumer", null, null },
-                    { "cef80881-fe89-4b1f-85ad-83184777d61b", false, new DateTime(2025, 1, 12, 18, 38, 29, 126, DateTimeKind.Local).AddTicks(2827), "b47637e2-603f-4df0-abe9-88d70fa870ee", null, null, false, "Administrator", null, null }
+                    { "10389aa0-b6f2-4241-9a77-ca8020656bb6", false, new DateTime(2025, 2, 6, 1, 11, 46, 442, DateTimeKind.Local).AddTicks(9968), "b47637e2-603f-4df0-abe9-88d70fa870ee", null, null, false, "Consumer", null, null },
+                    { "cef80881-fe89-4b1f-85ad-83184777d61b", false, new DateTime(2025, 2, 6, 1, 11, 46, 442, DateTimeKind.Local).AddTicks(9957), "b47637e2-603f-4df0-abe9-88d70fa870ee", null, null, false, "Administrator", null, null }
                 });
 
             migrationBuilder.InsertData(
                 table: "SysUser",
                 columns: new[] { "Id", "CanDelete", "CreateDateTime", "CreateUserId", "DeleteDateTime", "DeleteUserId", "Email", "IsDeleted", "Password", "PhoneNumber", "RoleId", "Salt", "UpdateDateTime", "UpdateUserId", "UserName" },
-                values: new object[] { "b47637e2-603f-4df0-abe9-88d70fa870ee", false, new DateTime(2025, 1, 12, 18, 38, 29, 126, DateTimeKind.Local).AddTicks(2953), "b47637e2-603f-4df0-abe9-88d70fa870ee", null, null, "admin@miaoshu.xyz", false, "+8uQJ9YW65afXGP37c0LPYMHjBkHUr6dsiT6hPZ4W+k=", "", "cef80881-fe89-4b1f-85ad-83184777d61b", "91bf43e0c3fb4ac397819207ee9f521f", null, null, "admin" });
+                values: new object[] { "b47637e2-603f-4df0-abe9-88d70fa870ee", false, new DateTime(2025, 2, 6, 1, 11, 46, 443, DateTimeKind.Local).AddTicks(24), "b47637e2-603f-4df0-abe9-88d70fa870ee", null, null, "admin@miaoshu.xyz", false, "M9dA4EKZ3DtaVqNsrHwLa5vBggrwy27eoz/2sRsPtSI=", "", "cef80881-fe89-4b1f-85ad-83184777d61b", "ef612ae74f0b467c9db7cb213947699f", null, null, "admin" });
 
             migrationBuilder.CreateIndex(
                 name: "IX_AccountBook_UserId",
@@ -402,9 +467,9 @@ namespace SporeAccounting.Migrations
                 column: "UserId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_IncomeExpenditureClassification_ParentId",
+                name: "IX_IncomeExpenditureClassification_ParentIncomeExpenditureClass~",
                 table: "IncomeExpenditureClassification",
-                column: "ParentId");
+                column: "ParentIncomeExpenditureClassificationId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_IncomeExpenditureRecord_AccountBookId",
@@ -424,6 +489,21 @@ namespace SporeAccounting.Migrations
             migrationBuilder.CreateIndex(
                 name: "IX_IncomeExpenditureRecord_UserId",
                 table: "IncomeExpenditureRecord",
+                column: "UserId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Report_ClassificationId",
+                table: "Report",
+                column: "ClassificationId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Report_UserId",
+                table: "Report",
+                column: "UserId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_ReportLog_UserId",
+                table: "ReportLog",
                 column: "UserId");
 
             migrationBuilder.CreateIndex(
@@ -456,6 +536,12 @@ namespace SporeAccounting.Migrations
 
             migrationBuilder.DropTable(
                 name: "IncomeExpenditureRecord");
+
+            migrationBuilder.DropTable(
+                name: "Report");
+
+            migrationBuilder.DropTable(
+                name: "ReportLog");
 
             migrationBuilder.DropTable(
                 name: "SysRoleUrl");

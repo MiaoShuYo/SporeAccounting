@@ -36,13 +36,13 @@ public class IncomeExpenditureClassification : BaseModel
     /// 父级分类ID
     /// </summary>
     [Column(TypeName = "nvarchar(36)")]
-    [ForeignKey("FK_Classification_ClassificationId")]
-    public string? ParentClassificationId { get; set; }
+    [ForeignKey("ParentIncomeExpenditureClassification")]
+    public string? ParentIncomeExpenditureClassificationId { get; set; }
 
     /// <summary>
     /// 导航属性，用于指向父项
     /// </summary>
-    public IncomeExpenditureClassification? Parent { get; set; }
+    public IncomeExpenditureClassification? ParentIncomeExpenditureClassification { get; set; }
 
     /// <summary>
     /// 导航属性，用于指向子项集合

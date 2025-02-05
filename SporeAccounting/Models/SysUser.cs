@@ -54,7 +54,7 @@ public class SysUser : BaseModel
     /// 角色id
     /// </summary>
     [Column(TypeName = "nvarchar(36)")]
-    [ForeignKey("FK_SysUser_RoleId")]
+    [ForeignKey("Role")]
     [Required]
     public string RoleId { get; set; }
 

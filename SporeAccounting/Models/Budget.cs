@@ -15,7 +15,7 @@ public class Budget : BaseModel
     /// </summary>
     [Required]
     [Column(TypeName = "nvarchar(36)")]
-    [ForeignKey("FK_Budget_IncomeExpenditureClassification")]
+    [ForeignKey("Classification")]
     public string IncomeExpenditureClassificationId { get; set; }
 
     /// <summary>
@@ -64,7 +64,7 @@ public class Budget : BaseModel
     /// </summary>
     [Required]
     [Column(TypeName = "nvarchar(36)")]
-    [ForeignKey("FK_Budget_SysUser")]
+    [ForeignKey("User")]
     public string UserId { get; set; }
 
     /// <summary>

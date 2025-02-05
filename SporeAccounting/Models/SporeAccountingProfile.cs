@@ -60,7 +60,17 @@ public class SporeAccountingProfile : Profile
 
         CreateMap<SysRoleUrlAddViewModel, SysRoleUrl>();
 
-        CreateMap<IncomeExpenditureClassification, IncomeExpenditureClassificationInfoViewModel>();
+        CreateMap<IncomeExpenditureClassification, IncomeExpenditureClassificationInfoViewModel>()
+            .ForMember(d => d.Name, opt =>
+                opt.MapFrom(s => s.Name))
+            .ForMember(d => d.Id, opt =>
+                opt.MapFrom(s => s.Id))
+            .ForMember(d => d.Type, opt =>
+                opt.MapFrom(s => s.Type))
+            .ForMember(d => d.ParentId, opt =>
+                opt.MapFrom(s => s.ParentIncomeExpenditureClassificationId))
+            .ForMember(d => d.ParentName, opt =>
+                opt.MapFrom(s => s.ParentIncomeExpenditureClassification.Name));
         CreateMap<IncomeExpenditureClassificationViewModel, IncomeExpenditureClassification>();
         CreateMap<IncomeExpenditureClassificationEditViewModel, IncomeExpenditureClassification>();
 

@@ -1,4 +1,5 @@
-﻿using SporeAccounting.Models;
+﻿using Microsoft.EntityFrameworkCore;
+using SporeAccounting.Models;
 using SporeAccounting.Models.ViewModels;
 using SporeAccounting.Server.Interface;
 
@@ -71,7 +72,7 @@ public class IncomeExpenditureClassificationImp : IIncomeExpenditureClassificati
                 .FirstOrDefault(p => p.Id == classification.Id)!;
             dbClassification.Name = classification.Name;
             dbClassification.Type = classification.Type;
-            dbClassification.ParentClassificationId = classification.ParentClassificationId;
+            dbClassification.ParentIncomeExpenditureClassificationId = classification.ParentIncomeExpenditureClassificationId;
             dbClassification.UpdateDateTime = DateTime.Now;
             dbClassification.UpdateUserId = classification.UpdateUserId;
             _sporeAccountingDbContext.IncomeExpenditureClassifications.Update(dbClassification);
@@ -114,7 +115,7 @@ public class IncomeExpenditureClassificationImp : IIncomeExpenditureClassificati
         try
         {
             return _sporeAccountingDbContext.IncomeExpenditureClassifications
-                .Where(p => p.ParentClassificationId == parentId);
+                .Where(p => p.ParentIncomeExpenditureClassificationId == parentId);
         }
         catch (Exception e)
         {
@@ -161,21 +162,22 @@ public class IncomeExpenditureClassificationImp : IIncomeExpenditureClassificati
                     .Where(p => p.Name.Contains(sysRoleUrlPageViewModel.ClassificationName));
             }
 
-            if (sysRoleUrlPageViewModel.Type != null)
+            if (sysRoleUrlPageViewModel.Type != null &&  Enum.IsDefined(typeof(IncomeExpenditureTypeEnmu), sysRoleUrlPageViewModel.Type))
             {
                 incomeExpenditureClassifications = incomeExpenditureClassifications
                     .Where(p => p.Type == sysRoleUrlPageViewModel.Type);
             }
 
-            if (!string.IsNullOrEmpty(sysRoleUrlPageViewModel.ParentClassificationId))
+            if (!string.IsNullOrEmpty(sysRoleUrlPageViewModel.ParentClassificationId) && sysRoleUrlPageViewModel.ParentClassificationId != "-1")
             {
                 incomeExpenditureClassifications = incomeExpenditureClassifications
-                    .Where(p => p.ParentClassificationId == sysRoleUrlPageViewModel.ParentClassificationId);
+                    .Where(p => p.ParentIncomeExpenditureClassificationId == sysRoleUrlPageViewModel.ParentClassificationId);
             }
 
             int rowCount = incomeExpenditureClassifications.Count();
             int pageCount = (int)Math.Ceiling(rowCount / (double)sysRoleUrlPageViewModel.PageSize);
             incomeExpenditureClassifications = incomeExpenditureClassifications
+                .Include(p => p.ParentIncomeExpenditureClassification) 
                 .OrderBy(p => p.CreateDateTime)
                 .Skip((sysRoleUrlPageViewModel.PageNumber - 1) * sysRoleUrlPageViewModel.PageSize)
                 .Take(sysRoleUrlPageViewModel.PageSize);
@@ -254,7 +256,7 @@ public class IncomeExpenditureClassificationImp : IIncomeExpenditureClassificati
         try
         {
             return _sporeAccountingDbContext.IncomeExpenditureClassifications
-                .Any(p => p.ParentClassificationId == classificationId);
+                .Any(p => p.ParentIncomeExpenditureClassificationId == classificationId);
         }
         catch (Exception e)
         {
@@ -271,7 +273,7 @@ public class IncomeExpenditureClassificationImp : IIncomeExpenditureClassificati
         try
         {
             return _sporeAccountingDbContext.IncomeExpenditureClassifications
-                .Where(p => p.ParentClassificationId == null).ToList();
+                .Where(p => string.IsNullOrEmpty(p.ParentIncomeExpenditureClassificationId) && !p.IsDeleted).ToList();
         }
         catch (Exception e)
         {

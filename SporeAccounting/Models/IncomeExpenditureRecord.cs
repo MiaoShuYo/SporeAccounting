@@ -28,7 +28,7 @@ public class IncomeExpenditureRecord : BaseModel
     /// 收支分类Id
     /// </summary>
     [Column(TypeName = "nvarchar(36)")]
-    [ForeignKey("FK_IncomeExpenditureRecord_IncomeExpenditureClassification")]
+    [ForeignKey("IncomeExpenditureClassification")]
     [Required]
     public string IncomeExpenditureClassificationId { get; set; }
 
@@ -43,7 +43,7 @@ public class IncomeExpenditureRecord : BaseModel
     /// 账簿Id
     /// </summary>
     [Column(TypeName = "nvarchar(36)")]
-    [ForeignKey("FK_IncomeExpenditureRecord_AccountBook")]
+    [ForeignKey("AccountBook")]
     [Required]
     public string AccountBookId { get; set; }
 
@@ -51,7 +51,7 @@ public class IncomeExpenditureRecord : BaseModel
     /// 转换前币种Id
     /// </summary>
     [Column(TypeName = "nvarchar(36)")]
-    [ForeignKey("FK_IncomeExpenditureRecord_Currency")]
+    [ForeignKey("Currency")]
     [Required]
     public string CurrencyId { get; set; }
 
@@ -65,7 +65,7 @@ public class IncomeExpenditureRecord : BaseModel
     /// 用户id
     /// </summary>
     [Column(TypeName = "nvarchar(36)")]
-    [ForeignKey("FK_IncomeExpenditureRecord_SysUser")]
+    [ForeignKey("User")]
     [Required]
     public string UserId { get; set; }
 

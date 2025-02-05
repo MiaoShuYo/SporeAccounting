@@ -34,7 +34,7 @@ public class AccountBook : BaseModel
     /// 用户Id
     /// </summary>
     [Column(TypeName = "nvarchar(36)")]
-    [ForeignKey("FK_AccountBook_SysUser")]
+    [ForeignKey("User")]
     [Required]
     public string UserId { get; set; }
 
