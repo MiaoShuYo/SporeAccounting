@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using System.Text.Json.Serialization;
 
 namespace SporeAccounting.Models.ViewModels;
 
@@ -16,6 +17,7 @@ public class IncomeExpenditureClassificationViewModel
     /// </summary>
     [Required(ErrorMessage = "收支类型不能为空")]
     [EnumDataType(typeof(IncomeExpenditureTypeEnmu))]
+    [JsonConverter(typeof(IncomeExpenditureTypeEnmuConverter))]
     public IncomeExpenditureTypeEnmu Type { get; set; }
 
     /// <summary>
