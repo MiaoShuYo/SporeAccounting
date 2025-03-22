@@ -22,6 +22,14 @@ public class IncomeExpenditureTypeEnmuConverter : JsonConverter<IncomeExpenditur
                 return enumValue;
             }
         }
+        else if (reader.TokenType == JsonTokenType.Number)
+        {
+            var enumInt = reader.GetInt16();
+            if (Enum.TryParse(enumInt.ToString(), out IncomeExpenditureTypeEnmu enumValue))
+            {
+                return enumValue;
+            }
+        }
 
         throw new JsonException($"Unable to convert \"{reader.GetString()}\" to {nameof(IncomeExpenditureTypeEnmu)}.");
     }

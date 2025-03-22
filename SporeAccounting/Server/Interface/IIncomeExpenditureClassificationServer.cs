@@ -65,6 +65,15 @@ public interface IIncomeExpenditureClassificationServer
     bool IsExist(string classificationName, string userId);
 
     /// <summary>
+    /// 分类名字是否存在
+    /// </summary>
+    /// <param name="classificationName"></param>
+    /// <param name="userId"></param>
+    /// <param name="classificationId"></param>
+    /// <returns></returns>
+    bool IsExist(string classificationName, string userId, string classificationId);
+
+    /// <summary>
     /// 指定id的分类是否存在
     /// </summary>
     /// <param name="classificationId"></param>
@@ -84,6 +93,7 @@ public interface IIncomeExpenditureClassificationServer
     /// <param name="classificationId"></param>
     /// <returns></returns>
     bool HasChild(string classificationId);
+
     /// <summary>
     /// 查询父级分类
     /// </summary>
