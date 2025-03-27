@@ -26,14 +26,6 @@ jobs:
       - name: Publish project
         run: dotnet publish -c Release -o ./publish --no-build
 
-      - name: Debug SSH info
-        run: |
-          echo "SSH_PRIVATE_KEY length: ${#secrets.SSH_PRIVATE_KEY}"
-          echo "SSH_PASSPHRASE length: ${#secrets.SSH_PASSPHRASE}"
-          echo "SERVER_IP: ${secrets.SERVER_IP}"
-          echo "USERNAME: ${secrets.USERNAME}"
-          echo "TARGET_DIR: ${secrets.TARGET_DIR}"
-
       - name: Configure SSH
         run: |
           mkdir -p ~/.ssh
