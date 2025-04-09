@@ -59,4 +59,10 @@ public interface IBudgetServer
     /// <param name="userId"></param>
     /// <returns></returns>
     bool IsYou(string id, string userId);
+    /// <summary>
+    /// 根据id
+    /// </summary>
+    /// <param name="id"></param>
+    /// <returns></returns>
+    Budget QueryById(string id);
 }

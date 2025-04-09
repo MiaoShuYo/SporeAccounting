@@ -139,6 +139,23 @@ public class BudgetImp : IBudgetServer
             throw;
         }
     }
+    /// <summary>
+    /// 根据id查询预算
+    /// </summary>
+    /// <param name="id"></param>
+    /// <returns></returns>
+    /// <exception cref="NotImplementedException"></exception>
+    public Budget QueryById(string id)
+    {
+        try
+        {
+            return _sporeAccountingDbContext.Budgets.Find(id);
+        }
+        catch (Exception e)
+        {
+            throw;
+        }
+    }
 
     /// <summary>
     /// 用户是否存在该类型预算
