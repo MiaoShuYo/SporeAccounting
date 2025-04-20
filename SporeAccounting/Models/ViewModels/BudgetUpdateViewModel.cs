@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using System.Diagnostics.CodeAnalysis;
 
 namespace SporeAccounting.Models.ViewModels;
 
@@ -48,4 +49,7 @@ public class BudgetUpdateViewModel
     /// </summary>
     [MaxLength(200)]
     public string? Remark { get; set; }
+    
+    [NotNull]
+    public string ClassificationId { get; set; }
 }

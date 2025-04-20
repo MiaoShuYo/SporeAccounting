@@ -95,9 +95,9 @@ namespace SporeAccounting.Controllers
         /// <param name="type"></param>
         /// <returns></returns>
         [HttpGet]
-        [Route("QueryByType")]
+        [Route("QueryByType/{type}")]
         public ActionResult<ResponseData<List<IncomeExpenditureClassificationInfoViewModel>>>
-            QueryByType([FromQuery] IncomeExpenditureTypeEnmu type)
+            QueryByType([FromRoute] IncomeExpenditureTypeEnmu type)
         {
             try
             {

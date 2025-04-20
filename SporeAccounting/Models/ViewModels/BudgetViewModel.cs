@@ -1,4 +1,5 @@
 ﻿namespace SporeAccounting.Models.ViewModels;
+
 /// <summary>
 /// 预算视图模型
 /// </summary>
@@ -38,6 +39,11 @@ public class BudgetViewModel
     /// 收支分类
     /// </summary>
     public string ClassificationName { get; set; }
+
+    /// <summary>
+    /// 收支分类Id
+    /// </summary>
+    public string ClassificationId { get; set; }
 
     /// <summary>
     /// 备注

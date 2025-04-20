@@ -125,7 +125,12 @@ namespace SporeAccounting.Controllers
                 {
                     return Ok(new ResponseData<bool>(HttpStatusCode.Forbidden, "不是你的预算", false));
                 }
-                Budget budgetDb = _mapper.Map<Budget>(budget);
+                // 获取数据
+                Budget budgetDb = _budgetServer.QueryById(budget.Id);
+                budgetDb.Amount=budget.Amount;
+                budgetDb.UpdateDateTime = DateTime.Now;
+                budgetDb.UpdateUserId = userId;
+                budgetDb.IncomeExpenditureClassificationId = budget.ClassificationId;
                 _budgetServer.Update(budgetDb);
                 return Ok(new ResponseData<bool>(HttpStatusCode.OK, "修改成功", true));
             }

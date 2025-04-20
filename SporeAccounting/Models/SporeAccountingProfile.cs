@@ -200,6 +200,8 @@ public class SporeAccountingProfile : Profile
                 .MapFrom(s => s.Period))
             .ForMember(d => d.ClassificationName, opt => opt
                 .MapFrom(s => s.Classification.Name))
+            .ForMember(d => d.ClassificationId, opt => opt
+                .MapFrom(s=>s.IncomeExpenditureClassificationId))
             .ForMember(d => d.EndTime, opt => opt
                 .MapFrom(s => s.EndTime))
             .ForMember(d => d.Remaining, opt => opt
