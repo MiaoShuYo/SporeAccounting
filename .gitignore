@@ -1,16 +1,9 @@
 
-.vs/SporeAccounting/FileContentIndex/ec40521a-04bc-41f7-b513-195065924062.vsidx
-.vs/SporeAccounting/v17/.suo
-.vs/SporeAccounting/v17/DocumentLayout.json
-SporeAccounting/obj/Debug/net8.0/.NETCoreApp,Version=v8.0.AssemblyAttributes.cs
-SporeAccounting/obj/Debug/net8.0/SporeAccounting.AssemblyInfo.cs
-SporeAccounting/obj/Debug/net8.0/SporeAccounting.AssemblyInfoInputs.cache
-SporeAccounting/obj/Debug/net8.0/SporeAccounting.assets.cache
-SporeAccounting/obj/Debug/net8.0/SporeAccounting.csproj.AssemblyReference.cache
-SporeAccounting/obj/Debug/net8.0/SporeAccounting.GeneratedMSBuildEditorConfig.editorconfig
-SporeAccounting/obj/Debug/net8.0/SporeAccounting.GlobalUsings.g.cs
-SporeAccounting/obj/project.assets.json
-SporeAccounting/obj/project.nuget.cache
-SporeAccounting/obj/SporeAccounting.csproj.nuget.dgspec.json
-SporeAccounting/obj/SporeAccounting.csproj.nuget.g.props
-SporeAccounting/obj/SporeAccounting.csproj.nuget.g.targets
+.vs/
+/SporeAccounting/obj/
+/.idea
+*.suo
+*.user
+*.userprefs
+*.DS_Store
+/SporeAccounting/bin
