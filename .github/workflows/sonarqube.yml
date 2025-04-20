@@ -2,9 +2,9 @@ name: SonarQube Analysis
 
 on:
   push:
-    branches: [ main, develop ]
+    branches: [ main, Microservices, MonomerApplication ]
   pull_request:
-    branches: [ main, develop ]
+    branches: [ main, Microservices, MonomerApplication ]
 
 jobs:
   sonarqube:
