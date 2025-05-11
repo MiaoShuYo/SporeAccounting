@@ -5,3 +5,4 @@ SporeAccounting/bin/
 Test/bin/
 Test/obj/
 .idea/
+/.sonarqube
