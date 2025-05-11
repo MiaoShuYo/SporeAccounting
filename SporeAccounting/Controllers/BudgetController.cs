@@ -125,7 +125,12 @@ namespace SporeAccounting.Controllers
                 {
                     return Ok(new ResponseData<bool>(HttpStatusCode.Forbidden, "不是你的预算", false));
                 }
-                Budget budgetDb = _mapper.Map<Budget>(budget);
+                // 获取数据
+                Budget budgetDb = _budgetServer.QueryById(budget.Id);
+                budgetDb.Amount=budget.Amount;
+                budgetDb.UpdateDateTime = DateTime.Now;
+                budgetDb.UpdateUserId = userId;
+                budgetDb.IncomeExpenditureClassificationId = budget.ClassificationId;
                 _budgetServer.Update(budgetDb);
                 return Ok(new ResponseData<bool>(HttpStatusCode.OK, "修改成功", true));
             }
@@ -153,6 +158,40 @@ namespace SporeAccounting.Controllers
             catch (Exception e)
             {
                 return Ok(new ResponseData<List<BudgetViewModel>>(HttpStatusCode.InternalServerError, "查询失败"));
+            }
+        }
+
+        /// <summary>
+        /// 根据id查询预算
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
+        [HttpGet]
+        [Route("QueryById/{id}")]
+        public ActionResult<ResponseData<BudgetViewModel>> QueryById(string id)
+        {
+            try
+            {
+                // 预算是否存在
+                bool isExist = _budgetServer.IsExist(id);
+                if (!isExist)
+                {
+                    return Ok(new ResponseData<BudgetViewModel>(HttpStatusCode.NotFound, "预算不存在"));
+                }
+                // 预算是否是当前用户的
+                string userId = GetUserId();
+                bool isYou = _budgetServer.IsYou(id, userId);
+                if (!isYou)
+                {
+                    return Ok(new ResponseData<BudgetViewModel>(HttpStatusCode.Forbidden, "不是你的预算"));
+                }
+                Budget budget = _budgetServer.QueryById(id);
+                BudgetViewModel budgetViewModel = _mapper.Map<BudgetViewModel>(budget);
+                return Ok(new ResponseData<BudgetViewModel>(HttpStatusCode.OK, data: budgetViewModel));
+            }
+            catch (Exception e)
+            {
+                return Ok(new ResponseData<BudgetViewModel>(HttpStatusCode.InternalServerError, "查询失败"));
             }
         }
     }

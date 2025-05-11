@@ -210,6 +210,26 @@ public class IncomeExpenditureClassificationImp : IIncomeExpenditureClassificati
     }
 
     /// <summary>
+    /// 分类名字是否存在
+    /// </summary>
+    /// <param name="classificationName"></param>
+    /// <param name="userId"></param>
+    /// <param name="classificationId"></param>
+    /// <returns></returns>
+    public bool IsExist(string classificationName, string userId, string classificationId)
+    {
+        try
+        {
+            return _sporeAccountingDbContext.IncomeExpenditureClassifications
+                .Any(p => p.Name == classificationName && p.CreateUserId == userId && p.Id != classificationId);
+        }
+        catch (Exception e)
+        {
+            throw;
+        }
+    }
+    
+    /// <summary>
     /// 指定id的分类是否存在
     /// </summary>
     /// <param name="classificationId"></param>

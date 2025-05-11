@@ -95,9 +95,9 @@ namespace SporeAccounting.Controllers
         /// <param name="type"></param>
         /// <returns></returns>
         [HttpGet]
-        [Route("QueryByType")]
+        [Route("QueryByType/{type}")]
         public ActionResult<ResponseData<List<IncomeExpenditureClassificationInfoViewModel>>>
-            QueryByType([FromQuery] IncomeExpenditureTypeEnmu type)
+            QueryByType([FromRoute] IncomeExpenditureTypeEnmu type)
         {
             try
             {
@@ -265,7 +265,13 @@ namespace SporeAccounting.Controllers
                 {
                     return Ok(new ResponseData<bool>(HttpStatusCode.NotFound, $"分类不存在！", false));
                 }
-
+                // 是否重复
+                bool isExistName = _incomeExpenditureClassificationService.IsExist(classificationViewModel.Name, GetUserId(),classificationViewModel.Id);
+                if (isExistName)
+                {
+                    return Ok(new ResponseData<bool>(HttpStatusCode.Conflict,
+                        $"分类{classificationViewModel.Name}已存在！", false));
+                }
                 //判断类型是否和父级的类型一样
                 if (!string.IsNullOrEmpty(classificationViewModel.ParentClassificationId))
                 {

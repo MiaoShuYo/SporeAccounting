@@ -1,4 +1,5 @@
-﻿using SporeAccounting.Models;
+﻿using Microsoft.EntityFrameworkCore;
+using SporeAccounting.Models;
 using SporeAccounting.Server.Interface;
 
 namespace SporeAccounting.Server;
@@ -73,6 +74,7 @@ public class BudgetImp : IBudgetServer
             throw;
         }
     }
+
     /// <summary>
     /// 修改预算
     /// </summary>
@@ -99,13 +101,14 @@ public class BudgetImp : IBudgetServer
     {
         try
         {
-            return _sporeAccountingDbContext.Budgets.Where(b => b.UserId == userId).ToList();
+            return _sporeAccountingDbContext.Budgets.Include(p=>p.Classification).Where(b => b.UserId == userId).ToList();
         }
         catch (Exception e)
         {
             throw;
         }
     }
+
     /// <summary>
     /// 是否存在
     /// </summary>
@@ -122,6 +125,7 @@ public class BudgetImp : IBudgetServer
             throw;
         }
     }
+
     /// <summary>
     /// 是否是当前用户的
     /// </summary>
@@ -133,6 +137,32 @@ public class BudgetImp : IBudgetServer
         try
         {
             return _sporeAccountingDbContext.Budgets.Any(b => b.Id == id && b.UserId == userId);
+        }
+        catch (Exception e)
+        {
+            throw;
+        }
+    }
+
+    /// <summary>
+    /// 根据id查询预算
+    /// </summary>
+    /// <param name="id"></param>
+    /// <returns></returns>
+    /// <exception cref="NotImplementedException"></exception>
+    public Budget QueryById(string id)
+    {
+        try
+        {
+            var budget = _sporeAccountingDbContext.Budgets.FirstOrDefault(p => p.Id == id);
+            if (budget != null)
+            {
+                var classification = _sporeAccountingDbContext.IncomeExpenditureClassifications
+                    .FirstOrDefault(c => c.Id == budget.IncomeExpenditureClassificationId);
+                budget.Classification = classification;
+            }
+
+            return budget;
         }
         catch (Exception e)
         {
