@@ -6,3 +6,5 @@ Test/bin/
 Test/obj/
 .idea/
 /.sonarqube
+SP.IdentityService/obj/
+SP.IdentityService/bin/
