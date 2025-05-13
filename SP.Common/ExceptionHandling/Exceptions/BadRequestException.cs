@@ -1,6 +1,6 @@
 using System.Net;
 
-namespace SP.Common.ExceptionHandling
+namespace SP.Common.ExceptionHandling.Exceptions
 {
     /// <summary>
     /// 错误请求异常

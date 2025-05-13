@@ -16,11 +16,6 @@ namespace SP.Common.Redis
         public int DefaultDatabase { get; set; } = 0;
         
         /// <summary>
-        /// 连接池大小
-        /// </summary>
-        public int PoolSize { get; set; } = 50;
-        
-        /// <summary>
         /// 连接空闲超时时间(秒)
         /// </summary>
         public int ConnectionIdleTimeout { get; set; } = 180;

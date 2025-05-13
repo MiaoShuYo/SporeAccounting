@@ -16,5 +16,27 @@ namespace SP.Common.ExceptionHandling
         {
             return builder.UseMiddleware<ExceptionHandlingMiddleware>();
         }
+
+        /// <summary>
+        /// 启用请求缓冲，使请求体可以被多次读取
+        /// </summary>
+        /// <param name="builder">应用程序构建器</param>
+        /// <returns>应用程序构建器</returns>
+        public static IApplicationBuilder UseRequestBuffering(this IApplicationBuilder builder)
+        {
+            return builder.UseMiddleware<EnableRequestBufferingMiddleware>();
+        }
+
+        /// <summary>
+        /// 使用全局异常处理（包括请求缓冲）
+        /// </summary>
+        /// <param name="builder">应用程序构建器</param>
+        /// <returns>应用程序构建器</returns>
+        public static IApplicationBuilder UseFullExceptionHandling(this IApplicationBuilder builder)
+        {
+            return builder
+                .UseRequestBuffering()
+                .UseExceptionHandling();
+        }
     }
 } 

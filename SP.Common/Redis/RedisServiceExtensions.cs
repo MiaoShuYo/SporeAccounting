@@ -1,4 +1,4 @@
- using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace SP.Common.Redis
@@ -25,29 +25,26 @@ namespace SP.Common.Redis
                 // 将配置节点中的值绑定到options对象
                 if (redisSection["ConnectionString"] != null)
                     options.ConnectionString = redisSection["ConnectionString"];
-                
+
                 if (int.TryParse(redisSection["DefaultDatabase"], out int defaultDb))
                     options.DefaultDatabase = defaultDb;
-                
-                if (int.TryParse(redisSection["PoolSize"], out int poolSize))
-                    options.PoolSize = poolSize;
-                
+
                 if (int.TryParse(redisSection["ConnectionIdleTimeout"], out int idleTimeout))
                     options.ConnectionIdleTimeout = idleTimeout;
-                
+
                 if (int.TryParse(redisSection["ConnectTimeout"], out int connectTimeout))
                     options.ConnectTimeout = connectTimeout;
-                
+
                 if (int.TryParse(redisSection["DefaultExpireSeconds"], out int expireSeconds))
                     options.DefaultExpireSeconds = expireSeconds;
             });
-            
+
             // 注册Redis服务
             services.AddSingleton<IRedisService, RedisService>();
-            
+
             return services;
         }
-        
+
         /// <summary>
         /// 添加Redis服务
         /// </summary>
@@ -57,14 +54,11 @@ namespace SP.Common.Redis
         public static IServiceCollection AddRedisService(this IServiceCollection services, string connectionString)
         {
             // 注册RedisOptions
-            services.Configure<RedisOptions>(options =>
-            {
-                options.ConnectionString = connectionString;
-            });
-            
+            services.Configure<RedisOptions>(options => { options.ConnectionString = connectionString; });
+
             // 注册Redis服务
             services.AddSingleton<IRedisService, RedisService>();
-            
+
             return services;
         }
     }

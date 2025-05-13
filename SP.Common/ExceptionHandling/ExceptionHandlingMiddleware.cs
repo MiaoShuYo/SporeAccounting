@@ -2,6 +2,8 @@ using System.Net;
 using System.Text.Json;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
+using SP.Common.ExceptionHandling.Exceptions;
+using SP.Common.Logger;
 
 namespace SP.Common.ExceptionHandling
 {
@@ -12,16 +14,22 @@ namespace SP.Common.ExceptionHandling
     {
         private readonly RequestDelegate _next;
         private readonly ILogger<ExceptionHandlingMiddleware> _logger;
+        private readonly ILoggerService _loggerService;
 
         /// <summary>
         /// 构造函数
         /// </summary>
         /// <param name="next">请求委托</param>
         /// <param name="logger">日志记录器</param>
-        public ExceptionHandlingMiddleware(RequestDelegate next, ILogger<ExceptionHandlingMiddleware> logger)
+        /// <param name="loggerService">日志服务</param>
+        public ExceptionHandlingMiddleware(
+            RequestDelegate next, 
+            ILogger<ExceptionHandlingMiddleware> logger,
+            ILoggerService loggerService)
         {
             _next = next;
             _logger = logger;
+            _loggerService = loggerService;
         }
 
         /// <summary>
@@ -45,6 +53,9 @@ namespace SP.Common.ExceptionHandling
         {
             // 记录详细异常信息到日志
             _logger.LogError(exception, "处理请求时发生未处理的异常: {Message}", exception.Message);
+            
+            // 记录到Loki日志（包含更详细的信息）
+            LogExceptionToLoki(context, exception);
 
             // 设置响应内容类型
             context.Response.ContentType = "application/json";
@@ -122,6 +133,124 @@ namespace SP.Common.ExceptionHandling
 
             // 写入响应
             await context.Response.WriteAsync(jsonResponseDefault);
+        }
+
+        /// <summary>
+        /// 记录异常到Loki日志
+        /// </summary>
+        /// <param name="context">HTTP上下文</param>
+        /// <param name="exception">异常</param>
+        private void LogExceptionToLoki(HttpContext context, Exception exception)
+        {
+            try
+            {
+                // 收集请求信息
+                var request = context.Request;
+                var requestPath = request.Path;
+                var requestMethod = request.Method;
+                var requestQuery = request.QueryString.ToString();
+                var requestHeaders = SerializeHeaders(request.Headers);
+                string requestBody = "未捕获";
+
+                try
+                {
+                    // 如果请求是可重置的，尝试读取body
+                    if (request.Body.CanSeek)
+                    {
+                        var position = request.Body.Position;
+                        request.Body.Position = 0;
+                        using var reader = new StreamReader(request.Body, leaveOpen: true);
+                        requestBody = reader.ReadToEndAsync().GetAwaiter().GetResult();
+                        request.Body.Position = position;
+                    }
+                }
+                catch
+                {
+                    // 忽略读取请求体的错误
+                }
+
+                // 构建详细的日志消息
+                var errorLogModel = new
+                {
+                    RequestInfo = new
+                    {
+                        Url = requestPath,
+                        Method = requestMethod,
+                        QueryString = requestQuery,
+                        Headers = requestHeaders,
+                        Body = requestBody
+                    },
+                    ExceptionInfo = new
+                    {
+                        Message = exception.Message,
+                        ExceptionType = exception.GetType().FullName,
+                        StackTrace = exception.StackTrace,
+                        InnerException = exception.InnerException?.Message
+                    },
+                    User = GetUserInfo(context),
+                    Timestamp = DateTime.UtcNow
+                };
+
+                // 序列化为JSON以便于在Loki中查看
+                var errorLogJson = JsonSerializer.Serialize(errorLogModel, new JsonSerializerOptions
+                {
+                    WriteIndented = true,
+                    PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+                });
+
+                // 记录到Loki
+                _loggerService.LogError(exception, "处理请求发生异常: {ErrorDetails}", errorLogJson);
+            }
+            catch (Exception ex)
+            {
+                // 如果记录日志本身出错，使用标准日志记录
+                _logger.LogError(ex, "记录异常到Loki时发生错误");
+            }
+        }
+
+        /// <summary>
+        /// 序列化请求头
+        /// </summary>
+        /// <param name="headers">请求头集合</param>
+        /// <returns>序列化后的请求头</returns>
+        private Dictionary<string, string> SerializeHeaders(IHeaderDictionary headers)
+        {
+            var result = new Dictionary<string, string>();
+            foreach (var header in headers)
+            {
+                // 排除敏感信息，如Authorization、Cookie等
+                if (!header.Key.Equals("Authorization", StringComparison.OrdinalIgnoreCase) &&
+                    !header.Key.Equals("Cookie", StringComparison.OrdinalIgnoreCase))
+                {
+                    result[header.Key] = header.Value.ToString();
+                }
+            }
+            return result;
+        }
+
+        /// <summary>
+        /// 获取用户信息
+        /// </summary>
+        /// <param name="context">HTTP上下文</param>
+        /// <returns>用户信息</returns>
+        private object GetUserInfo(HttpContext context)
+        {
+            try
+            {
+                var userId = context.User?.Identity?.Name;
+                var isAuthenticated = context.User?.Identity?.IsAuthenticated ?? false;
+
+                return new
+                {
+                    UserId = userId,
+                    IsAuthenticated = isAuthenticated,
+                    IpAddress = context.Connection.RemoteIpAddress?.ToString()
+                };
+            }
+            catch
+            {
+                return new { IpAddress = context.Connection.RemoteIpAddress?.ToString() };
+            }
         }
     }
 } 
