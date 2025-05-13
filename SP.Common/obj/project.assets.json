@@ -283,15 +283,15 @@
           }
         }
       },
-      "Serilog/3.1.1": {
+      "Serilog/4.2.0": {
         "type": "package",
         "compile": {
-          "lib/net7.0/Serilog.dll": {
+          "lib/net8.0/Serilog.dll": {
             "related": ".xml"
           }
         },
         "runtime": {
-          "lib/net7.0/Serilog.dll": {
+          "lib/net8.0/Serilog.dll": {
             "related": ".xml"
           }
         }
@@ -443,7 +443,7 @@
           }
         }
       },
-      "Serilog.Sinks.Grafana.Loki/8.2.0": {
+      "Serilog.Sinks.Grafana.Loki/8.3.0": {
         "type": "package",
         "dependencies": {
           "Serilog": "2.12.0",
@@ -1035,10 +1035,10 @@
         "pipelines.sockets.unofficial.nuspec"
       ]
     },
-    "Serilog/3.1.1": {
-      "sha512": "P6G4/4Kt9bT635bhuwdXlJ2SCqqn2nhh4gqFqQueCOr9bK/e7W9ll/IoX1Ter948cV2Z/5+5v8pAfJYUISY03A==",
+    "Serilog/4.2.0": {
+      "sha512": "gmoWVOvKgbME8TYR+gwMf7osROiWAURterc6Rt2dQyX7wtjZYpqFiA/pY6ztjGQKKV62GGCyOcmtP1UKMHgSmA==",
       "type": "package",
-      "path": "serilog/3.1.1",
+      "path": "serilog/4.2.0",
       "files": [
         ".nupkg.metadata",
         ".signature.p7s",
@@ -1048,17 +1048,15 @@
         "lib/net462/Serilog.xml",
         "lib/net471/Serilog.dll",
         "lib/net471/Serilog.xml",
-        "lib/net5.0/Serilog.dll",
-        "lib/net5.0/Serilog.xml",
         "lib/net6.0/Serilog.dll",
         "lib/net6.0/Serilog.xml",
-        "lib/net7.0/Serilog.dll",
-        "lib/net7.0/Serilog.xml",
+        "lib/net8.0/Serilog.dll",
+        "lib/net8.0/Serilog.xml",
+        "lib/net9.0/Serilog.dll",
+        "lib/net9.0/Serilog.xml",
         "lib/netstandard2.0/Serilog.dll",
         "lib/netstandard2.0/Serilog.xml",
-        "lib/netstandard2.1/Serilog.dll",
-        "lib/netstandard2.1/Serilog.xml",
-        "serilog.3.1.1.nupkg.sha512",
+        "serilog.4.2.0.nupkg.sha512",
         "serilog.nuspec"
       ]
     },
@@ -1257,10 +1255,10 @@
         "serilog.sinks.file.nuspec"
       ]
     },
-    "Serilog.Sinks.Grafana.Loki/8.2.0": {
-      "sha512": "KP+a120QDlrArC4YocHsDQ5KwuQPpb4VK5IfNQ4OZfa6bwkytuQix49UK1HM5NQi0ItTlc2qJX5Z4iU1kBdtiQ==",
+    "Serilog.Sinks.Grafana.Loki/8.3.0": {
+      "sha512": "bHo/WvvtClr57onuYLz3h7CzTKe9z0kvLfzDJftzjkSo4jTyUrZH5rn4YXj/AsilKN4flJ8Psezza7mmWDELcA==",
       "type": "package",
-      "path": "serilog.sinks.grafana.loki/8.2.0",
+      "path": "serilog.sinks.grafana.loki/8.3.0",
       "files": [
         ".nupkg.metadata",
         ".signature.p7s",
@@ -1275,7 +1273,7 @@
         "lib/netstandard2.0/Serilog.Sinks.Grafana.Loki.dll",
         "lib/netstandard2.0/Serilog.Sinks.Grafana.Loki.xml",
         "serilog-sink-nuget.png",
-        "serilog.sinks.grafana.loki.8.2.0.nupkg.sha512",
+        "serilog.sinks.grafana.loki.8.3.0.nupkg.sha512",
         "serilog.sinks.grafana.loki.nuspec"
       ]
     },
@@ -1471,30 +1469,30 @@
       "Microsoft.Extensions.DependencyInjection.Abstractions >= 8.0.0",
       "Microsoft.Extensions.Logging.Abstractions >= 8.0.0",
       "Microsoft.Extensions.Options >= 8.0.2",
-      "Serilog >= 3.1.1",
+      "Serilog >= 4.2.0",
       "Serilog.AspNetCore >= 8.0.1",
-      "Serilog.Sinks.Grafana.Loki >= 8.2.0",
+      "Serilog.Sinks.Grafana.Loki >= 8.3.0",
       "StackExchange.Redis >= 2.7.33"
     ]
   },
   "packageFolders": {
-    "D:\\.nuget\\packages": {},
-    "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages": {}
+    "C:\\Users\\Administrator\\.nuget\\packages\\": {},
+    "d:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages": {}
   },
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "D:\\SporeAccounting\\SporeAccounting\\SP.Common\\SP.Common.csproj",
+      "projectUniqueName": "D:\\Project\\教学\\SporeAccounting\\SP.Common\\SP.Common.csproj",
       "projectName": "SP.Common",
-      "projectPath": "D:\\SporeAccounting\\SporeAccounting\\SP.Common\\SP.Common.csproj",
-      "packagesPath": "D:\\.nuget\\packages",
-      "outputPath": "D:\\SporeAccounting\\SporeAccounting\\SP.Common\\obj\\",
+      "projectPath": "D:\\Project\\教学\\SporeAccounting\\SP.Common\\SP.Common.csproj",
+      "packagesPath": "C:\\Users\\Administrator\\.nuget\\packages\\",
+      "outputPath": "D:\\Project\\教学\\SporeAccounting\\SP.Common\\obj\\",
       "projectStyle": "PackageReference",
       "fallbackFolders": [
-        "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
+        "d:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
       ],
       "configFilePaths": [
-        "C:\\Users\\Admin\\AppData\\Roaming\\NuGet\\NuGet.Config",
+        "C:\\Users\\Administrator\\AppData\\Roaming\\NuGet\\NuGet.Config",
         "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
         "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
       ],
@@ -1502,8 +1500,8 @@
         "net8.0"
       ],
       "sources": {
-        "http://192.168.1.251:9316/nuget": {},
-        "https://nuget.cdn.azure.cn/v3/index.json": {}
+        "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
+        "https://api.nuget.org/v3/index.json": {}
       },
       "frameworks": {
         "net8.0": {
@@ -1521,7 +1519,7 @@
         "auditLevel": "low",
         "auditMode": "direct"
       },
-      "SdkAnalysisLevel": "9.0.100"
+      "SdkAnalysisLevel": "9.0.200"
     },
     "frameworks": {
       "net8.0": {
@@ -1549,7 +1547,7 @@
           },
           "Serilog": {
             "target": "Package",
-            "version": "[3.1.1, )"
+            "version": "[4.2.0, )"
           },
           "Serilog.AspNetCore": {
             "target": "Package",
@@ -1557,7 +1555,7 @@
           },
           "Serilog.Sinks.Grafana.Loki": {
             "target": "Package",
-            "version": "[8.2.0, )"
+            "version": "[8.3.0, )"
           },
           "StackExchange.Redis": {
             "target": "Package",
@@ -1580,7 +1578,7 @@
             "privateAssets": "all"
           }
         },
-        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.101/PortableRuntimeIdentifierGraph.json"
+        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.203/PortableRuntimeIdentifierGraph.json"
       }
     }
   }

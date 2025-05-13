@@ -1,5 +1,9 @@
+using Microsoft.IdentityModel.Tokens;
 using Nacos.AspNetCore.V2;
+using OpenIddict.Validation.AspNetCore;
 using SP.Common.Redis;
+using SP.IdentityService.DB;
+using Microsoft.EntityFrameworkCore;
 
 namespace SP.IdentityService;
 
@@ -20,12 +24,19 @@ public class Program
         builder.Services.AddNacosAspNet(builder.Configuration);
         // 引入redis
         builder.Services.AddRedisService(builder.Configuration);
-        builder.Services.AddSingleton<IRedisService, RedisService>();
+        
+        // 注册DbContext，使用MySQL
+        builder.Services.AddDbContext<IdentityServerDbContext>(ServiceLifetime.Scoped);
+        builder.Services.AddOpenIddict(builder.Configuration);
+        //builder.Services.AddSingleton<IRedisService, RedisService>();
+        
         // Add services to the container.
         builder.Services.AddControllers();
         // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
         builder.Services.AddEndpointsApiExplorer();
         builder.Services.AddSwaggerGen();
+        
+       // builder.Services.AddHostedService<SeedData>();
 
         var app = builder.Build();
 
