@@ -1,4 +1,5 @@
-﻿using OpenIddict.Abstractions;
+﻿using Microsoft.AspNetCore.Identity;
+using OpenIddict.Abstractions;
 
 namespace SP.IdentityService.DB;
 
@@ -7,15 +8,14 @@ namespace SP.IdentityService.DB;
 /// </summary>
 public class SeedData: IHostedService
 {
-    private readonly IServiceProvider _serviceProvider;
-    
+    private readonly UserManager<IdentityUser> _userManager;
     /// <summary>
     /// 构造函数
     /// </summary>
-    /// <param name="serviceProvider"></param>
-    public SeedData(IServiceProvider serviceProvider)
+    /// <param name="userManager"></param>
+    public SeedData(UserManager<IdentityUser> userManager)
     {
-        _serviceProvider = serviceProvider;
+        _userManager = userManager;
     }
     
     /// <summary>
@@ -24,30 +24,14 @@ public class SeedData: IHostedService
     /// <param name="cancellationToken"></param>
     public async Task StartAsync(CancellationToken cancellationToken)
     {
-        using var scope = _serviceProvider.CreateScope();
-        var applicationManager = scope.ServiceProvider.GetRequiredService<IOpenIddictApplicationManager>();
-        
-        // 这是管理员Admin的客户端id
-        string clientId = "8E60948B-A27C-4335-AFC3-400C25E7CC2E";
-        // 检查是否存在指定的 client_id
-        if (await applicationManager.FindByClientIdAsync(clientId, cancellationToken) is null)
+        // 设置管理员账号
+        var adminUser = new IdentityUser
         {
-            var descriptor = new OpenIddictApplicationDescriptor
-            {
-                ClientId = clientId,
-                ClientSecret = "ZxOfk4T4ncFAjcGZIUvIKSszxXy7qFoN", // 设置密钥
-                DisplayName = "Admin管理员客户端",
-                Permissions =
-                {
-                    OpenIddictConstants.Permissions.Endpoints.Token,
-                    OpenIddictConstants.Permissions.GrantTypes.Password,           // 允许密码模式
-                    OpenIddictConstants.Permissions.GrantTypes.ClientCredentials,
-                    OpenIddictConstants.Permissions.Prefixes.Scope + "api"          // 允许访问的 API 作用域
-                }
-            };
-
-            await applicationManager.CreateAsync(descriptor, cancellationToken);
-        }
+            UserName = "admin",
+            Email = "admin@SporeAccounting.com",
+            EmailConfirmed = true,
+        };
+        await _userManager.CreateAsync(adminUser, "123*asdasd");
     }
 
     public Task StopAsync(CancellationToken cancellationToken) => Task.CompletedTask;

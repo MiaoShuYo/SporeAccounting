@@ -12,8 +12,8 @@ using SP.IdentityService.DB;
 namespace SP.IdentityService.Migrations
 {
     [DbContext(typeof(IdentityServerDbContext))]
-    [Migration("20250513174834_InitialMigration")]
-    partial class InitialMigration
+    [Migration("20250514055529_InitIdentity")]
+    partial class InitIdentity
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
