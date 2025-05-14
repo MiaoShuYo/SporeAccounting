@@ -1,4 +1,3 @@
-
 .vs/
 SporeAccounting/obj/
 SporeAccounting/bin/
@@ -8,5 +7,5 @@ Test/obj/
 /.sonarqube
 SP.IdentityService/obj/
 SP.IdentityService/bin/
-/SP.Common/obj
-/SP.Common/obj
+SP.Common/obj/
+SP.Common/bin/
