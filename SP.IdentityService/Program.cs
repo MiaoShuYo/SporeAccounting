@@ -1,6 +1,5 @@
-using Microsoft.IdentityModel.Tokens;
+using Microsoft.AspNetCore.Identity;
 using Nacos.AspNetCore.V2;
-using OpenIddict.Validation.AspNetCore;
 using SP.Common.Redis;
 using SP.IdentityService.DB;
 using Microsoft.EntityFrameworkCore;
@@ -27,8 +26,28 @@ public class Program
         
         // 注册DbContext，使用MySQL
         builder.Services.AddDbContext<IdentityServerDbContext>(ServiceLifetime.Scoped);
+        
+        // 添加ASP.NET Core Identity服务
+        builder.Services.AddIdentity<IdentityUser, IdentityRole>(options =>
+        {
+            // 密码策略配置
+            options.Password.RequireDigit = true;
+            options.Password.RequireLowercase = true;
+            options.Password.RequireUppercase = false;
+            options.Password.RequireNonAlphanumeric = false;
+            options.Password.RequiredLength = 6;
+            
+            // 锁定设置
+            options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(5);
+            options.Lockout.MaxFailedAccessAttempts = 5;
+            options.Lockout.AllowedForNewUsers = true;
+            
+            // 用户设置
+            options.User.RequireUniqueEmail = true;
+        }).AddEntityFrameworkStores<IdentityServerDbContext>()
+        .AddDefaultTokenProviders();
+        
         builder.Services.AddOpenIddict(builder.Configuration);
-        //builder.Services.AddSingleton<IRedisService, RedisService>();
         
         // Add services to the container.
         builder.Services.AddControllers();
@@ -36,7 +55,7 @@ public class Program
         builder.Services.AddEndpointsApiExplorer();
         builder.Services.AddSwaggerGen();
         
-       // builder.Services.AddHostedService<SeedData>();
+        //builder.Services.AddHostedService<SeedData>();
 
         var app = builder.Build();
 
@@ -48,7 +67,9 @@ public class Program
         }
 
         app.UseHttpsRedirection();
-
+        
+        // 添加认证中间件
+        app.UseAuthentication();
         app.UseAuthorization();
 
         app.MapControllers();

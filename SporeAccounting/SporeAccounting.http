@@ -1,6 +1,0 @@
-@SporeAccounting_HostAddress = http://localhost:3721
-
-GET {{SporeAccounting_HostAddress}}/weatherforecast/
-Accept: application/json
-
-###
