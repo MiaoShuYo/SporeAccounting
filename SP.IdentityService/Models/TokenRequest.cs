@@ -38,4 +38,10 @@ public class TokenRequest
     /// </summary>
     [JsonPropertyName("client_id")]
     public string ClientId { get; set; } = string.Empty;
+    
+    /// <summary>
+    /// 刷新令牌
+    /// </summary>
+    [JsonPropertyName("refresh_token")]
+    public string RefreshToken { get; set; } = string.Empty;
 }

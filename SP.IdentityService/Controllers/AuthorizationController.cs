@@ -36,8 +36,16 @@ public class AuthorizationController : ControllerBase
     ///     POST /connect/token
     ///     Content-Type: application/x-www-form-urlencoded
     ///     
-    ///     grant_type=password&amp;username=admin&amp;password=123*asdasd&amp;scope=api
+    ///     grant_type=password&amp;username=admin&amp;password=123*asdasd&amp;scope=api offline_access
     ///
+    ///     或者刷新令牌:
+    ///     
+    ///     grant_type=refresh_token&amp;refresh_token=YOUR_REFRESH_TOKEN&amp;scope=api
+    ///
+    /// 注意：
+    /// 1. 必须使用表单（form-data）方式提交，Content-Type为application/x-www-form-urlencoded
+    /// 2. 不要将参数放在URL查询字符串中
+    /// 3. 在刷新令牌模式下，refresh_token必须放在请求体中，不能放在URL中
     /// </remarks>
     /// <returns>返回访问令牌信息</returns>
     /// <response code="200">返回访问令牌</response>
@@ -51,13 +59,23 @@ public class AuthorizationController : ControllerBase
     [ProducesResponseType(StatusCodes.Status403Forbidden)]
     public async Task<IActionResult> Token()
     {
+        // 检查是否通过查询参数传递敏感信息
+        if (Request.Query.Count > 0 && (Request.Query.ContainsKey("refresh_token") || Request.Query.ContainsKey("password")))
+        {
+            return BadRequest(new
+            {
+                error = "invalid_request",
+                error_description = "不要在URL中包含敏感信息(refresh_token/password)，请使用表单提交方式"
+            });
+        }
+        
         var request = HttpContext.GetOpenIddictServerRequest();
         if (request == null)
         {
             return BadRequest(new 
             { 
                 error = "invalid_request",
-                error_description = "请求格式不正确" 
+                error_description = "请求格式不正确，请使用表单(application/x-www-form-urlencoded)提交" 
             });
         }
         
@@ -131,10 +149,139 @@ public class AuthorizationController : ControllerBase
 
             // 创建 ClaimsPrincipal，并设置请求的范围
             var principal = new ClaimsPrincipal(identity);
-            principal.SetScopes(request.GetScopes());
+            
+            // 正确设置范围
+            var requestedScopes = request.GetScopes();
+            if (requestedScopes.Any())
+            {
+                // 验证范围是否有效
+                var validScopes = new[] { "api", OpenIddictConstants.Scopes.OfflineAccess };
+                var filteredScopes = requestedScopes.Intersect(validScopes).ToList();
+                
+                if (filteredScopes.Any())
+                {
+                    principal.SetScopes(filteredScopes);
+                }
+                else
+                {
+                    // 如果没有有效范围，默认设置为 api
+                    principal.SetScopes("api");
+                }
+            }
+            else
+            {
+                // 默认设置为 api
+                principal.SetScopes("api");
+            }
+            
+            // 设置资源
+            principal.SetResources("api");
+            
+            // 允许刷新令牌
+            principal.SetRefreshTokenLifetime(TimeSpan.FromDays(14));
+            principal.SetAccessTokenLifetime(TimeSpan.FromMinutes(30));
 
             // 确保 SignIn 方法只在授权端点调用
             return SignIn(principal, OpenIddictServerAspNetCoreDefaults.AuthenticationScheme);
+        }
+        
+        // 处理刷新令牌
+        if (request.IsRefreshTokenGrantType())
+        {
+            // 从 request 上下文中获取之前存储的身份验证票据
+            var principal = (await HttpContext.AuthenticateAsync(OpenIddictServerAspNetCoreDefaults.AuthenticationScheme))?.Principal;
+            
+            if (principal == null)
+            {
+                return Forbid(
+                    authenticationSchemes: OpenIddictServerAspNetCoreDefaults.AuthenticationScheme,
+                    properties: new AuthenticationProperties(new Dictionary<string, string?>
+                    {
+                        [OpenIddictServerAspNetCoreConstants.Properties.Error] = OpenIddictConstants.Errors.InvalidGrant,
+                        [OpenIddictServerAspNetCoreConstants.Properties.ErrorDescription] = "提供的刷新令牌无效或已过期。"
+                    }));
+            }
+            
+            // 检索用户身份
+            var userId = principal.GetClaim(OpenIddictConstants.Claims.Subject);
+            var user = await _userManager.FindByIdAsync(userId);
+            
+            if (user == null)
+            {
+                return Forbid(
+                    authenticationSchemes: OpenIddictServerAspNetCoreDefaults.AuthenticationScheme,
+                    properties: new AuthenticationProperties(new Dictionary<string, string?>
+                    {
+                        [OpenIddictServerAspNetCoreConstants.Properties.Error] = OpenIddictConstants.Errors.InvalidGrant,
+                        [OpenIddictServerAspNetCoreConstants.Properties.ErrorDescription] = "用户不存在。"
+                    }));
+            }
+
+            // 如果用户被禁用或锁定，返回错误
+            if (!await _userManager.IsEmailConfirmedAsync(user) || await _userManager.IsLockedOutAsync(user))
+            {
+                return Forbid(
+                    authenticationSchemes: OpenIddictServerAspNetCoreDefaults.AuthenticationScheme,
+                    properties: new AuthenticationProperties(new Dictionary<string, string?>
+                    {
+                        [OpenIddictServerAspNetCoreConstants.Properties.Error] = OpenIddictConstants.Errors.InvalidGrant,
+                        [OpenIddictServerAspNetCoreConstants.Properties.ErrorDescription] = "用户被禁用或锁定。"
+                    }));
+            }
+
+            // 创建新的ClaimsPrincipal
+            var identity = new ClaimsIdentity(OpenIddictServerAspNetCoreDefaults.AuthenticationScheme);
+            identity.AddClaim(OpenIddictConstants.Claims.Subject, await _userManager.GetUserIdAsync(user));
+            identity.AddClaim(OpenIddictConstants.Claims.Name, user.UserName);
+            identity.AddClaim(OpenIddictConstants.Claims.Email, user.Email);
+            identity.AddClaim(OpenIddictConstants.Claims.Audience, "api");
+
+            // 添加角色声明
+            foreach (var role in await _userManager.GetRolesAsync(user))
+            {
+                identity.AddClaim(ClaimTypes.Role, role);
+            }
+
+            var newPrincipal = new ClaimsPrincipal(identity);
+            
+            // 正确设置范围
+            var requestedScopes = request.GetScopes();
+            if (requestedScopes.Any())
+            {
+                // 验证范围是否有效
+                var validScopes = new[] { "api", OpenIddictConstants.Scopes.OfflineAccess };
+                var filteredScopes = requestedScopes.Intersect(validScopes).ToList();
+                
+                if (filteredScopes.Any())
+                {
+                    newPrincipal.SetScopes(filteredScopes);
+                }
+                else
+                {
+                    // 如果没有有效范围，默认设置为 api
+                    newPrincipal.SetScopes("api");
+                }
+            }
+            else
+            {
+                // 默认设置为 api
+                newPrincipal.SetScopes("api");
+                
+                // 如果原始令牌有离线访问范围，保留它
+                if (principal.HasScope(OpenIddictConstants.Scopes.OfflineAccess))
+                {
+                    newPrincipal.SetScopes(OpenIddictConstants.Scopes.OfflineAccess);
+                }
+            }
+            
+            // 设置资源
+            newPrincipal.SetResources("api");
+            
+            // 设置令牌生命周期
+            newPrincipal.SetRefreshTokenLifetime(TimeSpan.FromDays(14));
+            newPrincipal.SetAccessTokenLifetime(TimeSpan.FromMinutes(30));
+
+            return SignIn(newPrincipal, OpenIddictServerAspNetCoreDefaults.AuthenticationScheme);
         }
 
         // 处理客户端凭证模式
@@ -144,9 +291,36 @@ public class AuthorizationController : ControllerBase
             var identity = new ClaimsIdentity(OpenIddictServerAspNetCoreDefaults.AuthenticationScheme);
             identity.AddClaim(OpenIddictConstants.Claims.Subject,
                 request.ClientId ?? throw new InvalidOperationException());
-            identity.AddClaim(OpenIddictConstants.Claims.Audience, string.Join(",", request.GetScopes()));
+            identity.AddClaim(OpenIddictConstants.Claims.Audience, "api");
+            
             var principal = new ClaimsPrincipal(identity);
-            principal.SetScopes(request.GetScopes());
+            
+            // 正确设置范围
+            var requestedScopes = request.GetScopes();
+            if (requestedScopes.Any())
+            {
+                // 验证范围是否有效
+                var validScopes = new[] { "api" };
+                var filteredScopes = requestedScopes.Intersect(validScopes).ToList();
+                
+                if (filteredScopes.Any())
+                {
+                    principal.SetScopes(filteredScopes);
+                }
+                else
+                {
+                    // 如果没有有效范围，默认设置为 api
+                    principal.SetScopes("api");
+                }
+            }
+            else
+            {
+                // 默认设置为 api
+                principal.SetScopes("api");
+            }
+            
+            // 设置资源
+            principal.SetResources("api");
 
             // 确保 SignIn 方法只在授权端点调用
             return SignIn(principal, OpenIddictServerAspNetCoreDefaults.AuthenticationScheme);

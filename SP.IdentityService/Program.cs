@@ -78,7 +78,8 @@ public class Program
                         TokenUrl = new Uri("/connect/token", UriKind.Relative),
                         Scopes = new Dictionary<string, string>
                         {
-                            { "api", "API访问权限" }
+                            { "api", "API访问权限" },
+                            { "offline_access", "获取刷新令牌" }
                         }
                     }
                 }
