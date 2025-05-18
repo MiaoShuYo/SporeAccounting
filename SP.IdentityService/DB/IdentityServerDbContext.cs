@@ -1,13 +1,15 @@
 ﻿using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using SP.Common;
+using SP.IdentityService.Models;
 
 namespace SP.IdentityService.DB;
 
 /// <summary>
 /// IdentityServer数据库上下文
 /// </summary>
-public class IdentityServerDbContext : DbContext
+public class IdentityServerDbContext : IdentityDbContext<SpUser, SpRole, long>
 {
     /// <summary>
     /// 数据库连接配置
@@ -32,40 +34,7 @@ public class IdentityServerDbContext : DbContext
         base.OnModelCreating(modelBuilder);
         // 配置 OpenIddict
         modelBuilder.UseOpenIddict();
-        // 配置 IdentityUserRole<long> 的主键
-        modelBuilder.Entity<IdentityUserRole<long>>()
-            .HasKey(ur => new { ur.UserId, ur.RoleId });
-        // 配置表名
-        modelBuilder.Entity<IdentityUser<long>>().ToTable("IdentityUsers");
-        modelBuilder.Entity<IdentityRole<long>>().ToTable("IdentityRoles");
-        modelBuilder.Entity<IdentityUserRole<long>>().ToTable("IdentityUserRoles");
-        // 创建管理员账号
-        var adminUser = new IdentityUser<long>
-        {
-            Id = Snow.GetId(),
-            UserName = "admin",
-            NormalizedUserName = "ADMIN",
-            Email = "1234567890@qq.com"
-        };
-        // 创建管理员角色
-        var adminRole = new IdentityRole<long>
-        {
-            Id = Snow.GetId(),
-            Name = "admin",
-            NormalizedName = "ADMIN"
-        };
-        // 设置管理员账号密码
-        var passwordHasher = new PasswordHasher<IdentityUser<long>>();
-        adminUser.PasswordHash = passwordHasher.HashPassword(adminUser, "123*asdasd");
-        // 设置管理员的管理员角色
-        IdentityUserRole<long> userRole = new IdentityUserRole<long>
-        {
-            UserId = adminUser.Id,
-            RoleId = adminRole.Id
-        };
-        modelBuilder.Entity<IdentityUser<long>>().HasData(adminUser);
-        modelBuilder.Entity<IdentityRole<long>>().HasData(adminRole);
-        modelBuilder.Entity<IdentityUserRole<long>>().HasData(userRole);
+        SeedData(modelBuilder);
     }
 
     /// <summary>
@@ -76,5 +45,35 @@ public class IdentityServerDbContext : DbContext
     {
         var serverVersion = ServerVersion.AutoDetect(_dbConfig.GetConnectionString("MySQLConnection"));
         optionsBuilder.UseMySql(_dbConfig.GetConnectionString("MySQLConnection"), serverVersion);
+    }
+
+    private void SeedData(ModelBuilder builder)
+    {
+        // 添加默认角色
+        SpRole adminRole = new SpRole { Id = Snow.GetId(), Name = "Admin", NormalizedName = "ADMIN" };
+        SpRole userRole = new SpRole { Id = Snow.GetId(), Name = "User", NormalizedName = "USER" };
+        builder.Entity<SpRole>().HasData(adminRole,userRole);
+
+        // 添加默认用户
+        var hasher = new PasswordHasher<SpUser>();
+        SpUser adminUser = new SpUser
+        {
+            Id = Snow.GetId(),
+            UserName = "admin",
+            NormalizedUserName = "admin",
+            Email = "494324190@qq.com",
+            NormalizedEmail = "494324190@qq.com",
+            EmailConfirmed = true,
+            PasswordHash = hasher.HashPassword(null, "123*asdasd")
+        };
+        builder.Entity<SpUser>().HasData(adminUser);
+        // 添加用户角色
+        builder.Entity<IdentityUserRole<long>>().HasData(
+            new IdentityUserRole<long>
+            {
+                UserId = adminUser.Id,
+                RoleId = adminRole.Id
+            }
+        );
     }
 }

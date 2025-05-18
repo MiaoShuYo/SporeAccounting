@@ -5,6 +5,8 @@ using Nacos.V2.DependencyInjection;
 using Serilog;
 using SP.Common.Redis;
 using SP.IdentityService.DB;
+using SP.IdentityService.Models;
+using Microsoft.OpenApi.Models;
 
 namespace SP.IdentityService;
 
@@ -30,7 +32,7 @@ public class Program
         builder.Services.AddDbContext<IdentityServerDbContext>(ServiceLifetime.Scoped);
 
         // 添加ASP.NET Core Identity服务
-        builder.Services.AddIdentity<IdentityUser, IdentityRole>(options =>
+        builder.Services.AddIdentity<SpUser, SpRole>(options =>
             {
                 // 密码策略配置
                 options.Password.RequireDigit = true;
@@ -50,9 +52,54 @@ public class Program
             .AddDefaultTokenProviders();
 
         builder.Services.AddOpenIddict(builder.Configuration);
-
-
+        
         builder.Services.AddSwaggerGen();
+        builder.Services.AddSwaggerGen(c =>
+        {
+            c.SwaggerDoc("v1", new() { Title = "SP.IdentityService", Version = "v1" });
+            c.OperationFilter<SwaggerTokenRequestFilter>();
+            
+            // 添加XML文档
+            var xmlFile = $"{System.Reflection.Assembly.GetExecutingAssembly().GetName().Name}.xml";
+            var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
+            if (File.Exists(xmlPath))
+            {
+                c.IncludeXmlComments(xmlPath);
+            }
+            
+            // 添加安全定义
+            c.AddSecurityDefinition("oauth2", new OpenApiSecurityScheme
+            {
+                Type = SecuritySchemeType.OAuth2,
+                Flows = new OpenApiOAuthFlows
+                {
+                    Password = new OpenApiOAuthFlow
+                    {
+                        TokenUrl = new Uri("/connect/token", UriKind.Relative),
+                        Scopes = new Dictionary<string, string>
+                        {
+                            { "api", "API访问权限" }
+                        }
+                    }
+                }
+            });
+            
+            // 应用安全要求
+            c.AddSecurityRequirement(new OpenApiSecurityRequirement
+            {
+                {
+                    new OpenApiSecurityScheme
+                    {
+                        Reference = new OpenApiReference
+                        {
+                            Type = ReferenceType.SecurityScheme,
+                            Id = "oauth2"
+                        }
+                    },
+                    new[] { "api" }
+                }
+            });
+        });
 
         var app = builder.Build();
         
@@ -61,9 +108,12 @@ public class Program
         {
             app.UseSwagger();
             app.UseSwaggerUI();
+            app.UseDeveloperExceptionPage();
         }
 
         app.UseHttpsRedirection();
+
+        app.UseRouting();
 
         // 添加认证中间件
         app.UseAuthentication();

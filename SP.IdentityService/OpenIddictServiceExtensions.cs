@@ -1,4 +1,4 @@
-﻿using Microsoft.IdentityModel.Tokens;
+using Microsoft.IdentityModel.Tokens;
 using OpenIddict.Validation.AspNetCore;
 using SP.IdentityService.DB;
 
@@ -29,7 +29,7 @@ public static class OpenIddictServiceExtensions
             .AddServer(options =>
             {
                 // 设置令牌端点
-                options.SetTokenEndpointUris("/connect/token");
+                options.SetTokenEndpointUris("connect/token");
 
                 // 启用密码模式
                 options.AllowPasswordFlow() // 开启密码模式
@@ -46,11 +46,14 @@ public static class OpenIddictServiceExtensions
                         Convert.FromBase64String(signingKey)));
                 options.AddEncryptionKey(
                     new SymmetricSecurityKey(Convert.FromBase64String(encryptionKey)));
+                        
+                // 允许接收表单数据
+                options.AcceptAnonymousClients();
+                
                 // 集成 ASP.NET Core
                 options.UseAspNetCore()
-                    .EnableAuthorizationEndpointPassthrough()
                     .EnableTokenEndpointPassthrough()
-                    .DisableTransportSecurityRequirement(); // 开发模式下金庸HTTPS
+                    .DisableTransportSecurityRequirement(); // 开发模式下禁用HTTPS
             })
             .AddValidation(options =>
             {

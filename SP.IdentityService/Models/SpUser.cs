@@ -1,6 +1,8 @@
-﻿namespace SP.IdentityService.Models;
+﻿using Microsoft.AspNetCore.Identity;
 
-public class SpUser
+namespace SP.IdentityService.Models;
+
+public class SpUser:IdentityUser<long>
 {
     
 }
