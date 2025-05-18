@@ -34,7 +34,7 @@ public static class OpenIddictServiceExtensions
 
                 // 启用密码模式
                 options.AllowPasswordFlow() // 开启密码模式
-                    .AllowClientCredentialsFlow()
+                    .AllowClientCredentialsFlow() // 开启客户端令牌模式
                     .AllowRefreshTokenFlow(); // 开启刷新令牌
 
                 // 注册授权范围

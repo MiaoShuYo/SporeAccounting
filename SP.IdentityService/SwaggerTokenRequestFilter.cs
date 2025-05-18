@@ -27,7 +27,7 @@ public class SwaggerTokenRequestFilter: IOperationFilter
                             {
                                 ["grant_type"] = new OpenApiSchema { 
                                     Type = "string", 
-                                    Description = "授权类型，支持 password、refresh_token", 
+                                    Description = "授权类型，支持 password、refresh_token、client_credentials", 
                                     Example = new OpenApiString("password") 
                                 },
                                 ["username"] = new OpenApiSchema { 

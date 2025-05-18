@@ -3,6 +3,7 @@ using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.IdentityModel.Tokens;
 using OpenIddict.Abstractions;
 using OpenIddict.Server.AspNetCore;
 using SP.IdentityService.Models;
@@ -18,13 +19,16 @@ public class AuthorizationController : ControllerBase
 {
     private readonly UserManager<SpUser> _userManager;
     private readonly SignInManager<SpUser> _signInManager;
+    private readonly IOpenIddictApplicationManager _applicationManager;
 
     public AuthorizationController(
         UserManager<SpUser> userManager,
-        SignInManager<SpUser> signInManager)
+        SignInManager<SpUser> signInManager,
+        IOpenIddictApplicationManager applicationManager)
     {
         _userManager = userManager;
         _signInManager = signInManager;
+        _applicationManager = applicationManager;
     }
 
     /// <summary>
@@ -41,11 +45,16 @@ public class AuthorizationController : ControllerBase
     ///     或者刷新令牌:
     ///     
     ///     grant_type=refresh_token&amp;refresh_token=YOUR_REFRESH_TOKEN&amp;scope=api
+    ///     
+    ///     或者客户端凭证模式:
+    ///     
+    ///     grant_type=client_credentials&amp;client_id=YOUR_CLIENT_ID&amp;client_secret=YOUR_CLIENT_SECRET&amp;scope=api
     ///
     /// 注意：
     /// 1. 必须使用表单（form-data）方式提交，Content-Type为application/x-www-form-urlencoded
     /// 2. 不要将参数放在URL查询字符串中
     /// 3. 在刷新令牌模式下，refresh_token必须放在请求体中，不能放在URL中
+    /// 4. 客户端凭证模式适用于服务器到服务器的API调用，不关联特定用户
     /// </remarks>
     /// <returns>返回访问令牌信息</returns>
     /// <response code="200">返回访问令牌</response>
@@ -287,11 +296,30 @@ public class AuthorizationController : ControllerBase
         // 处理客户端凭证模式
         if (request.IsClientCredentialsGrantType())
         {
-            // 客户端凭证模式下，客户端身份已由 OpenIddict 验证器验证，直接使用 client_id 作为主题标识
-            var identity = new ClaimsIdentity(OpenIddictServerAspNetCoreDefaults.AuthenticationScheme);
-            identity.AddClaim(OpenIddictConstants.Claims.Subject,
-                request.ClientId ?? throw new InvalidOperationException());
-            identity.AddClaim(OpenIddictConstants.Claims.Audience, "api");
+            var application = await _applicationManager.FindByClientIdAsync(request.ClientId) ??
+                              throw new InvalidOperationException("The application cannot be found.");
+
+            // 创建一个新的ClaimsIdentity，包含将用于创建id_token、token或code的声明。
+            var identity = new ClaimsIdentity(TokenValidationParameters.DefaultAuthenticationType, OpenIddictConstants.Claims.Name, OpenIddictConstants.Claims.Role);
+
+            // 使用client_id作为主体标识符。
+            identity.SetClaim(OpenIddictConstants.Claims.Subject, await _applicationManager.GetClientIdAsync(application));
+            identity.SetClaim(OpenIddictConstants.Claims.Name, await _applicationManager.GetDisplayNameAsync(application));
+            
+            // 添加受众声明
+            identity.SetClaim(OpenIddictConstants.Claims.Audience, "api");
+
+            // 设置声明的目标
+            identity.SetDestinations(static claim => claim.Type switch
+            {
+                // 当授予"profile"范围时（通过调用principal.SetScopes(...)），
+                // 允许"name"声明同时存储在访问令牌和身份令牌中。
+                OpenIddictConstants.Claims.Name when claim.Subject.HasScope(OpenIddictConstants.Permissions.Scopes.Profile)
+                    => [OpenIddictConstants.Destinations.AccessToken, OpenIddictConstants.Destinations.IdentityToken],
+
+                // 否则，仅将声明存储在访问令牌中。
+                _ => [OpenIddictConstants.Destinations.AccessToken]
+            });
             
             var principal = new ClaimsPrincipal(identity);
             
@@ -321,8 +349,10 @@ public class AuthorizationController : ControllerBase
             
             // 设置资源
             principal.SetResources("api");
+            
+            // 设置令牌生命周期
+            principal.SetAccessTokenLifetime(TimeSpan.FromHours(1)); // 客户端凭证默认1小时有效期
 
-            // 确保 SignIn 方法只在授权端点调用
             return SignIn(principal, OpenIddictServerAspNetCoreDefaults.AuthenticationScheme);
         }
 
