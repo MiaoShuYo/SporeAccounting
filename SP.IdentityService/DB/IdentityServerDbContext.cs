@@ -2,7 +2,7 @@
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using SP.Common;
-using SP.IdentityService.Models;
+using SP.IdentityService.Models.Entity;
 
 namespace SP.IdentityService.DB;
 
@@ -34,6 +34,21 @@ public class IdentityServerDbContext : IdentityDbContext<SpUser, SpRole, long>
         base.OnModelCreating(modelBuilder);
         // 配置 OpenIddict
         modelBuilder.UseOpenIddict();
+        // 修改Users表
+        modelBuilder.Entity<SpUser>(b =>
+        {
+            b.Property(x => x.UserName).IsRequired().HasMaxLength(50);
+            b.Property(x => x.Email).HasMaxLength(100);
+            b.Property(x => x.LockoutEnd);
+            b.Property(x => x.PasswordHash).IsRequired();
+            b.Ignore(x => x.NormalizedUserName);
+            b.Ignore(x => x.NormalizedEmail);
+            b.Ignore(x => x.SecurityStamp);
+            b.Ignore(x => x.ConcurrencyStamp);
+            b.Ignore(x => x.TwoFactorEnabled);
+            b.Ignore(x => x.PhoneNumberConfirmed);
+            b.Ignore(x => x.AccessFailedCount);
+        });
         SeedData(modelBuilder);
     }
 
@@ -60,9 +75,7 @@ public class IdentityServerDbContext : IdentityDbContext<SpUser, SpRole, long>
         {
             Id = Snow.GetId(),
             UserName = "admin",
-            NormalizedUserName = "admin",
             Email = "494324190@qq.com",
-            NormalizedEmail = "494324190@qq.com",
             EmailConfirmed = true,
             PasswordHash = hasher.HashPassword(null, "123*asdasd")
         };

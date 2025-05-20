@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using SP.IdentityService.DB;
 
@@ -11,9 +12,11 @@ using SP.IdentityService.DB;
 namespace SP.IdentityService.Migrations
 {
     [DbContext(typeof(IdentityServerDbContext))]
-    partial class IdentityServerDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250520163041_UpdateUser")]
+    partial class UpdateUser
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -108,8 +111,8 @@ namespace SP.IdentityService.Migrations
                     b.HasData(
                         new
                         {
-                            UserId = 7330631755529146368L,
-                            RoleId = 7330631755352985600L
+                            UserId = 7330631046540775424L,
+                            RoleId = 7330631046373003264L
                         });
                 });
 
@@ -371,13 +374,13 @@ namespace SP.IdentityService.Migrations
                     b.HasData(
                         new
                         {
-                            Id = 7330631755352985600L,
+                            Id = 7330631046373003264L,
                             Name = "Admin",
                             NormalizedName = "ADMIN"
                         },
                         new
                         {
-                            Id = 7330631755436871680L,
+                            Id = 7330631046456889344L,
                             Name = "User",
                             NormalizedName = "USER"
                         });
@@ -405,7 +408,6 @@ namespace SP.IdentityService.Migrations
                         .HasColumnType("datetime(6)");
 
                     b.Property<string>("PasswordHash")
-                        .IsRequired()
                         .HasColumnType("longtext");
 
                     b.Property<string>("PhoneNumber")
@@ -423,11 +425,11 @@ namespace SP.IdentityService.Migrations
                     b.HasData(
                         new
                         {
-                            Id = 7330631755529146368L,
+                            Id = 7330631046540775424L,
                             Email = "494324190@qq.com",
                             EmailConfirmed = true,
                             LockoutEnabled = false,
-                            PasswordHash = "AQAAAAIAAYagAAAAEFTPgTimW6lHZm0UL0Z2o9xoXrZ7ipXhB/FREgdGrYQrBeNZTfJu8QYqPJ9DSxzByw==",
+                            PasswordHash = "AQAAAAIAAYagAAAAELE+SgCI2AJD8EdSLXhRSYI4BLNeGZk4SYKDP+tWFKr4QhuGGooZSw9knR3roTaMaw==",
                             UserName = "admin"
                         });
                 });

@@ -1,12 +1,12 @@
 using Microsoft.AspNetCore.Identity;
 using Nacos.AspNetCore.V2;
-using Nacos.V2;
 using Nacos.V2.DependencyInjection;
-using Serilog;
 using SP.Common.Redis;
 using SP.IdentityService.DB;
-using SP.IdentityService.Models;
+using SP.IdentityService.Models.Entity;
 using Microsoft.OpenApi.Models;
+using SP.IdentityService.Service;
+using SP.IdentityService.Service.Impl;
 
 namespace SP.IdentityService;
 
@@ -19,7 +19,7 @@ public class Program
         builder.Services.AddControllers();
         // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
         builder.Services.AddEndpointsApiExplorer();
-        
+
         // 添加Nacos服务注册
         builder.Services.AddNacosAspNet(builder.Configuration);
         // 添加Nacos配置中心
@@ -51,14 +51,16 @@ public class Program
             }).AddEntityFrameworkStores<IdentityServerDbContext>()
             .AddDefaultTokenProviders();
 
+        builder.Services.AddScoped<IUserService, UserServiceImpl>();
+
         builder.Services.AddOpenIddict(builder.Configuration);
-        
+
         builder.Services.AddSwaggerGen();
         builder.Services.AddSwaggerGen(c =>
         {
             c.SwaggerDoc("v1", new() { Title = "SP.IdentityService", Version = "v1" });
             c.OperationFilter<SwaggerTokenRequestFilter>();
-            
+
             // 添加XML文档
             var xmlFile = $"{System.Reflection.Assembly.GetExecutingAssembly().GetName().Name}.xml";
             var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
@@ -66,7 +68,7 @@ public class Program
             {
                 c.IncludeXmlComments(xmlPath);
             }
-            
+
             // 添加安全定义
             c.AddSecurityDefinition("oauth2", new OpenApiSecurityScheme
             {
@@ -84,7 +86,7 @@ public class Program
                     }
                 }
             });
-            
+
             // 应用安全要求
             c.AddSecurityRequirement(new OpenApiSecurityRequirement
             {
@@ -103,7 +105,7 @@ public class Program
         });
 
         var app = builder.Build();
-        
+
         // Configure the HTTP request pipeline.
         if (app.Environment.IsDevelopment())
         {
