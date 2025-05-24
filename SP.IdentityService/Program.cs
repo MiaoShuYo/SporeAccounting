@@ -5,6 +5,9 @@ using SP.Common.Redis;
 using SP.IdentityService.DB;
 using SP.IdentityService.Models.Entity;
 using Microsoft.OpenApi.Models;
+using SP.Common.ConfigService;
+using SP.Common.Message.Mq;
+using SP.Common.Message.Email;
 using SP.IdentityService.Service;
 using SP.IdentityService.Service.Impl;
 
@@ -50,8 +53,6 @@ public class Program
                 options.User.RequireUniqueEmail = true;
             }).AddEntityFrameworkStores<IdentityServerDbContext>()
             .AddDefaultTokenProviders();
-
-        builder.Services.AddScoped<IUserService, UserServiceImpl>();
 
         builder.Services.AddOpenIddict(builder.Configuration);
 
@@ -102,6 +103,16 @@ public class Program
                     new[] { "api" }
                 }
             });
+        });
+
+        builder.Services.AddScoped<IAuthorizationService, AuthorizationServiceImpl>();
+        builder.Services.AddScoped<RabbitMqMessage>();
+        builder.Services.AddSingleton<EmailConfigService>();
+        builder.Services.AddSingleton<RabbitMqConfigService>();
+        builder.Services.AddScoped(provider =>
+        {
+            var configService = provider.GetRequiredService<EmailConfigService>();
+            return new EmailMessage(configService.GetEmailConfig());
         });
 
         var app = builder.Build();

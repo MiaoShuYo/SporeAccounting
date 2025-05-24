@@ -8,7 +8,7 @@ namespace SP.IdentityService.Service;
 /// <summary>
 /// 用户服务接口
 /// </summary>
-public interface IUserService
+public interface IAuthorizationService
 {
     /// <summary>
     /// 密码登录

@@ -16,7 +16,7 @@ using SP.IdentityService.Models.Request;
 
 namespace SP.IdentityService.Service.Impl;
 
-public class UserServiceImpl : IUserService
+public class AuthorizationServiceImpl : IAuthorizationService
 {
     /// <summary>
     /// 用户管理器
@@ -51,7 +51,7 @@ public class UserServiceImpl : IUserService
     /// <param name="applicationManager"></param>
     /// <param name="rabbitMqMessage"></param>
     /// <param name="redis"></param>
-    public UserServiceImpl(UserManager<SpUser> userManager,
+    public AuthorizationServiceImpl(UserManager<SpUser> userManager,
         SignInManager<SpUser> signInManager,
         IOpenIddictApplicationManager applicationManager, RabbitMqMessage rabbitMqMessage,
         IRedisService redis)

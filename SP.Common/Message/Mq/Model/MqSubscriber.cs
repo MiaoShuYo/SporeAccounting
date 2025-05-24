@@ -1,4 +1,4 @@
-﻿namespace SP.Common.Message.Model.Mq;
+﻿namespace SP.Common.Message.Mq.Model;
 
 /// <summary>
 /// mq订阅者类

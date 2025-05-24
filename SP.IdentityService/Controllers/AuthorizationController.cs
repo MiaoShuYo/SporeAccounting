@@ -2,11 +2,13 @@ using System.Security.Claims;
 using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.Data;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
 using OpenIddict.Abstractions;
 using OpenIddict.Server.AspNetCore;
 using SP.Common.ExceptionHandling.Exceptions;
+using SP.Common.Message.Model;
 using SP.IdentityService.Models.Entity;
 using SP.IdentityService.Models.Request;
 using SP.IdentityService.Service;
@@ -20,20 +22,15 @@ namespace SP.IdentityService.Controllers;
 [ApiController]
 public class AuthorizationController : ControllerBase
 {
-    private readonly UserManager<SpUser> _userManager;
-    private readonly SignInManager<SpUser> _signInManager;
-    private readonly IOpenIddictApplicationManager _applicationManager;
-    private readonly IUserService _userService;
+    private readonly IAuthorizationService _authorizationService;
 
-    public AuthorizationController(
-        UserManager<SpUser> userManager,
-        SignInManager<SpUser> signInManager,
-        IOpenIddictApplicationManager applicationManager, IUserService userService)
+    /// <summary>
+    /// 授权控制器构造函数
+    /// </summary>
+    /// <param name="authorizationService"></param>
+    public AuthorizationController(IAuthorizationService authorizationService)
     {
-        _userManager = userManager;
-        _signInManager = signInManager;
-        _applicationManager = applicationManager;
-        _userService = userService;
+        _authorizationService = authorizationService;
     }
 
     /// <summary>
@@ -96,7 +93,7 @@ public class AuthorizationController : ControllerBase
             }
 
             var principal =
-                await _userService.LoginByPasswordAsync(request.Username, request.Password, request.GetScopes());
+                await _authorizationService.LoginByPasswordAsync(request.Username, request.Password, request.GetScopes());
             // 确保 SignIn 方法只在授权端点调用
             return SignIn(principal, OpenIddictServerAspNetCoreDefaults.AuthenticationScheme);
         }
@@ -110,7 +107,7 @@ public class AuthorizationController : ControllerBase
                 ?.Principal;
 
             var newPrincipal =
-                await _userService.RefreshTokenAsync(request.RefreshToken, request.GetScopes(), principal);
+                await _authorizationService.RefreshTokenAsync(request.RefreshToken, request.GetScopes(), principal);
 
             return SignIn(newPrincipal, OpenIddictServerAspNetCoreDefaults.AuthenticationScheme);
         }
@@ -123,8 +120,9 @@ public class AuthorizationController : ControllerBase
             {
                 throw new BusinessException("client_id不能为空");
             }
+
             var principal =
-                await _userService.HandleClientCredentialsAsync(clientId, request.GetScopes());
+                await _authorizationService.HandleClientCredentialsAsync(clientId, request.GetScopes());
             return SignIn(principal, OpenIddictServerAspNetCoreDefaults.AuthenticationScheme);
         }
 
@@ -143,7 +141,47 @@ public class AuthorizationController : ControllerBase
     [HttpPost("register")]
     public async Task<ActionResult<long>> Register([FromBody] UserAddRequest user)
     {
-        var result = await _userService.AddUserAsync(user);
+        var result = await _authorizationService.AddUserAsync(user);
         return Ok(result);
+    }
+
+    /// <summary>
+    /// 发送邮件
+    /// </summary>
+    /// <param name="email"></param>
+    [HttpPost("sendEmail")]
+    public async Task<ActionResult> SendEmail([FromBody] SendEmailRequest email)
+    {
+        await _authorizationService.SendEmailAsync(email);
+        return Ok();
+    }
+
+    /// <summary>
+    /// 添加邮箱
+    /// </summary>
+    /// <param name="verifyCode"></param>
+    [HttpPost("verifyCode")]
+    public async Task<ActionResult> AddEmail([FromBody] VerifyCodeRequest verifyCode)
+    {
+        await _authorizationService.AddEmailAsync(verifyCode);
+        return Ok();
+    }
+
+    /// <summary>
+    /// 重置密码
+    /// </summary>
+    /// <param name="resetPasswordRequest"></param>
+    [HttpPost("resetPassword")]
+    public async Task<ActionResult> ResetPassword([FromBody] ResetPasswordRequest resetPasswordRequest)
+    {
+        if (resetPasswordRequest == null || string.IsNullOrEmpty(resetPasswordRequest.Email) ||
+            string.IsNullOrEmpty(resetPasswordRequest.ResetCode) ||
+            string.IsNullOrEmpty(resetPasswordRequest.NewPassword))
+        {
+            throw new BadRequestException("请求参数不完整");
+        }
+
+        await _authorizationService.ResetPasswordAsync(resetPasswordRequest);
+        return Ok();
     }
 }

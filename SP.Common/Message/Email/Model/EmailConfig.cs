@@ -1,4 +1,4 @@
-﻿namespace SP.Common.Message.Model;
+﻿namespace SP.Common.Message.Email.Model;
 
 /// <summary>
 /// 邮件配置类

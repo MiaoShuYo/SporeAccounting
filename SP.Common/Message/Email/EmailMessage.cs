@@ -1,8 +1,8 @@
 ﻿using System.Net;
 using System.Net.Mail;
-using SP.Common.Message.Model;
+using SP.Common.Message.Email.Model;
 
-namespace SP.Common.Message;
+namespace SP.Common.Message.Email;
 
 /// <summary>
 /// 邮件发送类
@@ -23,9 +23,9 @@ public class EmailMessage
     /// <summary>
     /// 发送邮件
     /// </summary>
-    /// <param name="email"></param>
-    /// <param name="subject"></param>
-    /// <param name="content"></param>
+    /// <param name="email">邮箱</param>
+    /// <param name="subject">主题</param>
+    /// <param name="content">内容</param>
     /// <returns></returns>
     public async Task<bool> SendEmailAsync(string email, string subject, string content)
     {

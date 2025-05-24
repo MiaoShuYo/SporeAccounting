@@ -3,7 +3,7 @@
 /// <summary>
 /// 生成验证码类
 /// </summary>
-public static class CodeGenerator
+public static class CodeGeneratorCommon
 {
     /// <summary>
     /// 生成{length}位数字验证码

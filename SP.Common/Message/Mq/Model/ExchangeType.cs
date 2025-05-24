@@ -1,4 +1,4 @@
-﻿namespace SP.Common.Message.Model.Mq;
+﻿namespace SP.Common.Message.Mq.Model;
 
 /// <summary>
 /// 消息交换机类型

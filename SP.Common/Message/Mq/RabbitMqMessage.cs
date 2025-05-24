@@ -3,9 +3,9 @@ using Microsoft.Extensions.Logging;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 using SP.Common.ExceptionHandling.Exceptions;
-using SP.Common.Message.Model.Mq;
+using SP.Common.Message.Mq.Model;
 
-namespace SP.Common.Message;
+namespace SP.Common.Message.Mq;
 
 /// <summary>
 /// RabbitMQ消息类
@@ -99,7 +99,7 @@ public class RabbitMqMessage
     /// <param name="onReceived"></param>
     /// <returns></returns>
     /// <remarks></remarks>
-    public async Task ReceiveAsync(MqSubscriber subscriber, Func<string, Task> onReceived)
+    public async Task ReceiveAsync(MqSubscriber subscriber, Func<MqMessage, Task> onReceived)
     {
         // 检查参数
         if (subscriber == null)
@@ -145,7 +145,7 @@ public class RabbitMqMessage
                     $"RabbitMQ消息接收开始：\r\n消息id：{mqMessage.Id}\r\n队列：{subscriber.Queue}\r\n" +
                     $"\r\n交换机：{subscriber.Exchange}\r\n路由键：{subscriber.RoutingKey}\r\n消息体：{mqMessage.Body}" +
                     $"\r\n消息类型：{mqMessage.Type}");
-                await onReceived(message);
+                await onReceived(mqMessage);
                 await channel.BasicAckAsync(deliveryTag: ea.DeliveryTag, multiple: false);
             }
             catch (Exception ex)
