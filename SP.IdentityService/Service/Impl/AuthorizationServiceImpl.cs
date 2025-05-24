@@ -1,13 +1,16 @@
 ﻿using System.Collections.Immutable;
 using System.Security.Claims;
-using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.Data;
 using Microsoft.Build.Exceptions;
 using Microsoft.IdentityModel.Tokens;
 using OpenIddict.Abstractions;
 using OpenIddict.Server.AspNetCore;
 using SP.Common;
 using SP.Common.ExceptionHandling.Exceptions;
+using SP.Common.Message.Mq;
+using SP.Common.Message.Mq.Model;
+using SP.Common.Redis;
 using SP.IdentityService.Models.Entity;
 using SP.IdentityService.Models.Request;
 
@@ -30,13 +33,34 @@ public class UserServiceImpl : IUserService
     /// </summary>
     private readonly IOpenIddictApplicationManager _applicationManager;
 
+    /// <summary>
+    /// RabbitMQ消息服务
+    /// </summary>
+    private readonly RabbitMqMessage _rabbitMqMessage;
+
+    /// <summary>
+    /// Redis服务
+    /// </summary>
+    private readonly IRedisService _redis;
+
+    /// <summary>
+    /// 用户服务构造函数
+    /// </summary>
+    /// <param name="userManager"></param>
+    /// <param name="signInManager"></param>
+    /// <param name="applicationManager"></param>
+    /// <param name="rabbitMqMessage"></param>
+    /// <param name="redis"></param>
     public UserServiceImpl(UserManager<SpUser> userManager,
         SignInManager<SpUser> signInManager,
-        IOpenIddictApplicationManager applicationManager)
+        IOpenIddictApplicationManager applicationManager, RabbitMqMessage rabbitMqMessage,
+        IRedisService redis)
     {
         _userManager = userManager;
         _signInManager = signInManager;
         _applicationManager = applicationManager;
+        _rabbitMqMessage = rabbitMqMessage;
+        _redis = redis;
     }
 
     /// <summary>
@@ -288,5 +312,104 @@ public class UserServiceImpl : IUserService
         }
 
         throw new Exception(string.Join(",", result.Errors.Select(e => e.Description)));
+    }
+
+    /// <summary>
+    /// 发送邮件
+    /// </summary>
+    /// <param name="email">邮箱</param>
+    /// <returns></returns>
+    public async Task SendEmailAsync(SendEmailRequest email)
+    {
+        MqPublisher publisher = new MqPublisher(email.Email,
+            "message",
+            "email",
+            "email",
+            email.MessageType,
+            ExchangeType.Direct);
+        await _rabbitMqMessage.SendAsync(publisher);
+    }
+
+    /// <summary>
+    /// 添加邮箱
+    /// </summary>
+    /// <param name="verifyCode"></param>
+    /// <exception cref="BusinessException"></exception>
+    /// <exception cref="Exception"></exception>
+    public async Task AddEmailAsync(VerifyCodeRequest verifyCode)
+    {
+        // 从Redis中获取验证码
+        var code = await _redis.GetStringAsync(verifyCode.Email);
+        if (string.IsNullOrEmpty(code))
+        {
+            throw new BusinessException("验证码已过期或不存在");
+        }
+
+        // 验证验证码
+        if (code != verifyCode.Code.Trim())
+        {
+            throw new BusinessException("验证码错误");
+        }
+
+        // 验证通过后，更新用户的邮箱验证状态
+        var user = await _userManager.FindByEmailAsync(verifyCode.Email);
+        if (user == null)
+        {
+            throw new BusinessException("用户不存在");
+        }
+
+        user.EmailConfirmed = true;
+        user.Email = verifyCode.Email;
+        var result = await _userManager.UpdateAsync(user);
+        if (!result.Succeeded)
+        {
+            throw new Exception(string.Join(",", result.Errors.Select(e => e.Description)));
+        }
+
+        // 删除Redis中的验证码
+        await _redis.RemoveAsync(verifyCode.Email);
+    }
+
+    /// <summary>
+    /// 重置密码
+    /// </summary>
+    /// <param name="resetPasswordRequest"></param>
+    /// <returns></returns>
+    public Task ResetPasswordAsync(ResetPasswordRequest resetPasswordRequest)
+    {
+        // 从Redis中获取验证码
+        return _redis.GetStringAsync(resetPasswordRequest.Email).ContinueWith(async task =>
+        {
+            var code = task.Result;
+            if (string.IsNullOrEmpty(code))
+            {
+                throw new BusinessException("验证码已过期或不存在");
+            }
+
+            // 验证验证码
+            if (code != resetPasswordRequest.ResetCode.Trim())
+            {
+                throw new BusinessException("验证码错误");
+            }
+
+            // 验证通过后，重置用户密码
+            var user = await _userManager.FindByEmailAsync(resetPasswordRequest.Email);
+            if (user == null)
+            {
+                throw new BusinessException("用户不存在");
+            }
+
+            var hasher = new PasswordHasher<SpUser>();
+            string passwordHash = hasher.HashPassword(user, resetPasswordRequest.NewPassword);
+            user.PasswordHash = passwordHash;
+            var result = await _userManager.UpdateAsync(user);
+            if (!result.Succeeded)
+            {
+                throw new Exception(string.Join(",", result.Errors.Select(e => e.Description)));
+            }
+
+            // 删除Redis中的验证码
+            await _redis.RemoveAsync(resetPasswordRequest.Email);
+        });
     }
 }

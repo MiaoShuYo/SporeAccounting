@@ -1,5 +1,6 @@
 ﻿using System.Collections.Immutable;
 using System.Security.Claims;
+using Microsoft.AspNetCore.Identity.Data;
 using SP.IdentityService.Models.Request;
 
 namespace SP.IdentityService.Service;
@@ -42,4 +43,25 @@ public interface IUserService
     /// <param name="user">用户添加请求</param>
     /// <returns>用户id</returns>
     Task<long> AddUserAsync(UserAddRequest user);
+
+    /// <summary>
+    /// 发送邮件
+    /// </summary>
+    /// <param name="email"></param>
+    /// <returns>是否发送成功</returns>
+    Task SendEmailAsync(SendEmailRequest email);
+
+    /// <summary>
+    /// 添加邮箱
+    /// </summary>
+    /// <param name="verifyCode"></param>
+    /// <returns></returns>
+    Task AddEmailAsync(VerifyCodeRequest verifyCode);
+
+    /// <summary>
+    /// 重置密码
+    /// </summary>
+    /// <param name="resetPasswordRequest"></param>
+    /// <returns></returns>
+    Task ResetPasswordAsync(ResetPasswordRequest resetPasswordRequest);
 }
