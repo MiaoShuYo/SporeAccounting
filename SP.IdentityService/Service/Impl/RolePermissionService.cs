@@ -1,7 +1,7 @@
 ﻿using System.Security.Claims;
 using Microsoft.AspNetCore.Identity;
 
-namespace SP.Common.IdentityService.Impl;
+namespace SP.IdentityService.Impl;
 
 public class RolePermissionService : IRolePermissionService
 {

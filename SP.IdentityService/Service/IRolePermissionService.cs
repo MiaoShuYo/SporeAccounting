@@ -1,4 +1,4 @@
-﻿namespace SP.Common.IdentityService;
+﻿namespace SP.IdentityService;
 
 /// <summary>
 /// 角色权限服务接口

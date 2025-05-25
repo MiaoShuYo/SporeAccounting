@@ -8,6 +8,7 @@ using Microsoft.OpenApi.Models;
 using SP.Common.ConfigService;
 using SP.Common.Message.Mq;
 using SP.Common.Message.Email;
+using SP.IdentityService.Impl;
 using SP.IdentityService.Service;
 using SP.IdentityService.Service.Impl;
 
@@ -106,6 +107,9 @@ public class Program
         });
 
         builder.Services.AddScoped<IAuthorizationService, AuthorizationServiceImpl>();
+        builder.Services.AddScoped<IUserService, UserServiceImpl>();
+        builder.Services.AddScoped<IRolePermissionService, RolePermissionService>();
+        builder.Services.AddScoped<IRoleService, RoleServiceImpl>();
         builder.Services.AddScoped<RabbitMqMessage>();
         builder.Services.AddSingleton<EmailConfigService>();
         builder.Services.AddSingleton<RabbitMqConfigService>();
