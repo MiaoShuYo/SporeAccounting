@@ -93,7 +93,8 @@ public class AuthorizationController : ControllerBase
             }
 
             var principal =
-                await _authorizationService.LoginByPasswordAsync(request.Username, request.Password, request.GetScopes());
+                await _authorizationService.LoginByPasswordAsync(request.Username, request.Password,
+                    request.GetScopes());
             // 确保 SignIn 方法只在授权端点调用
             return SignIn(principal, OpenIddictServerAspNetCoreDefaults.AuthenticationScheme);
         }
@@ -149,7 +150,7 @@ public class AuthorizationController : ControllerBase
     /// 发送邮件
     /// </summary>
     /// <param name="email"></param>
-    [HttpPost("sendEmail")]
+    [HttpPost("emails/send")]
     public async Task<ActionResult> SendEmail([FromBody] SendEmailRequest email)
     {
         await _authorizationService.SendEmailAsync(email);
@@ -157,11 +158,11 @@ public class AuthorizationController : ControllerBase
     }
 
     /// <summary>
-    /// 添加邮箱
+    /// 绑定邮箱
     /// </summary>
     /// <param name="verifyCode"></param>
-    [HttpPost("verifyCode")]
-    public async Task<ActionResult> AddEmail([FromBody] VerifyCodeRequest verifyCode)
+    [HttpPost("email/bind")]
+    public async Task<ActionResult> BindEmail([FromBody] VerifyCodeRequest verifyCode)
     {
         await _authorizationService.AddEmailAsync(verifyCode);
         return Ok();
@@ -171,7 +172,7 @@ public class AuthorizationController : ControllerBase
     /// 重置密码
     /// </summary>
     /// <param name="resetPasswordRequest"></param>
-    [HttpPost("resetPassword")]
+    [HttpPut("password/reset")]
     public async Task<ActionResult> ResetPassword([FromBody] ResetPasswordRequest resetPasswordRequest)
     {
         if (resetPasswordRequest == null || string.IsNullOrEmpty(resetPasswordRequest.Email) ||

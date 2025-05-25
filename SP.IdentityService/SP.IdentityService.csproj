@@ -28,8 +28,4 @@
     <ItemGroup>
       <ProjectReference Include="..\SP.Common\SP.Common.csproj" />
     </ItemGroup>
-
-    <ItemGroup>
-      <Folder Include="Models\Response\" />
-    </ItemGroup>
 </Project>
