@@ -19,7 +19,7 @@ public class RabbitMqConfigService
         _configuration = configuration;
     }
     
-    public RabbitMqConfig GetEmailConfig()
+    public RabbitMqConfig GetRabbitMqConfig()
     {
         var rabbitMqConfig = new RabbitMqConfig();
         _configuration.GetSection("RabbitMQConfig").Bind(rabbitMqConfig);

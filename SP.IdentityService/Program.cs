@@ -110,13 +110,18 @@ public class Program
         builder.Services.AddScoped<IUserService, UserServiceImpl>();
         builder.Services.AddScoped<IRolePermissionService, RolePermissionService>();
         builder.Services.AddScoped<IRoleService, RoleServiceImpl>();
-        builder.Services.AddScoped<RabbitMqMessage>();
         builder.Services.AddSingleton<EmailConfigService>();
         builder.Services.AddSingleton<RabbitMqConfigService>();
         builder.Services.AddScoped(provider =>
         {
             var configService = provider.GetRequiredService<EmailConfigService>();
             return new EmailMessage(configService.GetEmailConfig());
+        });
+        builder.Services.AddScoped<RabbitMqMessage>(provider =>
+        {
+            var configService = provider.GetRequiredService<RabbitMqConfigService>();
+            var logger = provider.GetRequiredService<ILogger<RabbitMqMessage>>();
+            return new RabbitMqMessage(logger, configService.GetRabbitMqConfig());
         });
 
         var app = builder.Build();

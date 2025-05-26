@@ -1,14 +1,15 @@
 ﻿using System.Security.Claims;
 using Microsoft.AspNetCore.Identity;
+using SP.IdentityService.Models.Entity;
 
 namespace SP.IdentityService.Impl;
 
 public class RolePermissionService : IRolePermissionService
 {
-    private readonly RoleManager<IdentityRole> _roleManager;
-    private readonly UserManager<IdentityUser> _userManager;
+    private readonly RoleManager<SpRole> _roleManager;
+    private readonly UserManager<SpUser> _userManager;
 
-    public RolePermissionService(RoleManager<IdentityRole> roleManager, UserManager<IdentityUser> userManager)
+    public RolePermissionService(RoleManager<SpRole> roleManager, UserManager<SpUser> userManager)
     {
         _roleManager = roleManager;
         _userManager = userManager;
