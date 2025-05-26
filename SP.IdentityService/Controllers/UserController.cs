@@ -28,7 +28,7 @@ public class UserController : ControllerBase
     /// </summary>
     /// <param name="id">用户id</param>
     /// <returns></returns>
-    [HttpGet]
+    [HttpGet("{id}")]
     public async Task<ActionResult<UserResponse>> GetUserInfo([FromRoute] long id)
     {
         var result = await _userService.GetUserInfo(id);
@@ -52,7 +52,7 @@ public class UserController : ControllerBase
     /// </summary>
     /// <param name="id">用户id</param>
     /// <returns></returns>
-    [HttpDelete]
+    [HttpDelete("{id}")]
     public async Task<ActionResult> DeleteUser([FromRoute] long id)
     {
         await _userService.DeleteUser(id);
@@ -65,7 +65,7 @@ public class UserController : ControllerBase
     /// <param name="id">用户id</param>
     /// <param name="isDisabled">是否禁用</param>
     /// <returns></returns>
-    [HttpPut]
+    [HttpPut("{id}/disable")]
     public async Task<ActionResult> DisableUser([FromRoute] long id, [FromBody] bool isDisabled)
     {
         await _userService.DisableUser(id, isDisabled);
@@ -78,7 +78,7 @@ public class UserController : ControllerBase
     /// <param name="id">用户id</param>
     /// <param name="user">用户信息</param>
     /// <returns></returns>
-    [HttpPut]
+    [HttpPut("{id}")]
     public async Task<ActionResult> UpdateUser([FromRoute] long id, [FromBody] UserUpdateRequest user)
     {
         await _userService.UpdateUser(id, user);
