@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using SP.IdentityService.DB;
 
@@ -11,9 +12,11 @@ using SP.IdentityService.DB;
 namespace SP.IdentityService.Migrations
 {
     [DbContext(typeof(IdentityServerDbContext))]
-    partial class IdentityServerDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250527153156_DisableNormalizedFields")]
+    partial class DisableNormalizedFields
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -108,8 +111,8 @@ namespace SP.IdentityService.Migrations
                     b.HasData(
                         new
                         {
-                            UserId = 7333155174099406848L,
-                            RoleId = 7333155173923246080L
+                            UserId = 7333152990150479872L,
+                            RoleId = 7333152989991096320L
                         });
                 });
 
@@ -371,13 +374,13 @@ namespace SP.IdentityService.Migrations
                     b.HasData(
                         new
                         {
-                            Id = 7333155173923246080L,
+                            Id = 7333152989991096320L,
                             Name = "Admin",
                             NormalizedName = "ADMIN"
                         },
                         new
                         {
-                            Id = 7333155174015520768L,
+                            Id = 7333152990070788096L,
                             Name = "User",
                             NormalizedName = "USER"
                         });
@@ -426,12 +429,12 @@ namespace SP.IdentityService.Migrations
                     b.HasData(
                         new
                         {
-                            Id = 7333155174099406848L,
+                            Id = 7333152990150479872L,
                             Email = "494324190@qq.com",
                             EmailConfirmed = true,
                             IsDeleted = false,
                             LockoutEnabled = false,
-                            PasswordHash = "AQAAAAIAAYagAAAAELkxVNU3bTyoz+vBllYqLJT/PXhI4RL1PFa7o2848F32K0MrmB3sYzo83rghpERNvA==",
+                            PasswordHash = "AQAAAAIAAYagAAAAEH/pr/p6ORI9dPZOQNYaRBUQJAckfeZGTDKsFaL4TyHN5u8iFRjc0djVhYtAsBJUEA==",
                             UserName = "admin"
                         });
                 });

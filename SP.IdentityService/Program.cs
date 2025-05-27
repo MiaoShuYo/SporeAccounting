@@ -11,6 +11,7 @@ using SP.Common.Message.Email;
 using SP.IdentityService.Impl;
 using SP.IdentityService.Service;
 using SP.IdentityService.Service.Impl;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 
 namespace SP.IdentityService;
 
@@ -50,10 +51,15 @@ public class Program
                 options.Lockout.MaxFailedAccessAttempts = 5;
                 options.Lockout.AllowedForNewUsers = true;
 
-                // 用户设置
-                options.User.RequireUniqueEmail = true;
-            }).AddEntityFrameworkStores<IdentityServerDbContext>()
+                // 禁用用户名和邮箱规范化
+                options.User.RequireUniqueEmail = false;
+                options.User.AllowedUserNameCharacters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-._@+";
+            })
+            .AddEntityFrameworkStores<IdentityServerDbContext>()
             .AddDefaultTokenProviders();
+
+        // 替换默认的 UserStore
+        builder.Services.AddScoped<IUserStore<SpUser>, SPUserStore>();
 
         builder.Services.AddOpenIddict(builder.Configuration);
 
