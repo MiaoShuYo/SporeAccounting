@@ -11,6 +11,7 @@ using SP.Common.ExceptionHandling.Exceptions;
 using SP.Common.Message.Mq;
 using SP.Common.Message.Mq.Model;
 using SP.Common.Redis;
+using SP.IdentityService.DB;
 using SP.IdentityService.Models.Entity;
 using SP.IdentityService.Models.Request;
 
@@ -43,6 +44,8 @@ public class AuthorizationServiceImpl : IAuthorizationService
     /// </summary>
     private readonly IRedisService _redis;
 
+    private readonly IdentityServerDbContext _dbContext;
+
     /// <summary>
     /// 用户服务构造函数
     /// </summary>
@@ -51,16 +54,18 @@ public class AuthorizationServiceImpl : IAuthorizationService
     /// <param name="applicationManager"></param>
     /// <param name="rabbitMqMessage"></param>
     /// <param name="redis"></param>
+    /// <param name="dbContext"></param>
     public AuthorizationServiceImpl(UserManager<SpUser> userManager,
         SignInManager<SpUser> signInManager,
         IOpenIddictApplicationManager applicationManager, RabbitMqMessage rabbitMqMessage,
-        IRedisService redis)
+        IRedisService redis, IdentityServerDbContext dbContext)
     {
         _userManager = userManager;
         _signInManager = signInManager;
         _applicationManager = applicationManager;
         _rabbitMqMessage = rabbitMqMessage;
         _redis = redis;
+        _dbContext = dbContext;
     }
 
     /// <summary>
@@ -297,21 +302,44 @@ public class AuthorizationServiceImpl : IAuthorizationService
     /// <returns>用户id</returns>
     public async Task<long> AddUserAsync(UserAddRequest user)
     {
+        // 检查userName是否存在
+        var existingUser = await _userManager.FindByNameAsync(user.UserName);
+        if (existingUser != null)
+        {
+            throw new BusinessException("用户名已存在");
+        }
         // 创建用户
         var newUser = new SpUser
         {
             Id = Snow.GetId(),
             UserName = user.UserName,
         };
-        var hasher = new PasswordHasher<SpUser>();
-        string passwordHash = hasher.HashPassword(newUser, user.Password);
-        IdentityResult result = await _userManager.CreateAsync(newUser, passwordHash);
-        if (result.Succeeded)
+        using var transaction = _dbContext.Database.BeginTransaction();
+        try
         {
-            return newUser.Id;
-        }
+            var hasher = new PasswordHasher<SpUser>();
+            string passwordHash = hasher.HashPassword(newUser, user.Password);
+            IdentityResult result = await _userManager.CreateAsync(newUser, passwordHash);
+            if (result.Succeeded)
+            {
+                var roleResult = await _userManager.AddToRoleAsync(newUser, "User");
+                if (!roleResult.Succeeded)
+                {
+                    await _userManager.DeleteAsync(newUser);
+                    throw new Exception("用户创建成功，但分配角色失败：" +
+                                        string.Join(",", roleResult.Errors.Select(e => e.Description)));
+                }
+                transaction.Commit();
+                return newUser.Id;
+            }
 
-        throw new Exception(string.Join(",", result.Errors.Select(e => e.Description)));
+            throw new Exception(string.Join(",", result.Errors.Select(e => e.Description)));
+        }
+        catch
+        {
+            transaction.Rollback();
+            throw;
+        }
     }
 
     /// <summary>
