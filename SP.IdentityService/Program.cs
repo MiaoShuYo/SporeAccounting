@@ -40,16 +40,17 @@ public class Program
         builder.Services.AddIdentity<SpUser, SpRole>(options =>
             {
                 // 密码策略配置
-                options.Password.RequireDigit = true;
-                options.Password.RequireLowercase = true;
-                options.Password.RequireUppercase = false;
-                options.Password.RequireNonAlphanumeric = false;
-                options.Password.RequiredLength = 6;
+                options.Password.RequireDigit = true; // 要求数字
+                options.Password.RequireLowercase = true; // 要求小写字母
+                options.Password.RequireUppercase = true; // 要求大写字母
+                options.Password.RequireNonAlphanumeric = true; // 要求特殊字符
+                options.Password.RequiredLength = 6; // 最小长度
+                options.Password.RequiredUniqueChars = 4; // 要求不同字符的最小数量
 
                 // 锁定设置
-                options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(5);
-                options.Lockout.MaxFailedAccessAttempts = 5;
-                options.Lockout.AllowedForNewUsers = true;
+                options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(15); // 锁定15分钟
+                options.Lockout.MaxFailedAccessAttempts = 5; // 5次失败尝试后锁定
+                options.Lockout.AllowedForNewUsers = true; // 对新用户启用锁定
 
                 // 禁用用户名和邮箱规范化
                 options.User.RequireUniqueEmail = false;

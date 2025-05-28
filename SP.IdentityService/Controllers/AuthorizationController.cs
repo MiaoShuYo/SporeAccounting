@@ -1,15 +1,10 @@
-using System.Security.Claims;
 using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Authentication;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.Data;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.IdentityModel.Tokens;
 using OpenIddict.Abstractions;
 using OpenIddict.Server.AspNetCore;
 using SP.Common.ExceptionHandling.Exceptions;
-using SP.Common.Message.Model;
-using SP.IdentityService.Models.Entity;
 using SP.IdentityService.Models.Request;
 using SP.IdentityService.Service;
 
@@ -23,13 +18,16 @@ namespace SP.IdentityService.Controllers;
 public class AuthorizationController : ControllerBase
 {
     private readonly IAuthorizationService _authorizationService;
+    private readonly ILogger<AuthorizationController> _logger;
 
     /// <summary>
     /// 授权控制器构造函数
     /// </summary>
     /// <param name="authorizationService"></param>
-    public AuthorizationController(IAuthorizationService authorizationService)
+    /// <param name="logger"></param>
+    public AuthorizationController(IAuthorizationService authorizationService, ILogger<AuthorizationController> logger)
     {
+        _logger = logger;
         _authorizationService = authorizationService;
     }
 
@@ -72,9 +70,18 @@ public class AuthorizationController : ControllerBase
     {
         // 检查是否通过查询参数传递敏感信息
         if (Request.Query.Count > 0 &&
-            (Request.Query.ContainsKey("refresh_token") || Request.Query.ContainsKey("password")))
+            (Request.Query.ContainsKey("refresh_token") || Request.Query.ContainsKey("password") ||
+             Request.Query.ContainsKey("client_secret")))
         {
-            throw new BadRequestException("不要在URL中包含敏感信息(refresh_token/password)，请使用表单提交方式");
+            throw new BadRequestException("不要在URL中包含敏感信息，请使用表单提交方式");
+        }
+
+        // 检查请求头中是否包含敏感信息
+        if (Request.Headers.Any(h => h.Key.Equals("Authorization", StringComparison.OrdinalIgnoreCase) &&
+                                     h.Value.ToString().Contains("Basic")))
+        {
+            // 记录警告日志，但允许继续处理，因为某些客户端可能使用Basic认证
+            _logger.LogWarning("检测到使用Basic认证，建议改用表单提交方式");
         }
 
         var request = HttpContext.GetOpenIddictServerRequest();
@@ -175,13 +182,6 @@ public class AuthorizationController : ControllerBase
     [HttpPut("password/reset")]
     public async Task<ActionResult> ResetPassword([FromBody] ResetPasswordRequest resetPasswordRequest)
     {
-        if (resetPasswordRequest == null || string.IsNullOrEmpty(resetPasswordRequest.Email) ||
-            string.IsNullOrEmpty(resetPasswordRequest.ResetCode) ||
-            string.IsNullOrEmpty(resetPasswordRequest.NewPassword))
-        {
-            throw new BadRequestException("请求参数不完整");
-        }
-
         await _authorizationService.ResetPasswordAsync(resetPasswordRequest);
         return Ok();
     }

@@ -1,13 +1,18 @@
 ﻿namespace SP.Common;
 
-// 雪花算法
+/// <summary>
+/// 雪花算法
+/// </summary>
 public class Snow
 {
     private static long _lastTimestamp = -1L;
     private static long _sequence = 0L;
     private static readonly object _lock = new object();
 
-    // 获取生成的ID
+    /// <summary>
+    /// 获取生成的ID
+    /// </summary>
+    /// <returns></returns>
     public static long GetId()
     {
         // 获取当前时间戳
@@ -19,36 +24,53 @@ public class Snow
         // 获取序列号
         long sequence = GetSequence();
         // 组合ID
-        long id = ((timestamp << 22) | (dataCenterId << 17) | (machineId << 12) | sequence);
+        long id = ((timestamp & 0x1FFFFFFFFFF) << 22) | ((dataCenterId & 0x1F) << 17) | ((machineId & 0x1F) << 12) |
+                  (sequence & 0xFFF);
         return id;
     }
 
-    // 获取机器ID
+    /// <summary>
+    /// 获取机器ID
+    /// </summary>
+    /// <returns></returns>
     private static long GetMachineId()
     {
-        // 获取mac地址
-        var macAddress = System.Net.NetworkInformation.NetworkInterface
-            .GetAllNetworkInterfaces()
-            .FirstOrDefault(n => n.OperationalStatus == System.Net.NetworkInformation.OperationalStatus.Up)
-            ?.GetPhysicalAddress()
-            ?.ToString();
-        // 计算机器ID
-        long machineId = 0;
-        if (macAddress != null)
+        try
         {
-            for (int i = 0; i < macAddress.Length; i += 2)
+            // 尝试通过MAC地址获取
+            var macAddress = System.Net.NetworkInformation.NetworkInterface
+                .GetAllNetworkInterfaces()
+                .FirstOrDefault(n => n.OperationalStatus == System.Net.NetworkInformation.OperationalStatus.Up)
+                ?.GetPhysicalAddress()
+                ?.ToString();
+            if (!string.IsNullOrEmpty(macAddress))
             {
-                machineId = (machineId << 8) | Convert.ToByte(macAddress.Substring(i, 2), 16);
+                // 计算机器ID
+                long machineId = 0;
+                for (int i = 0; i < macAddress.Length; i += 2)
+                {
+                    machineId = (machineId << 8) | Convert.ToByte(macAddress.Substring(i, 2), 16);
+                }
+                // 取模，确保机器ID在0-31之间
+                return machineId % 32;
+            }
+            else
+            {
+                // 备选方案：使用主机名哈希
+                return Math.Abs(Environment.MachineName.GetHashCode()) % 32;
             }
         }
-
-        // 取模，确保机器ID在0-31之间
-        machineId = machineId % 32;
-        return machineId;
+        catch
+        {
+            // 异常情况下的备选方案
+            return Math.Abs(Environment.MachineName.GetHashCode()) % 32;
+        }
     }
 
-    // 获取数据中心ID
-    // 获取数据中心ID
+    /// <summary>
+    /// 获取数据中心ID
+    /// </summary>
+    /// <returns></returns>
     private static long GetDataCenterId()
     {
         // 从环境变量中获取数据中心ID
@@ -64,14 +86,17 @@ public class Snow
         dataCenterId = dataCenterId % 32;
         return dataCenterId;
     }
-    // 获取序列号
+
+    /// <summary>
+    /// 获取序列号
+    /// </summary>
+    /// <returns></returns>
     private static long GetSequence()
     {
         lock (_lock)
         {
             // 获取当前时间戳
-            long currentTimestamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
-
+            long currentTimestamp = DateTimeOffset.UtcNow.Ticks / 10000;
             if (currentTimestamp == _lastTimestamp)
             {
                 // 同一毫秒内，递增序列号
@@ -95,5 +120,4 @@ public class Snow
             return _sequence;
         }
     }
-
 }

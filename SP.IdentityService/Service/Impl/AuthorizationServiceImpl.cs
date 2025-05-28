@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.Data;
 using Microsoft.Build.Exceptions;
 using Microsoft.IdentityModel.Tokens;
+using Nacos;
 using OpenIddict.Abstractions;
 using OpenIddict.Server.AspNetCore;
 using SP.Common;
@@ -47,6 +48,14 @@ public class AuthorizationServiceImpl : IAuthorizationService
     private readonly IdentityServerDbContext _dbContext;
 
     /// <summary>
+    /// HTTP上下文访问器
+    /// </summary>
+    private readonly IHttpContextAccessor _httpContextAccessor;
+    
+    private readonly ILogger<AuthorizationServiceImpl> _log;
+
+
+    /// <summary>
     /// 用户服务构造函数
     /// </summary>
     /// <param name="userManager"></param>
@@ -55,10 +64,13 @@ public class AuthorizationServiceImpl : IAuthorizationService
     /// <param name="rabbitMqMessage"></param>
     /// <param name="redis"></param>
     /// <param name="dbContext"></param>
+    /// <param name="httpContextAccessor"></param>
     public AuthorizationServiceImpl(UserManager<SpUser> userManager,
         SignInManager<SpUser> signInManager,
         IOpenIddictApplicationManager applicationManager, RabbitMqMessage rabbitMqMessage,
-        IRedisService redis, IdentityServerDbContext dbContext)
+        IRedisService redis, IdentityServerDbContext dbContext,
+        IHttpContextAccessor httpContextAccessor,
+        ILogger<AuthorizationServiceImpl> log)
     {
         _userManager = userManager;
         _signInManager = signInManager;
@@ -66,6 +78,8 @@ public class AuthorizationServiceImpl : IAuthorizationService
         _rabbitMqMessage = rabbitMqMessage;
         _redis = redis;
         _dbContext = dbContext;
+        _httpContextAccessor = httpContextAccessor;
+        _log = log;
     }
 
     /// <summary>
@@ -134,11 +148,31 @@ public class AuthorizationServiceImpl : IAuthorizationService
             principal.SetScopes("api");
         }
 
+        var roles = await _userManager.GetRolesAsync(user);
+        // 根据用户角色或请求来源调整令牌生命周期
+        if (roles.Contains("Admin"))
+        {
+            // 管理员令牌生命周期较短
+            principal.SetAccessTokenLifetime(TimeSpan.FromMinutes(15));
+            principal.SetRefreshTokenLifetime(TimeSpan.FromDays(7));
+        }
+        else if (_httpContextAccessor?.HttpContext?.Request.Headers.TryGetValue("User-Agent", out var userAgent) ==
+                 true &&
+                 userAgent.ToString().Contains("Mobile"))
+        {
+            // 移动设备令牌生命周期较长
+            principal.SetAccessTokenLifetime(TimeSpan.FromHours(1));
+            principal.SetRefreshTokenLifetime(TimeSpan.FromDays(30));
+        }
+        else
+        {
+            // 默认设置
+            principal.SetAccessTokenLifetime(TimeSpan.FromMinutes(30));
+            principal.SetRefreshTokenLifetime(TimeSpan.FromDays(14));
+        }
+
         // 设置资源
         principal.SetResources("api");
-        // 允许刷新令牌
-        principal.SetRefreshTokenLifetime(TimeSpan.FromDays(14));
-        principal.SetAccessTokenLifetime(TimeSpan.FromMinutes(30));
         return principal;
     }
 
@@ -186,6 +220,8 @@ public class AuthorizationServiceImpl : IAuthorizationService
         }
 
         var newPrincipal = new ClaimsPrincipal(identity);
+        // 在设置新范围之前，保存原始令牌的离线访问范围
+        bool hasOfflineAccess = principal.HasScope(OpenIddictConstants.Scopes.OfflineAccess);
 
         // 正确设置范围
         if (scopes.Any())
@@ -201,19 +237,29 @@ public class AuthorizationServiceImpl : IAuthorizationService
             else
             {
                 // 如果没有有效范围，默认设置为 api
-                newPrincipal.SetScopes("api");
+                var defaultScopes = new List<string> { "api" };
+
+                // 如果原始令牌有离线访问范围，保留它
+                if (hasOfflineAccess)
+                {
+                    defaultScopes.Add(OpenIddictConstants.Scopes.OfflineAccess);
+                }
+
+                newPrincipal.SetScopes(defaultScopes);
             }
         }
         else
         {
             // 默认设置为 api
-            newPrincipal.SetScopes("api");
+            var defaultScopes = new List<string> { "api" };
 
             // 如果原始令牌有离线访问范围，保留它
-            if (principal.HasScope(OpenIddictConstants.Scopes.OfflineAccess))
+            if (hasOfflineAccess)
             {
-                newPrincipal.SetScopes(OpenIddictConstants.Scopes.OfflineAccess);
+                defaultScopes.Add(OpenIddictConstants.Scopes.OfflineAccess);
             }
+
+            newPrincipal.SetScopes(defaultScopes);
         }
 
         // 设置资源
@@ -308,6 +354,7 @@ public class AuthorizationServiceImpl : IAuthorizationService
         {
             throw new BusinessException("用户名已存在");
         }
+
         // 创建用户
         var newUser = new SpUser
         {
@@ -317,9 +364,7 @@ public class AuthorizationServiceImpl : IAuthorizationService
         using var transaction = _dbContext.Database.BeginTransaction();
         try
         {
-            var hasher = new PasswordHasher<SpUser>();
-            string passwordHash = hasher.HashPassword(newUser, user.Password);
-            IdentityResult result = await _userManager.CreateAsync(newUser, passwordHash);
+            IdentityResult result = await _userManager.CreateAsync(newUser, user.Password);
             if (result.Succeeded)
             {
                 var roleResult = await _userManager.AddToRoleAsync(newUser, "User");
@@ -329,6 +374,7 @@ public class AuthorizationServiceImpl : IAuthorizationService
                     throw new Exception("用户创建成功，但分配角色失败：" +
                                         string.Join(",", roleResult.Errors.Select(e => e.Description)));
                 }
+
                 transaction.Commit();
                 return newUser.Id;
             }
@@ -403,41 +449,45 @@ public class AuthorizationServiceImpl : IAuthorizationService
     /// </summary>
     /// <param name="resetPasswordRequest"></param>
     /// <returns></returns>
-    public Task ResetPasswordAsync(ResetPasswordRequest resetPasswordRequest)
+    public async Task ResetPasswordAsync(ResetPasswordRequest resetPasswordRequest)
     {
-        // 从Redis中获取验证码
-        return _redis.GetStringAsync(resetPasswordRequest.Email).ContinueWith(async task =>
+        // 基本验证
+        if (resetPasswordRequest == null || string.IsNullOrEmpty(resetPasswordRequest.Email) ||
+            string.IsNullOrEmpty(resetPasswordRequest.ResetCode) ||
+            string.IsNullOrEmpty(resetPasswordRequest.NewPassword))
         {
-            var code = task.Result;
-            if (string.IsNullOrEmpty(code))
-            {
-                throw new BusinessException("验证码已过期或不存在");
-            }
+            throw new BadRequestException("请求参数不完整");
+        }
+        // 从Redis中获取验证码
+        var code = await _redis.GetStringAsync(resetPasswordRequest.Email);
+        if (string.IsNullOrEmpty(code))
+        {
+            throw new BusinessException("验证码已过期或不存在");
+        }
 
-            // 验证验证码
-            if (code != resetPasswordRequest.ResetCode.Trim())
-            {
-                throw new BusinessException("验证码错误");
-            }
+        // 验证验证码
+        if (code != resetPasswordRequest.ResetCode.Trim())
+        {
+            throw new BusinessException("验证码错误");
+        }
 
-            // 验证通过后，重置用户密码
-            var user = await _userManager.FindByEmailAsync(resetPasswordRequest.Email);
-            if (user == null)
-            {
-                throw new BusinessException("用户不存在");
-            }
+        // 验证通过后，重置用户密码
+        var user = await _userManager.FindByEmailAsync(resetPasswordRequest.Email);
+        if (user == null)
+        {
+            throw new BusinessException("用户不存在");
+        }
 
-            var hasher = new PasswordHasher<SpUser>();
-            string passwordHash = hasher.HashPassword(user, resetPasswordRequest.NewPassword);
-            user.PasswordHash = passwordHash;
-            var result = await _userManager.UpdateAsync(user);
-            if (!result.Succeeded)
-            {
-                throw new Exception(string.Join(",", result.Errors.Select(e => e.Description)));
-            }
+        // 使用内置方法重置密码
+        var token = await _userManager.GeneratePasswordResetTokenAsync(user);
+        var result = await _userManager.ResetPasswordAsync(user, token, resetPasswordRequest.NewPassword);
 
-            // 删除Redis中的验证码
-            await _redis.RemoveAsync(resetPasswordRequest.Email);
-        });
+        if (!result.Succeeded)
+        {
+            throw new Exception(string.Join(",", result.Errors.Select(e => e.Description)));
+        }
+
+        // 删除Redis中的验证码
+        await _redis.RemoveAsync(resetPasswordRequest.Email);
     }
 }
