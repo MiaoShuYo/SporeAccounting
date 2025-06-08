@@ -170,9 +170,7 @@ public class AuthorizationServiceImpl : IAuthorizationService
             principal.SetAccessTokenLifetime(TimeSpan.FromMinutes(30));
             principal.SetRefreshTokenLifetime(TimeSpan.FromDays(14));
         }
-
-        // 设置资源
-        principal.SetResources("api");
+        
         return principal;
     }
 
@@ -262,9 +260,6 @@ public class AuthorizationServiceImpl : IAuthorizationService
             newPrincipal.SetScopes(defaultScopes);
         }
 
-        // 设置资源
-        newPrincipal.SetResources("api");
-
         // 设置令牌生命周期
         newPrincipal.SetRefreshTokenLifetime(TimeSpan.FromDays(14));
         newPrincipal.SetAccessTokenLifetime(TimeSpan.FromMinutes(30));
@@ -332,9 +327,6 @@ public class AuthorizationServiceImpl : IAuthorizationService
             // 默认设置为 api
             principal.SetScopes("api");
         }
-
-        // 设置资源
-        principal.SetResources("api");
 
         // 设置令牌生命周期
         principal.SetAccessTokenLifetime(TimeSpan.FromHours(1)); // 客户端凭证默认1小时有效期
