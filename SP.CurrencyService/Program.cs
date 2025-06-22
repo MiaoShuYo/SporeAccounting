@@ -1,6 +1,11 @@
+using System.Reflection;
 using Nacos.AspNetCore.V2;
 using Nacos.V2.DependencyInjection;
+using Quartz;
 using SP.CurrencyService.DB;
+using SP.CurrencyService.Service;
+using SP.CurrencyService.Service.Impl;
+using SP.CurrencyService.Task.ExchangeRate;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -18,6 +23,28 @@ builder.Configuration.AddNacosV2Configuration(builder.Configuration.GetSection("
 builder.Services.AddNacosV2Naming(builder.Configuration);
 // 注册 DbContext
 builder.Services.AddDbContext<CurrencyServiceDbContext>(ServiceLifetime.Scoped);
+builder.Services.AddAutoMapper(Assembly.GetExecutingAssembly());
+
+// 服务注册
+builder.Services.AddScoped<ICurrencyServer, CurrencyServerImpl>();
+builder.Services.AddScoped<IExchangeRateRecordServer, ExchangeRateRecordServerImpl>();
+
+// 添加定时任务
+builder.Services.AddQuartz(q =>
+{
+    var exchangeRateTimerJobKey = new JobKey("ExchangeRateTimer");
+    q.AddJob<ExchangeRateTimer>(opts => opts.WithIdentity(exchangeRateTimerJobKey));
+    q.AddTrigger(opts => opts
+        .ForJob(exchangeRateTimerJobKey)
+        .WithIdentity("ExchangeRateTimerTrigger")
+        .StartNow()
+        .WithCronSchedule("0 0 1 * * ?"));
+});
+builder.Services.AddQuartzHostedService(options =>
+{
+    //启用 Quartz 的托管服务，`WaitForJobsToComplete = true` 表示在应用程序停止时等待任务完成后再关闭。
+    options.WaitForJobsToComplete = true;
+});
 
 var app = builder.Build();
 

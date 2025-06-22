@@ -2,7 +2,7 @@
 using System.ComponentModel.DataAnnotations.Schema;
 using Microsoft.EntityFrameworkCore;
 
-namespace SP.Common;
+namespace SP.Common.Model;
 
 /// <summary>
 /// 数据库映射类基类
@@ -13,7 +13,7 @@ public class BaseModel
     /// 表数据唯一值
     /// </summary>
     [Key]
-    [Column(TypeName = "nvarchar(36)")]
+    [Column(TypeName = "bigint")]
     [Required]
     [Comment("Id")]
     public long Id { get; set; } = Snow.GetId();
@@ -28,7 +28,7 @@ public class BaseModel
     /// 创建用户
     /// </summary>
     [Required]
-    [Column(TypeName = "nvarchar(36)")]
+    [Column(TypeName = "bigint")]
     [Comment("创建用户")]
     public long CreateUserId { get; set; }
     /// <summary>
@@ -40,7 +40,7 @@ public class BaseModel
     /// <summary>
     /// 修改用户
     /// </summary>
-    [Column(TypeName = "nvarchar(36)")]
+    [Column(TypeName = "bigint")]
     [Comment("修改用户")]
     public long? UpdateUserId { get; set; }
     /// <summary>

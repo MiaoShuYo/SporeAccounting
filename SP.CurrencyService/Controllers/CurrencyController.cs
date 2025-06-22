@@ -1,12 +1,31 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using SP.CurrencyService.Models.Response;
+using SP.CurrencyService.Service;
 
 namespace SP.CurrencyService.Controllers;
 
-public class CurrencyController : Controller
+/// <summary>
+/// 币种控制器
+/// </summary>
+[Route("/CurrencyService/currency")]
+[ApiController]
+public class CurrencyController : ControllerBase
 {
-    // GET
-    public IActionResult Index()
+    private readonly ICurrencyServer _currencyServer;
+
+    public CurrencyController(ICurrencyServer currencyServer)
     {
-        return View();
+        _currencyServer = currencyServer;
+    }
+    
+    /// <summary>
+    /// 查询所有币种
+    /// </summary>
+    /// <returns>返回币种列表</returns>
+    [HttpGet("query")]
+    public ActionResult<List<CurrencyResponse>> Query()
+    {
+        List<CurrencyResponse> currencies = _currencyServer.Query();
+        return Ok(currencies);
     }
 }

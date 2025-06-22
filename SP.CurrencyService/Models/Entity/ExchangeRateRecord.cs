@@ -1,7 +1,7 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using Microsoft.EntityFrameworkCore;
-using SP.Common;
+using SP.Common.Model;
 
 namespace SP.CurrencyService.Models.Entity;
 
@@ -19,6 +19,22 @@ public class ExchangeRateRecord : BaseModel
     [Required]
     [Comment("汇率")]
     public decimal ExchangeRate { get; set; }
+
+    /// <summary>
+    /// 源币种
+    /// </summary>
+    [Column(TypeName = "long")]
+    [Required]
+    [Comment("源币种")]
+    public long SourceCurrencyId { get; set; }
+
+    /// <summary>
+    /// 目标币种
+    /// </summary>
+    [Column(TypeName = "long")]
+    [Required]
+    [Comment("目标币种")]
+    public long TargetCurrencyId { get; set; }
 
     /// <summary>
     /// 币种转换

@@ -3,7 +3,7 @@
 /// <summary>
 /// 分页模型
 /// </summary>
-public class PageModel
+public class PageRequestModel
 {
     /// <summary>
     /// 页码

@@ -5,10 +5,14 @@ namespace SP.CurrencyService.Models.Request;
 /// <summary>
 /// 汇率分页查询请求
 /// </summary>
-public class ExchangeRateRecordPageRequest:PageModel
+public class ExchangeRateRecordPageRequestRequest:PageRequestModel
 {
     /// <summary>
-    /// 币种
+    /// 源货币
     /// </summary>
-    public string Currency { get; set; }
+    public long SourceCurrencyId { get; set; }
+    /// <summary>
+    /// 目标货币
+    /// </summary>
+    public long TargetCurrencyId { get; set; }
 }
