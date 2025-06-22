@@ -30,7 +30,7 @@ public class BaseModel
     [Required]
     [Column(TypeName = "nvarchar(36)")]
     [Comment("创建用户")]
-    public string CreateUserId { get; set; }
+    public long CreateUserId { get; set; }
     /// <summary>
     /// 修改时间
     /// </summary>
@@ -42,7 +42,7 @@ public class BaseModel
     /// </summary>
     [Column(TypeName = "nvarchar(36)")]
     [Comment("修改用户")]
-    public string? UpdateUserId { get; set; }
+    public long? UpdateUserId { get; set; }
     /// <summary>
     /// 是否删除
     /// </summary>
