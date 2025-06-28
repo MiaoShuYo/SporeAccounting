@@ -105,7 +105,9 @@ public class SporeAccountingProfile : Profile
             .ForMember(d => d.Name, opt =>
                 opt.MapFrom(s => s.Name))
             .ForMember(d => d.Remarks, opt =>
-                opt.MapFrom(s => s.Remarks));
+                opt.MapFrom(s => s.Remarks))
+            .ForMember(d => d.Balance, opt => opt
+                .MapFrom(s => s.Balance));
 
         CreateMap<IncomeExpenditureRecordAddViewModel, IncomeExpenditureRecord>()
             .ForMember(d => d.BeforAmount, opt => opt
@@ -201,7 +203,7 @@ public class SporeAccountingProfile : Profile
             .ForMember(d => d.ClassificationName, opt => opt
                 .MapFrom(s => s.Classification.Name))
             .ForMember(d => d.ClassificationId, opt => opt
-                .MapFrom(s=>s.IncomeExpenditureClassificationId))
+                .MapFrom(s => s.IncomeExpenditureClassificationId))
             .ForMember(d => d.EndTime, opt => opt
                 .MapFrom(s => s.EndTime))
             .ForMember(d => d.Remaining, opt => opt
