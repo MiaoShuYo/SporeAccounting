@@ -25,4 +25,16 @@
       <ProjectReference Include="..\SP.Common\SP.Common.csproj" />
     </ItemGroup>
 
+    <ItemGroup>
+      <EmbeddedResource Remove="Models\Entity\**" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <Content Remove="Models\Entity\**" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <None Remove="Models\Entity\**" />
+    </ItemGroup>
+
 </Project>

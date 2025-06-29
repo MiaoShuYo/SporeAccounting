@@ -9,6 +9,8 @@ namespace SP.CurrencyService.Controllers;
 /// <summary>
 /// 汇率控制器
 /// </summary>
+[Route("/api/exchangeRate")]
+[ApiController]
 public class ExchangeRateController : ControllerBase
 {
     private readonly IExchangeRateRecordServer _exchangeRateRecordServer;

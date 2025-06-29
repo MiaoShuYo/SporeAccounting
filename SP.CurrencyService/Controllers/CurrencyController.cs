@@ -7,7 +7,7 @@ namespace SP.CurrencyService.Controllers;
 /// <summary>
 /// 币种控制器
 /// </summary>
-[Route("/CurrencyService/currency")]
+[Route("/api/currency")]
 [ApiController]
 public class CurrencyController : ControllerBase
 {

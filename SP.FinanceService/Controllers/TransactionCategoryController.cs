@@ -3,9 +3,13 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace SP.FinanceService.Controllers
 {
-    [Route("api/[controller]")]
+    /// <summary>
+    /// 收支分类接口
+    /// </summary>
+    [Route("/api/transactionCategory")]
     [ApiController]
     public class TransactionCategoryController : ControllerBase
     {
+        
     }
 }

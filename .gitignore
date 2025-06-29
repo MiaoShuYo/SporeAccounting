@@ -11,3 +11,5 @@ SP.Common/obj/
 SP.Common/bin/
 SP.CurrencyService/obj/
 SP.CurrencyService/bin/
+SP.FinanceService/obj/
+SP.FinanceService/bin/

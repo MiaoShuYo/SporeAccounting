@@ -3,7 +3,7 @@
 /// <summary>
 /// 收支类型
 /// </summary>
-public enum IncomeExpenditureTypeEnmu
+public enum TransactionCategoryEnmu
 {
     /// <summary>
     /// 其他

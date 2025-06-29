@@ -39,7 +39,10 @@ public class CurrencyServiceDbContext : DbContext
         var serverVersion = ServerVersion.AutoDetect(_dbConfig.GetConnectionString("MySQLConnection"));
         optionsBuilder.UseMySql(_dbConfig.GetConnectionString("MySQLConnection"), serverVersion);
     }
-
+    
+    /// <summary>
+    /// 模型创建
+    /// </summary>
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         SeedData(modelBuilder);

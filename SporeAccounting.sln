@@ -9,6 +9,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SP.Common", "SP.Common\SP.C
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SP.CurrencyService", "SP.CurrencyService\SP.CurrencyService.csproj", "{84FC2B28-FF26-4A60-9F54-F0D7DF1D2D5A}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SP.FinanceService", "SP.FinanceService\SP.FinanceService.csproj", "{61F81041-D23F-4230-B69C-34F1D63EFE54}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -27,6 +29,10 @@ Global
 		{84FC2B28-FF26-4A60-9F54-F0D7DF1D2D5A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{84FC2B28-FF26-4A60-9F54-F0D7DF1D2D5A}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{84FC2B28-FF26-4A60-9F54-F0D7DF1D2D5A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{61F81041-D23F-4230-B69C-34F1D63EFE54}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{61F81041-D23F-4230-B69C-34F1D63EFE54}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{61F81041-D23F-4230-B69C-34F1D63EFE54}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{61F81041-D23F-4230-B69C-34F1D63EFE54}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
