@@ -3,6 +3,9 @@ using SP.FinanceService.Models.Entity;
 
 namespace SP.FinanceService.DB;
 
+/// <summary>
+/// 财务服务数据库上下文
+/// </summary>
 public class FinanceServiceDBContext:DbContext
 {
     

@@ -36,7 +36,6 @@ public class TransactionCategory : BaseModel
     /// <summary>
     /// 父级分类ID
     /// </summary>
-    [Column(TypeName = "nvarchar(36)")]
-    [ForeignKey("ParentIncomeExpenditureClassification")]
-    public string? TransactionCategoryId { get; set; }
+    [Column(TypeName = "bigint")]
+    public long? ParentId { get; set; }
 }

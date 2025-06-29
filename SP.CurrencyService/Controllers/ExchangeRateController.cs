@@ -43,7 +43,7 @@ public class ExchangeRateController : ControllerBase
     /// <returns>返回今日汇率记录</returns>
     [HttpGet("getTodayExchangeRate/{sourceCurrencyId}/{targetCurrencyId}")]
     public async Task<ActionResult<List<ExchangeRateRecordResponse>>> GetTodayExchangeRate(
-        long sourceCurrencyId, long targetCurrencyId)
+        [FromRoute]long sourceCurrencyId,  [FromRoute]long targetCurrencyId)
     {
         ExchangeRateRecordResponse response = await _exchangeRateRecordServer.GetTodayExchangeRate(
             sourceCurrencyId, targetCurrencyId);

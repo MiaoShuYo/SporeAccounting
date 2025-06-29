@@ -1,3 +1,4 @@
+using System.Reflection;
 using Nacos.AspNetCore.V2;
 using Nacos.V2.DependencyInjection;
 using SP.FinanceService.DB;
@@ -18,6 +19,8 @@ builder.Configuration.AddNacosV2Configuration(builder.Configuration.GetSection("
 builder.Services.AddNacosV2Naming(builder.Configuration);
 // 注册 DbContext
 builder.Services.AddDbContext<FinanceServiceDBContext>(ServiceLifetime.Scoped);
+
+builder.Services.AddAutoMapper(Assembly.GetExecutingAssembly());
 
 var app = builder.Build();
 
