@@ -10,7 +10,7 @@ using SP.FinanceService.DB;
 
 namespace SP.FinanceService.Migrations
 {
-    [DbContext(typeof(FinanceServiceDBContext))]
+    [DbContext(typeof(FinanceServiceDbContext))]
     partial class FinanceServiceDBContextModelSnapshot : ModelSnapshot
     {
         protected override void BuildModel(ModelBuilder modelBuilder)

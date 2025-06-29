@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Http;
 
-namespace SP.Common
+namespace SP.Common.Middleware
 {
     /// <summary>
     /// 启用请求缓冲中间件，使请求体可以被多次读取

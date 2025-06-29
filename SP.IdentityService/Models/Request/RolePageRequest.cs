@@ -1,7 +1,7 @@
 ﻿namespace SP.IdentityService.Models.Request;
 
 /// <summary>
-/// 分页请求基类
+/// 角色分页查询请求模型
 /// </summary>
 public class RolePageRequest: PageRequest
 {

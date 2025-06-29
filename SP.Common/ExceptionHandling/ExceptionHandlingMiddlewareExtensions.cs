@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Builder;
+using SP.Common.Middleware;
 
 namespace SP.Common.ExceptionHandling
 {

@@ -6,7 +6,7 @@ namespace SP.FinanceService.DB;
 /// <summary>
 /// 财务服务数据库上下文
 /// </summary>
-public class FinanceServiceDBContext:DbContext
+public class FinanceServiceDbContext:DbContext
 {
     
     public DbSet<TransactionCategory> TransactionCategories { get; set; }
@@ -19,7 +19,7 @@ public class FinanceServiceDBContext:DbContext
     /// 构造函数
     /// </summary>
     /// <param name="dbConfig"></param>
-    public FinanceServiceDBContext(IConfiguration dbConfig)
+    public FinanceServiceDbContext(IConfiguration dbConfig)
     {
         _dbConfig = dbConfig;
     }

@@ -11,7 +11,7 @@ using SP.FinanceService.DB;
 
 namespace SP.FinanceService.Migrations
 {
-    [DbContext(typeof(FinanceServiceDBContext))]
+    [DbContext(typeof(FinanceServiceDbContext))]
     [Migration("20250629105125_InitTransactionCategory")]
     partial class InitTransactionCategory
     {

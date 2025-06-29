@@ -1,6 +1,7 @@
 using System.Reflection;
 using Nacos.AspNetCore.V2;
 using Nacos.V2.DependencyInjection;
+using SP.Common.ConfigService;
 using SP.FinanceService.DB;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -18,11 +19,15 @@ builder.Services.AddNacosAspNet(builder.Configuration);
 builder.Configuration.AddNacosV2Configuration(builder.Configuration.GetSection("nacos"));
 builder.Services.AddNacosV2Naming(builder.Configuration);
 // 注册 DbContext
-builder.Services.AddDbContext<FinanceServiceDBContext>(ServiceLifetime.Scoped);
+builder.Services.AddDbContext<FinanceServiceDbContext>(ServiceLifetime.Scoped);
 
 builder.Services.AddAutoMapper(Assembly.GetExecutingAssembly());
 
+builder.Services.AddSingleton<JwtConfigService>();
+
 var app = builder.Build();
+
+AppDomain.CurrentDomain.SetData("HttpContextAccessor", app.Services.GetService<IHttpContextAccessor>());
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
