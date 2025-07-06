@@ -1,5 +1,6 @@
 ﻿using SporeAccounting.Models;
 using SporeAccounting.Server.Interface;
+using Microsoft.EntityFrameworkCore;
 
 namespace SporeAccounting.Server;
 
@@ -53,9 +54,10 @@ public class IncomeExpenditureRecordImp : IIncomeExpenditureRecordServer
                         // 获取包含支出记录记录日期的报表记录
                         var reports = _sporeAccountingDbContext.Reports
                             .Where(x => x.UserId == incomeExpenditureRecord.UserId
-                                                 && x.Year <= incomeExpenditureRecord.RecordDate.Year &&
-                                                 x.Month >= incomeExpenditureRecord.RecordDate.Month &&
-                                                 x.ClassificationId==incomeExpenditureRecord.IncomeExpenditureClassificationId);
+                                        && x.Year <= incomeExpenditureRecord.RecordDate.Year &&
+                                        x.Month >= incomeExpenditureRecord.RecordDate.Month &&
+                                        x.ClassificationId ==
+                                        incomeExpenditureRecord.IncomeExpenditureClassificationId);
                         // 如果没有就说明程序还未将其写入报表，那么就不做任何处理
                         for (int i = 0; i < reports.Count(); i++)
                         {
@@ -67,7 +69,7 @@ public class IncomeExpenditureRecordImp : IIncomeExpenditureRecordServer
 
                     _sporeAccountingDbContext.Budgets.Update(budget);
                 }
-                
+
                 _sporeAccountingDbContext.IncomeExpenditureRecords.Add(incomeExpenditureRecord);
                 _sporeAccountingDbContext.SaveChanges();
                 //提交事务
@@ -117,9 +119,10 @@ public class IncomeExpenditureRecordImp : IIncomeExpenditureRecordServer
                             // 获取包含支出记录记录日期的报表记录
                             var reports = _sporeAccountingDbContext.Reports
                                 .Where(x => x.UserId == incomeExpenditureRecord.UserId
-                                                     && x.Year <= incomeExpenditureRecord.RecordDate.Year &&
-                                                     x.Month >= incomeExpenditureRecord.RecordDate.Month &&
-                                                     x.ClassificationId==incomeExpenditureRecord.IncomeExpenditureClassificationId);
+                                            && x.Year <= incomeExpenditureRecord.RecordDate.Year &&
+                                            x.Month >= incomeExpenditureRecord.RecordDate.Month &&
+                                            x.ClassificationId ==
+                                            incomeExpenditureRecord.IncomeExpenditureClassificationId);
                             // 如果没有就说明程序还未将其写入报表，那么就不做任何处理
                             for (int i = 0; i < reports.Count(); i++)
                             {
@@ -185,9 +188,10 @@ public class IncomeExpenditureRecordImp : IIncomeExpenditureRecordServer
                             // 获取包含支出记录记录日期的报表记录
                             var oldReports = _sporeAccountingDbContext.Reports
                                 .Where(x => x.UserId == incomeExpenditureRecord.UserId
-                                                     && x.Year <= oldIncomeExpenditureRecord.RecordDate.Year &&
-                                                     x.Month >= oldIncomeExpenditureRecord.RecordDate.Month &&
-                                                     x.ClassificationId==oldIncomeExpenditureRecord.IncomeExpenditureClassificationId);
+                                            && x.Year <= oldIncomeExpenditureRecord.RecordDate.Year &&
+                                            x.Month >= oldIncomeExpenditureRecord.RecordDate.Month &&
+                                            x.ClassificationId == oldIncomeExpenditureRecord
+                                                .IncomeExpenditureClassificationId);
                             // 如果没有就说明程序还未将其写入报表，那么就不做任何处理
                             for (int i = 0; i < oldReports.Count(); i++)
                             {
@@ -199,9 +203,10 @@ public class IncomeExpenditureRecordImp : IIncomeExpenditureRecordServer
                             // 获取包含支出记录记录日期的报表记录
                             var newReport = _sporeAccountingDbContext.Reports
                                 .Where(x => x.UserId == incomeExpenditureRecord.UserId
-                                                     && x.Year <= incomeExpenditureRecord.RecordDate.Year &&
-                                                     x.Month >= incomeExpenditureRecord.RecordDate.Month &&
-                                                     x.ClassificationId==incomeExpenditureRecord.IncomeExpenditureClassificationId);
+                                            && x.Year <= incomeExpenditureRecord.RecordDate.Year &&
+                                            x.Month >= incomeExpenditureRecord.RecordDate.Month &&
+                                            x.ClassificationId ==
+                                            incomeExpenditureRecord.IncomeExpenditureClassificationId);
                             // 如果没有就说明程序还未将其写入报表，那么就不做任何处理
                             for (int i = 0; i < newReport.Count(); i++)
                             {
@@ -219,10 +224,12 @@ public class IncomeExpenditureRecordImp : IIncomeExpenditureRecordServer
 
                     _sporeAccountingDbContext.Budgets.Update(budget);
                 }
+
                 oldIncomeExpenditureRecord.AfterAmount = incomeExpenditureRecord.AfterAmount;
                 oldIncomeExpenditureRecord.BeforAmount = incomeExpenditureRecord.BeforAmount;
                 oldIncomeExpenditureRecord.RecordDate = incomeExpenditureRecord.RecordDate;
                 oldIncomeExpenditureRecord.Remark = incomeExpenditureRecord.Remark;
+                oldIncomeExpenditureRecord.CurrencyId = incomeExpenditureRecord.CurrencyId;
                 oldIncomeExpenditureRecord.IncomeExpenditureClassificationId =
                     incomeExpenditureRecord.IncomeExpenditureClassificationId;
                 _sporeAccountingDbContext.IncomeExpenditureRecords.Update(oldIncomeExpenditureRecord);
@@ -291,6 +298,9 @@ public class IncomeExpenditureRecordImp : IIncomeExpenditureRecordServer
         {
             IQueryable<IncomeExpenditureRecord> incomeExpenditureRecords = _sporeAccountingDbContext
                 .IncomeExpenditureRecords
+                .Include(x => x.IncomeExpenditureClassification) // 关联查询分类
+                .Include(x => x.AccountBook) // 关联查询账簿
+                .Include(x => x.Currency) // 关联查询币种
                 .Where(x => x.UserId == userId)
                 .OrderByDescending(x => x.RecordDate);
             int rowCount = 0;
