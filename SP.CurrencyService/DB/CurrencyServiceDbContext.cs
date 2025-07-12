@@ -4,6 +4,9 @@ using SP.CurrencyService.Models.Entity;
 
 namespace SP.CurrencyService.DB;
 
+/// <summary>
+/// 币种服务数据库上下文
+/// </summary>
 public class CurrencyServiceDbContext : DbContext
 {
     /// <summary>

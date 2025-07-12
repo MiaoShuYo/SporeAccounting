@@ -67,9 +67,6 @@ public class Program
         builder.Services.AddSwaggerGen();
         builder.Services.AddSwaggerGen(c =>
         {
-            c.SwaggerDoc("v1", new() { Title = "SP.IdentityService", Version = "v1" });
-            c.OperationFilter<SwaggerTokenRequestFilter>();
-
             // 添加XML文档
             var xmlFile = $"{System.Reflection.Assembly.GetExecutingAssembly().GetName().Name}.xml";
             var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
@@ -77,40 +74,6 @@ public class Program
             {
                 c.IncludeXmlComments(xmlPath);
             }
-
-            // 添加安全定义
-            c.AddSecurityDefinition("oauth2", new OpenApiSecurityScheme
-            {
-                Type = SecuritySchemeType.OAuth2,
-                Flows = new OpenApiOAuthFlows
-                {
-                    Password = new OpenApiOAuthFlow
-                    {
-                        TokenUrl = new Uri("/connect/token", UriKind.Relative),
-                        Scopes = new Dictionary<string, string>
-                        {
-                            { "api", "API访问权限" },
-                            { "offline_access", "获取刷新令牌" }
-                        }
-                    }
-                }
-            });
-
-            // 应用安全要求
-            c.AddSecurityRequirement(new OpenApiSecurityRequirement
-            {
-                {
-                    new OpenApiSecurityScheme
-                    {
-                        Reference = new OpenApiReference
-                        {
-                            Type = ReferenceType.SecurityScheme,
-                            Id = "oauth2"
-                        }
-                    },
-                    new[] { "api" }
-                }
-            });
         });
 
         builder.Services.AddScoped<IAuthorizationService, AuthorizationServiceImpl>();
