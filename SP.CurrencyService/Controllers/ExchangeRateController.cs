@@ -28,10 +28,10 @@ public class ExchangeRateController : ControllerBase
     /// <param name="request">分页请求</param>
     /// <returns>返回分页结果</returns>
     [HttpPost("queryByPage")]
-    public async Task<ActionResult<PageResponseModel<ExchangeRateRecordResponse>>> QueryByPage(
+    public async Task<ActionResult<PageResponse<ExchangeRateRecordResponse>>> QueryByPage(
         [FromBody] ExchangeRateRecordPageRequestRequest request)
     {
-        PageResponseModel<ExchangeRateRecordResponse> response = await _exchangeRateRecordServer.QueryByPage(request);
+        PageResponse<ExchangeRateRecordResponse> response = await _exchangeRateRecordServer.QueryByPage(request);
         return Ok(response);
     }
 

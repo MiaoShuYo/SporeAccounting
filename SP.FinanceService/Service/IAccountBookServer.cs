@@ -33,5 +33,5 @@ public interface IAccountBookServer
     /// </summary>
     /// <param name="page">分页数据</param>
     /// <returns></returns>
-    PageResponseModel<AccountBookResponse> QueryPage(AccountBookPageRequest page);
+    PageResponse<AccountBookResponse> QueryPage(AccountBookPageRequest page);
 }

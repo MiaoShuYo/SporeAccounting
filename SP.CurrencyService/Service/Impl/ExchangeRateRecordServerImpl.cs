@@ -38,7 +38,7 @@ public class ExchangeRateRecordServerImpl : IExchangeRateRecordServer
     /// </summary>
     /// <param name="exchangeRateRecordPage">分页查询请求</param>
     /// <returns></returns>
-    public async Task<PageResponseModel<ExchangeRateRecordResponse>> QueryByPage(
+    public async Task<PageResponse<ExchangeRateRecordResponse>> QueryByPage(
         ExchangeRateRecordPageRequestRequest exchangeRateRecordPage)
     {
         if (exchangeRateRecordPage == null)
@@ -74,13 +74,13 @@ public class ExchangeRateRecordServerImpl : IExchangeRateRecordServer
             })
             .ToListAsync();
 
-        var page = new PageResponseModel<ExchangeRateRecordResponse>
+        var page = new PageResponse<ExchangeRateRecordResponse>
         {
             PageIndex = pageIndex,
             PageSize = pageSize,
             TotalCount = totalCount,
             Data = data,
-            TotalPages = (int)Math.Ceiling((double)totalCount / pageSize)
+            TotalPage = (int)Math.Ceiling((double)totalCount / pageSize)
         };
 
         return page;

@@ -6,7 +6,7 @@ namespace SP.CurrencyService.Models.Request;
 /// <summary>
 /// 汇率分页查询请求
 /// </summary>
-public class ExchangeRateRecordPageRequestRequest:PageRequestModel
+public class ExchangeRateRecordPageRequestRequest:PageRequest
 {
     /// <summary>
     /// 源货币

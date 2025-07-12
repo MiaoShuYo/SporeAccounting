@@ -66,9 +66,9 @@ public class AccountBookController : ControllerBase
     /// <param name="page">查询请求</param>
     /// <returns>返回账本列表</returns>
     [HttpGet("page")]
-    public ActionResult<PageResponseModel<AccountBookResponse>> Query([FromQuery] AccountBookPageRequest page)
+    public ActionResult<PageResponse<AccountBookResponse>> Query([FromQuery] AccountBookPageRequest page)
     {
-        PageResponseModel<AccountBookResponse> result = _accountBookServer.QueryPage(page);
+        PageResponse<AccountBookResponse> result = _accountBookServer.QueryPage(page);
         return Ok(result);
     }
 }

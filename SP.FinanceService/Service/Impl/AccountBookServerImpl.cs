@@ -113,7 +113,7 @@ public class AccountBookServerImpl : IAccountBookServer
     /// </summary>
     /// <param name="page">分页数据</param>
     /// <returns></returns>
-    public PageResponseModel<AccountBookResponse> QueryPage(AccountBookPageRequest page)
+    public PageResponse<AccountBookResponse> QueryPage(AccountBookPageRequest page)
     {
         // 查询符合条件的账本列表
         var query = _dbContext.AccountBooks.Where(p => !p.IsDeleted).AsQueryable();
@@ -126,7 +126,7 @@ public class AccountBookServerImpl : IAccountBookServer
         var accountBookResponses = _automapper.Map<List<AccountBookResponse>>(accountBooks);
 
         // 返回分页结果
-        return new PageResponseModel<AccountBookResponse>
+        return new PageResponse<AccountBookResponse>
         {
             TotalCount = totalCount,
             PageIndex = page.PageIndex,

@@ -3,7 +3,7 @@
 /// <summary>
 /// 分页响应模型
 /// </summary>
-public class PageResponseModel<T>
+public class PageResponse<T>
 {
     /// <summary>
     /// 总记录数

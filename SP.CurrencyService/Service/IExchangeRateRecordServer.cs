@@ -21,7 +21,7 @@ public interface IExchangeRateRecordServer
     /// </summary>
     /// <param name="exchangeRateRecordPage">分页请求</param>
     /// <returns>返回分页结果</returns>
-    Task<PageResponseModel<ExchangeRateRecordResponse>> QueryByPage(
+    Task<PageResponse<ExchangeRateRecordResponse>> QueryByPage(
         ExchangeRateRecordPageRequestRequest exchangeRateRecordPage);
 
     /// <summary>
