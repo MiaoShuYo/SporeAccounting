@@ -28,5 +28,5 @@ public class PageResponseModel<T>
     /// <summary>
     /// 总页数
     /// </summary>
-    public int TotalPages { get; set; }
+    public int TotalPage { get; set; }
 }

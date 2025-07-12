@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using SP.FinanceService.Models.Entity;
+using SP.FinanceService.Models.Request;
 using SP.FinanceService.Models.Response;
 
 namespace SP.FinanceService;
@@ -21,5 +22,23 @@ public class FinanceProfile : Profile
             .ForMember(dest => dest.Type,
                 opt =>
                     opt.MapFrom(src => (int)src.Type));
+
+        CreateMap<AccountBookAddRequest, AccountBook>()
+            .ForMember(dest => dest.Name,
+                opt =>
+                    opt.MapFrom(src => src.Name))
+            .ForMember(dest => dest.Remarks,
+                opt =>
+                    opt.MapFrom(src => src.Remarks));
+        CreateMap<AccountBookEditeRequest, AccountBook>()
+            .ForMember(dest => dest.Id,
+                opt =>
+                    opt.MapFrom(src => src.Id))
+            .ForMember(dest => dest.Name,
+                opt =>
+                    opt.MapFrom(src => src.Name))
+            .ForMember(dest => dest.Remarks,
+                opt =>
+                    opt.MapFrom(src => src.Remarks));
     }
 }

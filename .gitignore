@@ -13,3 +13,7 @@ SP.CurrencyService/obj/
 SP.CurrencyService/bin/
 SP.FinanceService/obj/
 SP.FinanceService/bin/
+SP.FinanceService/SP.FinanceService.csproj.user
+SP.CurrencyService/SP.CurrencyService.csproj.user
+SP.IdentityService/SP.IdentityService.csproj.user
+SporeAccounting.sln.DotSettings.user

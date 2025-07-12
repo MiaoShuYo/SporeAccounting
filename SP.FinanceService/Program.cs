@@ -4,6 +4,8 @@ using Nacos.AspNetCore.V2;
 using Nacos.V2.DependencyInjection;
 using SP.Common.ConfigService;
 using SP.FinanceService.DB;
+using SP.FinanceService.Service;
+using SP.FinanceService.Service.Impl;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -31,6 +33,10 @@ builder.Configuration.AddNacosV2Configuration(builder.Configuration.GetSection("
 builder.Services.AddNacosV2Naming(builder.Configuration);
 // 注册 DbContext
 builder.Services.AddDbContext<FinanceServiceDbContext>(ServiceLifetime.Scoped);
+// 注册服务
+builder.Services.AddScoped<ITransactionCategoryServer, TransactionCategoryServerImpl>();
+builder.Services.AddScoped<IAccountBookServer, AccountBookServerImpl>();
+builder.Services.AddScoped<IAccountingServer, AccountingServerImpl>();
 
 builder.Services.AddAutoMapper(Assembly.GetExecutingAssembly());
 

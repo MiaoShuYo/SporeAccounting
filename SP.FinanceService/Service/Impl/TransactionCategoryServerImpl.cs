@@ -11,7 +11,7 @@ namespace SP.FinanceService.Service.Impl;
 /// <summary>
 /// 收支分类服务实现
 /// </summary>
-public class TransactionCategoryServer : ITransactionCategoryServer
+public class TransactionCategoryServerImpl : ITransactionCategoryServer
 {
     private readonly IMapper _automapper;
 
@@ -24,7 +24,7 @@ public class TransactionCategoryServer : ITransactionCategoryServer
     /// 收支分类服务构造函数
     /// </summary>
     /// <param name="dbContext"></param>
-    public TransactionCategoryServer(FinanceServiceDbContext dbContext, IMapper automapper)
+    public TransactionCategoryServerImpl(FinanceServiceDbContext dbContext, IMapper automapper)
     {
         _dbContext = dbContext;
         _automapper = automapper;
