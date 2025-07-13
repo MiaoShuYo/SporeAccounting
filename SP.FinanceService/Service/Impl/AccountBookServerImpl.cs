@@ -24,22 +24,22 @@ public class AccountBookServerImpl : IAccountBookServer
     private readonly IMapper _automapper;
 
     /// <summary>
-    /// 记账服务接口
+    /// 服务提供者（用于延迟获取服务）
     /// </summary>
-    private readonly IAccountingServer _accountingServer;
+    private readonly IServiceProvider _serviceProvider;
 
     /// <summary>
     /// 账本服务构造函数
     /// </summary>
     /// <param name="dbContext"></param>
     /// <param name="automapper"></param>
-    /// <param name="accountingServer"></param>
+    /// <param name="serviceProvider"></param>
     public AccountBookServerImpl(FinanceServiceDbContext dbContext, IMapper automapper,
-        IAccountingServer accountingServer)
+        IServiceProvider serviceProvider)
     {
         _automapper = automapper;
         _dbContext = dbContext;
-        _accountingServer = accountingServer;
+        _serviceProvider = serviceProvider;
     }
 
     /// <summary>
@@ -73,8 +73,9 @@ public class AccountBookServerImpl : IAccountBookServer
             throw new NotFoundException("账本不存在，ID: " + id);
         }
 
-        // 判断账本下是否存在记录
-        if (_accountingServer.AccountingExistByAccountBookId(id))
+        // 判断账本下是否存在记录（延迟获取服务）
+        var accountingServer = _serviceProvider.GetService<IAccountingServer>();
+        if (accountingServer != null && accountingServer.AccountingExistByAccountBookId(id))
         {
             throw new BusinessException("账本下存在记录，无法删除");
         }

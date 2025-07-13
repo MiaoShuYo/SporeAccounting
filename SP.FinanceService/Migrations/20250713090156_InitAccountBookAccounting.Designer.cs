@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using SP.FinanceService.DB;
 
@@ -11,9 +12,11 @@ using SP.FinanceService.DB;
 namespace SP.FinanceService.Migrations
 {
     [DbContext(typeof(FinanceServiceDbContext))]
-    partial class FinanceServiceDBContextModelSnapshot : ModelSnapshot
+    [Migration("20250713090156_InitAccountBookAccounting")]
+    partial class InitAccountBookAccounting
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder

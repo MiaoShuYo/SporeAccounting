@@ -33,6 +33,7 @@ builder.Configuration.AddNacosV2Configuration(builder.Configuration.GetSection("
 builder.Services.AddNacosV2Naming(builder.Configuration);
 // 注册 DbContext
 builder.Services.AddDbContext<FinanceServiceDbContext>(ServiceLifetime.Scoped);
+
 // 注册服务
 builder.Services.AddScoped<ITransactionCategoryServer, TransactionCategoryServerImpl>();
 builder.Services.AddScoped<IAccountBookServer, AccountBookServerImpl>();
