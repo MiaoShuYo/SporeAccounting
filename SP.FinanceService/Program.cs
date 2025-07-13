@@ -38,6 +38,7 @@ builder.Services.AddDbContext<FinanceServiceDbContext>(ServiceLifetime.Scoped);
 builder.Services.AddScoped<ITransactionCategoryServer, TransactionCategoryServerImpl>();
 builder.Services.AddScoped<IAccountBookServer, AccountBookServerImpl>();
 builder.Services.AddScoped<IAccountingServer, AccountingServerImpl>();
+builder.Services.AddScoped<IBudgetServer, BudgetServerImpl>();
 
 builder.Services.AddAutoMapper(Assembly.GetExecutingAssembly());
 

@@ -14,22 +14,22 @@ public class TransactionCategory : BaseModel
     /// <summary>
     /// 类型名称
     /// </summary>
-    [Required(ErrorMessage = "类型名称不能为空")]
-    [MaxLength(20, ErrorMessage = "类型名称不能超过20字")]
+    [Required]
+    [MaxLength(20)]
     [Column(TypeName = "nvarchar(20)")]
     public string Name { get; set; }
 
     /// <summary>
     /// 收支类型
     /// </summary>
-    [Required(ErrorMessage = "收支类型能为空")]
-    [Column(TypeName = "int")]
+    [Required]
+    [Column(TypeName = "tinyint")]
     public TransactionCategoryEnmu Type { get; set; }
 
     /// <summary>
     /// 是否可以删除
     /// </summary>
-    [Required(ErrorMessage = "是否可以删除")]
+    [Required]
     [Column(TypeName = "tinyint(1)")]
     public bool CanDelete { get; set; } = true;
 

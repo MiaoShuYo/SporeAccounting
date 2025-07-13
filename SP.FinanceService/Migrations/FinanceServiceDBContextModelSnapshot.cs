@@ -116,6 +116,61 @@ namespace SP.FinanceService.Migrations
                     b.ToTable("Accountings");
                 });
 
+            modelBuilder.Entity("SP.FinanceService.Models.Entity.Budget", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasComment("Id");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<decimal>("Amount")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<DateTime>("CreateDateTime")
+                        .HasColumnType("datetime")
+                        .HasComment("创建时间");
+
+                    b.Property<long>("CreateUserId")
+                        .HasColumnType("bigint")
+                        .HasComment("创建用户");
+
+                    b.Property<DateTime>("EndTime")
+                        .HasColumnType("datetime");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<sbyte>("Period")
+                        .HasColumnType("tinyint");
+
+                    b.Property<decimal>("Remaining")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<string>("Remark")
+                        .HasMaxLength(200)
+                        .HasColumnType("varchar(200)");
+
+                    b.Property<DateTime>("StartTime")
+                        .HasColumnType("datetime");
+
+                    b.Property<long>("TransactionCategoryId")
+                        .HasColumnType("bigint");
+
+                    b.Property<DateTime?>("UpdateDateTime")
+                        .HasColumnType("datetime")
+                        .HasComment("修改时间");
+
+                    b.Property<long?>("UpdateUserId")
+                        .HasColumnType("bigint")
+                        .HasComment("修改用户");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Budgets");
+                });
+
             modelBuilder.Entity("SP.FinanceService.Models.Entity.TransactionCategory", b =>
                 {
                     b.Property<long>("Id")
@@ -147,8 +202,8 @@ namespace SP.FinanceService.Migrations
                     b.Property<long?>("ParentId")
                         .HasColumnType("bigint");
 
-                    b.Property<int>("Type")
-                        .HasColumnType("int");
+                    b.Property<sbyte>("Type")
+                        .HasColumnType("tinyint");
 
                     b.Property<DateTime?>("UpdateDateTime")
                         .HasColumnType("datetime")

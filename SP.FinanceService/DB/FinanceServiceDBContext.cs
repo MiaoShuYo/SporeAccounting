@@ -22,6 +22,11 @@ public class FinanceServiceDbContext : DbContext
     /// 财务记录
     /// </summary>
     public DbSet<Accounting> Accountings { get; set; }
+    
+    /// <summary>
+    /// 预算
+    /// </summary>
+    public DbSet<Budget> Budgets { get; set; }
 
 
     /// <summary>
