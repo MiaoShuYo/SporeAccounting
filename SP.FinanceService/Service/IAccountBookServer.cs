@@ -34,4 +34,11 @@ public interface IAccountBookServer
     /// <param name="page">分页数据</param>
     /// <returns></returns>
     PageResponse<AccountBookResponse> QueryPage(AccountBookPageRequest page);
+    
+    /// <summary>
+    /// 查询账本是否存在
+    /// </summary>
+    /// <param name="accountBookId"></param>
+    /// <returns></returns>
+    bool Exist(long accountBookId);
 }

@@ -122,7 +122,7 @@ public class AccountBookServerImpl : IAccountBookServer
         var totalCount = query.Count();
         var accountBooks = query.Skip((page.PageIndex - 1) * page.PageSize)
             .Take(page.PageSize).ToList();
-        
+
         var accountBookResponses = _automapper.Map<List<AccountBookResponse>>(accountBooks);
 
         // 返回分页结果
@@ -134,6 +134,18 @@ public class AccountBookServerImpl : IAccountBookServer
             TotalPage = (int)Math.Ceiling((double)totalCount / page.PageSize),
             Data = accountBookResponses
         };
+    }
+
+    /// <summary>
+    /// 检查账本是否存在
+    /// </summary>
+    /// <param name="accountBookId"></param>
+    /// <returns></returns>
+    public bool Exist(long accountBookId)
+    {
+        // 检查账本是否存在
+        var accountBook = QueryById(accountBookId);
+        return accountBook != null && !accountBook.IsDeleted;
     }
 
     /// <summary>

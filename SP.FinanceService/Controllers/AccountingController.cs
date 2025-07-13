@@ -29,12 +29,13 @@ public class AccountingController : ControllerBase
     /// <summary>
     /// 新增记账
     /// </summary>
+    /// <param name="accountBookId">账本ID</param>
     /// <param name="request">记账请求</param>
     /// <returns>返回记账记录id</returns>
-    [HttpPost("add")]
-    public ActionResult<long> Add([FromBody] AccountingAddRequest request)
+    [HttpPost("{accountBookId}/add")]
+    public ActionResult<long> Add([FromRoute] long accountBookId, [FromBody] AccountingAddRequest request)
     {
-        long accountingId = _accountingServer.Add(request);
+        long accountingId = _accountingServer.Add(accountBookId,request);
         return Ok(accountingId);
     }
 
@@ -43,10 +44,10 @@ public class AccountingController : ControllerBase
     /// </summary>
     /// <param name="id">记账ID</param>
     /// <returns>返回删除结果</returns>
-    [HttpDelete("delete/{id}")]
-    public ActionResult<bool> Delete([FromRoute] long id)
+    [HttpDelete("{accountBookId}/delete/{id}")]
+    public ActionResult<bool> Delete([FromRoute] long accountBookId,[FromRoute] long id)
     {
-        _accountingServer.Delete(id);
+        _accountingServer.Delete(accountBookId,id);
         return Ok(true);
     }
 
@@ -55,10 +56,10 @@ public class AccountingController : ControllerBase
     /// </summary>
     /// <param name="request">记账修改请求</param>
     /// <returns>返回修改结果</returns>
-    [HttpPut("edit")]
-    public ActionResult<bool> Edit([FromBody] AccountingEditRequest request)
+    [HttpPut("/{accountBookId}/edit")]
+    public ActionResult<bool> Edit([FromRoute] long accountBookId,[FromBody] AccountingEditRequest request)
     {
-        _accountingServer.Edit(request);
+        _accountingServer.Edit(accountBookId,request);
         return Ok(true);
     }
 
@@ -67,10 +68,10 @@ public class AccountingController : ControllerBase
     /// </summary>
     /// <param name="id">记账ID</param>
     /// <returns>返回记账记录详细信息</returns>
-    [HttpGet("query/{id}")]
-    public ActionResult<AccountingResponse> Query([FromRoute] long id)
+    [HttpGet("{accountBookId}/query/{id}")]
+    public ActionResult<AccountingResponse> Query([FromRoute] long accountBookId,[FromRoute] long id)
     {
-        AccountingResponse accountingRecord = _accountingServer.QueryById(id);
+        AccountingResponse accountingRecord = _accountingServer.QueryById(accountBookId,id);
         return Ok(accountingRecord);
     }
 
@@ -81,10 +82,10 @@ public class AccountingController : ControllerBase
     /// <param name="page">查询请求</param>
     /// <returns>返回分页查询结果</returns>
     [HttpPost("{accountBookId}/page")]
-    public ActionResult<PageResponse<AccountingResponse>> QueryPage([FromRoute] long accountBookId, [FromBody] AccountingPageRequest page)
+    public ActionResult<PageResponse<AccountingResponse>> QueryPage([FromRoute] long accountBookId,
+        [FromBody] AccountingPageRequest page)
     {
-        page.AccountBookId = accountBookId;
-        PageResponse<AccountingResponse> result = _accountingServer.QueryPage(page);
+        PageResponse<AccountingResponse> result = _accountingServer.QueryPage(accountBookId,page);
         return Ok(result);
     }
 }

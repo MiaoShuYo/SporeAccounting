@@ -67,6 +67,25 @@ public class FinanceProfile : Profile
             .ForMember(dest => dest.Remark,
                 opt =>
                     opt.MapFrom(src => src.Remark));
+        CreateMap<AccountingEditRequest, Accounting>()
+            .ForMember(dest => dest.Id,
+                opt =>
+                    opt.MapFrom(src => src.Id))
+            .ForMember(dest => dest.AccountBookId,
+                opt =>
+                    opt.MapFrom(src => src.AccountBookId))
+            .ForMember(dest => dest.TransactionCategoryId,
+                opt =>
+                    opt.MapFrom(src => src.TransactionCategoryId))
+            .ForMember(dest => dest.BeforAmount,
+                opt =>
+                    opt.MapFrom(src => src.Amount))
+            .ForMember(dest => dest.RecordDate,
+                opt =>
+                    opt.MapFrom(src => src.RecordDate))
+            .ForMember(dest => dest.Remark,
+                opt =>
+                    opt.MapFrom(src => src.Remark));
         CreateMap<Accounting, AccountingResponse>()
             .ForMember(dest => dest.Id,
                 opt =>

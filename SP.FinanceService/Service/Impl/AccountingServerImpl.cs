@@ -1,5 +1,8 @@
-﻿using SP.Common.Model;
+﻿using AutoMapper;
+using SP.Common.ExceptionHandling.Exceptions;
+using SP.Common.Model;
 using SP.FinanceService.DB;
+using SP.FinanceService.Models.Entity;
 using SP.FinanceService.Models.Request;
 using SP.FinanceService.Models.Response;
 
@@ -15,13 +18,25 @@ public class AccountingServerImpl : IAccountingServer
     /// </summary>
     private readonly FinanceServiceDbContext _dbContext;
 
+    private readonly IAccountBookServer _accountBookServer;
+
+    /// <summary>
+    /// 自动映射器
+    /// </summary>
+    private readonly IMapper _autoMapper;
+
     /// <summary>
     /// 记账服务构造函数
     /// </summary>
     /// <param name="dbContext"></param>
-    public AccountingServerImpl(FinanceServiceDbContext dbContext)
+    /// <param name="autoMapper"></param>
+    /// <param name="accountBookServer"></param>
+    public AccountingServerImpl(FinanceServiceDbContext dbContext, IMapper autoMapper,
+        IAccountBookServer accountBookServer)
     {
         _dbContext = dbContext;
+        _autoMapper = autoMapper;
+        _accountBookServer = accountBookServer;
     }
 
 
@@ -39,48 +54,169 @@ public class AccountingServerImpl : IAccountingServer
     /// <summary>
     /// 新增记账
     /// </summary>
+    /// <param name="accountBookId">账本ID</param>
     /// <param name="request">记账添加请求</param>
     /// <returns></returns>
-    public long Add(AccountingAddRequest request)
+    public long Add(long accountBookId, AccountingAddRequest request)
     {
-        throw new NotImplementedException();
+        AccountBookExist(accountBookId);
+
+        // 将请求映射到实体
+        var accounting = _autoMapper.Map<Accounting>(request);
+
+        // 添加到数据库
+        _dbContext.Accountings.Add(accounting);
+        _dbContext.SaveChanges();
+        
+        //TODO:通过MQ发送记账数据到消息队列，从预算中扣除金额等操作
+        
+        // 返回新增的记账ID
+        return accounting.Id;
     }
 
     /// <summary>
     /// 删除记账
     /// </summary>
+    /// <param name="accountBookId">账本ID</param>
     /// <param name="id">记账ID</param>
-    public void Delete(long id)
+    public void Delete(long accountBookId, long id)
     {
-        throw new NotImplementedException();
+        // 检查账本是否存在
+        AccountBookExist(accountBookId);
+        // 查询要删除的记账记录
+        Accounting accounting = QueryById(id);
+        if (accounting == null)
+        {
+            throw new NotFoundException($"记账记录不存在，ID: {id}");
+        }
+
+        // 设置删除标志
+        SettingCommProperty.Delete(accounting);
+        // 保存更改
+        _dbContext.Accountings.Update(accounting);
+        _dbContext.SaveChanges();
+        
+        //TODO:通过MQ发送删除记账数据到消息队列，把预算中的金额恢复
     }
 
     /// <summary>
     /// 修改记账
     /// </summary>
+    /// <param name="accountBookId">账本ID</param>
     /// <param name="request">修改请求</param>
-    public void Edit(AccountingEditRequest request)
+    public void Edit(long accountBookId, AccountingEditRequest request)
     {
-        throw new NotImplementedException();
+        // 检查账本是否存在
+        AccountBookExist(accountBookId);
+
+        // 查询要修改的记账记录
+        Accounting existingAccounting = QueryById(request.Id);
+        if (existingAccounting == null)
+        {
+            throw new NotFoundException($"记账记录不存在，ID: {request.Id}");
+        }
+
+        // 将请求模型映射到实体
+        existingAccounting = _autoMapper.Map<Accounting>(request);
+        SettingCommProperty.Edit(existingAccounting);
+
+        // 更新记账信息
+        _dbContext.Accountings.Update(existingAccounting);
+        // 保存更改到数据库
+        _dbContext.SaveChanges();
+        
+        //TODO:通过MQ发送修改记账数据到消息队列，更新预算中的金额
     }
 
     /// <summary>
     /// 查询记账详情
     /// </summary>
+    /// <param name="accountBookId">账本ID</param>
     /// <param name="id">记账记录id</param>
     /// <returns>记账详情</returns>
-    public AccountingResponse QueryById(long id)
+    public AccountingResponse QueryById(long accountBookId, long id)
     {
-        throw new NotImplementedException();
+        // 检查账本是否存在
+        AccountBookExist(accountBookId);
+
+        // 查询记账记录
+        Accounting accounting = QueryById(id);
+        if (accounting == null)
+        {
+            throw new NotFoundException($"记账记录不存在，ID: {id}");
+        }
+
+        // 将实体映射到响应模型
+        return _autoMapper.Map<AccountingResponse>(accounting);
     }
 
     /// <summary>
     /// 查询记账分页
     /// </summary>
+    /// <param name="accountBookId">账本ID</param>
     /// <param name="page">分页请求</param>
     /// <returns>记账列表</returns>
-    public PageResponse<AccountingResponse> QueryPage(AccountingPageRequest page)
+    public PageResponse<AccountingResponse> QueryPage(long accountBookId, AccountingPageRequest page)
     {
-        throw new NotImplementedException();
+        // 检查账本是否存在
+        AccountBookExist(accountBookId);
+
+        // 查询记账记录分页
+        var query = _dbContext.Accountings
+            .Where(a => a.IsDeleted == false && a.AccountBookId == accountBookId)
+            .OrderByDescending(a => a.RecordDate);
+
+        // 分页查询
+        var pagedData = query.Skip((page.PageIndex - 1) * page.PageSize)
+            .Take(page.PageSize)
+            .ToList();
+
+        // 获取总记录数
+        int totalCount = query.Count();
+
+        // 将实体列表映射到响应模型列表
+        var responseList = _autoMapper.Map<List<AccountingResponse>>(pagedData);
+
+        // 返回分页响应
+        return new PageResponse<AccountingResponse>
+        {
+            TotalCount = totalCount,
+            TotalPage = (int)Math.Ceiling((double)totalCount / page.PageSize),
+            PageIndex = page.PageIndex,
+            PageSize = page.PageSize,
+            Data = responseList
+        };
+    }
+
+    /// <summary>
+    /// 检查账本是否存在
+    /// </summary>
+    /// <param name="accountBookId"></param>
+    /// <returns></returns>
+    private void AccountBookExist(long accountBookId)
+    {
+        // 检查账本是否存在
+        bool exist = _accountBookServer.Exist(accountBookId);
+        if (!exist)
+        {
+            throw new NotFoundException("账本不存在");
+        }
+    }
+
+    /// <summary>
+    /// 查询记账记录
+    /// </summary>
+    /// <param name="id">记账ID</param>
+    /// <returns>返回记账记录</returns>
+    private Accounting QueryById(long id)
+    {
+        // 查询记账记录
+        var accounting = _dbContext.Accountings.FirstOrDefault(p => p.IsDeleted == false && p.Id == id);
+        if (accounting == null)
+        {
+            throw new NotFoundException($"记账记录不存在，ID: {id}");
+        }
+
+        return accounting;
     }
 }

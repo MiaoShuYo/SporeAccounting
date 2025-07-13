@@ -21,9 +21,4 @@ public class AccountingPageRequest : PageRequest
     /// 分类ID
     /// </summary>
     public long? CategoryId { get; set; }
-    
-    /// <summary>
-    /// 账本ID
-    /// </summary>
-    public long AccountBookId { get; set; }
 }
