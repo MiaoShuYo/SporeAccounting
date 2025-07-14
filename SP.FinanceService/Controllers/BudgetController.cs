@@ -1,4 +1,3 @@
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using SP.Common.Model;
 using SP.FinanceService.Models.Request;
@@ -68,7 +67,7 @@ namespace SP.FinanceService.Controllers
         }
 
         /// <summary>·
-        /// 获取预算列表 BudgetPageRequest
+        /// 获取预算列表
         /// </summary>
         /// <param name="request">分页查询请求</param>
         /// <returns>预算分页列表</returns>
@@ -78,6 +77,19 @@ namespace SP.FinanceService.Controllers
         {
             PageResponse<BudgetResponse> budgets = _budgetServer.QueryPage(request);
             return Ok(budgets);
+        }
+
+        /// <summary>
+        /// 获取预算信息
+        /// </summary>
+        /// <param name="id">预算ID</param>
+        /// <returns>预算信息</returns>
+        [HttpGet]
+        [Route("query/{id}")]
+        public ActionResult<BudgetResponse> QueryById([FromRoute] long id)
+        {
+            BudgetResponse budget = _budgetServer.QueryById(id);
+            return Ok(budget);
         }
     }
 }

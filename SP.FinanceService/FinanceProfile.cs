@@ -12,98 +12,28 @@ public class FinanceProfile : Profile
 {
     public FinanceProfile()
     {
+        // TransactionCategory 映射
         CreateMap<TransactionCategory, TransactionCategoryResponse>()
-            .ForMember(dest => dest.Id,
-                opt =>
-                    opt.MapFrom(src => src.Id))
-            .ForMember(dest => dest.Name,
-                opt =>
-                    opt.MapFrom(src => src.Name))
-            .ForMember(dest => dest.Type,
-                opt =>
-                    opt.MapFrom(src => (int)src.Type));
+            .ForMember(dest => dest.Type, opt => opt.MapFrom(src => (int)src.Type));
 
-        CreateMap<AccountBookAddRequest, AccountBook>()
-            .ForMember(dest => dest.Name,
-                opt =>
-                    opt.MapFrom(src => src.Name))
-            .ForMember(dest => dest.Remarks,
-                opt =>
-                    opt.MapFrom(src => src.Remarks));
-        CreateMap<AccountBookEditeRequest, AccountBook>()
-            .ForMember(dest => dest.Id,
-                opt =>
-                    opt.MapFrom(src => src.Id))
-            .ForMember(dest => dest.Name,
-                opt =>
-                    opt.MapFrom(src => src.Name))
-            .ForMember(dest => dest.Remarks,
-                opt =>
-                    opt.MapFrom(src => src.Remarks));
-        CreateMap<AccountBook, AccountBookResponse>()
-            .ForMember(dest => dest.Id,
-                opt =>
-                    opt.MapFrom(src => src.Id))
-            .ForMember(dest => dest.Name,
-                opt =>
-                    opt.MapFrom(src => src.Name))
-            .ForMember(dest => dest.Remarks,
-                opt =>
-                    opt.MapFrom(src => src.Remarks));
+        // AccountBook 映射
+        CreateMap<AccountBookAddRequest, AccountBook>();
+        CreateMap<AccountBookEditeRequest, AccountBook>();
+        CreateMap<AccountBook, AccountBookResponse>();
 
+        // Accounting 映射
         CreateMap<AccountingAddRequest, Accounting>()
-            .ForMember(dest => dest.AccountBookId,
-                opt =>
-                    opt.MapFrom(src => src.AccountBookId))
-            .ForMember(dest => dest.TransactionCategoryId,
-                opt =>
-                    opt.MapFrom(src => src.TransactionCategoryId))
-            .ForMember(dest => dest.BeforAmount,
-                opt =>
-                    opt.MapFrom(src => src.Amount))
-            .ForMember(dest => dest.RecordDate,
-                opt =>
-                    opt.MapFrom(src => src.RecordDate))
-            .ForMember(dest => dest.Remark,
-                opt =>
-                    opt.MapFrom(src => src.Remark));
+            .ForMember(dest => dest.BeforAmount, opt => opt.MapFrom(src => src.Amount));
+        
         CreateMap<AccountingEditRequest, Accounting>()
-            .ForMember(dest => dest.Id,
-                opt =>
-                    opt.MapFrom(src => src.Id))
-            .ForMember(dest => dest.AccountBookId,
-                opt =>
-                    opt.MapFrom(src => src.AccountBookId))
-            .ForMember(dest => dest.TransactionCategoryId,
-                opt =>
-                    opt.MapFrom(src => src.TransactionCategoryId))
-            .ForMember(dest => dest.BeforAmount,
-                opt =>
-                    opt.MapFrom(src => src.Amount))
-            .ForMember(dest => dest.RecordDate,
-                opt =>
-                    opt.MapFrom(src => src.RecordDate))
-            .ForMember(dest => dest.Remark,
-                opt =>
-                    opt.MapFrom(src => src.Remark));
+            .ForMember(dest => dest.BeforAmount, opt => opt.MapFrom(src => src.Amount));
+        
         CreateMap<Accounting, AccountingResponse>()
-            .ForMember(dest => dest.Id,
-                opt =>
-                    opt.MapFrom(src => src.Id))
-            .ForMember(dest => dest.TransactionCategoryId,
-                opt =>
-                    opt.MapFrom(src => src.TransactionCategoryId))
-            .ForMember(dest => dest.Amount,
-                opt =>
-                    opt.MapFrom(src => src.AfterAmount))
-            .ForMember(dest => dest.CurrencyId,
-                opt =>
-                    opt.MapFrom(src => src.CurrencyId))
-            .ForMember(dest => dest.RecordDate,
-                opt =>
-                    opt.MapFrom(src => src.RecordDate))
-            .ForMember(dest => dest.Remark,
-                opt =>
-                    opt.MapFrom(src => src.Remark));
+            .ForMember(dest => dest.Amount, opt => opt.MapFrom(src => src.AfterAmount));
+
+        // Budget 映射
+        CreateMap<BudgetAddRequest, Budget>();
+        CreateMap<BudgetEditRequest, Budget>();
+        CreateMap<Budget, BudgetResponse>();
     }
 }

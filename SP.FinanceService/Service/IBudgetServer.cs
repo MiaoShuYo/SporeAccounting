@@ -27,11 +27,18 @@ public interface IBudgetServer
     /// </summary>
     /// <param name="budget">修改预算</param>
     void Edit(BudgetEditRequest budget);
-    
+
     /// <summary>
     /// 查询预算分页列表
     /// </summary>
     /// <param name="request">分页查询</param>
     /// <returns>预算列表</returns>
     PageResponse<BudgetResponse> QueryPage(BudgetPageRequest request);
+
+    /// <summary>
+    /// 查询预算列表
+    /// </summary>
+    /// <param name="id">预算id</param>
+    /// <returns>预算信息</returns>
+    BudgetResponse QueryById(long id);
 }

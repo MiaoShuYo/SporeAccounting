@@ -161,6 +161,17 @@ public class TransactionCategoryServerImpl : ITransactionCategoryServer
     }
 
     /// <summary>
+    /// 查询分类信息
+    /// </summary>
+    /// <param name="categoryId">分类id</param>
+    /// <returns>返回分类信息</returns>
+    public TransactionCategory? QueryById(long categoryId)
+    {
+        return _dbContext.TransactionCategories
+            .FirstOrDefault(c => c.Id == categoryId && c.IsDeleted == false);
+    }
+
+    /// <summary>
     /// 根据id列表批量查询收支分类
     /// </summary>
     /// <param name="ids">分类ID列表</param>
@@ -175,16 +186,5 @@ public class TransactionCategoryServerImpl : ITransactionCategoryServer
         // 查询指定ID列表的收支分类
         return _dbContext.TransactionCategories
             .Where(c => ids.Contains(c.Id) && c.IsDeleted == false).ToList();
-    }
-
-    /// <summary>
-    /// 根据id查询分类
-    /// </summary>
-    /// <param name="id">分类ID</param>
-    /// <returns>返回收支分类</returns>
-    private TransactionCategory? QueryById(long id)
-    {
-        return _dbContext.TransactionCategories
-            .FirstOrDefault(c => c.Id == id && c.IsDeleted == false);
     }
 }
