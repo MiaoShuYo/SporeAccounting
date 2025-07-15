@@ -9,8 +9,8 @@ FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 WORKDIR /src
 
 # 复制项目文件
-COPY ["SP.IdentityService/SP.IdentityService.csproj", "SP.IdentityService/"]
-COPY ["SP.Common/SP.Common.csproj", "SP.Common/"]
+COPY ["SP.IdentityService.csproj", "SP.IdentityService/"]
+COPY ["../SP.Common/SP.Common.csproj", "SP.Common/"]
 
 # 还原NuGet包
 RUN dotnet restore "SP.IdentityService/SP.IdentityService.csproj"

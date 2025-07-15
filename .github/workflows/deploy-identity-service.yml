@@ -24,7 +24,8 @@ jobs:
       - name: Build and push Docker image
         uses: docker/build-push-action@v4
         with:
-          context: ./SP.IdentityService
+          context: .
+          file: ./SP.IdentityService/Dockerfile
           push: true
           tags: ${{ secrets.DOCKER_USERNAME }}/sp-identity-service:latest
 
