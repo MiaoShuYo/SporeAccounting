@@ -1,0 +1,41 @@
+name: Deploy Identity Service
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'SP.IdentityService/**'
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v4
+        with:
+          context: ./SP.IdentityService
+          push: true
+          tags: ${{ secrets.DOCKER_USERNAME }}/sp-identity-service:latest
+
+      - name: Deploy to Server
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USERNAME }}
+          key: ${{ secrets.SERVER_SSH_KEY }}
+          script: |
+            docker pull ${{ secrets.DOCKER_USERNAME }}/sp-identity-service:latest
+            docker stop sp-identity-service || true
+            docker rm sp-identity-service || true
+            docker run -d --name sp-identity-service -p 8397:80 ${{ secrets.DOCKER_USERNAME }}/sp-identity-service:latest 
