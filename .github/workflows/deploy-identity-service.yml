@@ -2,7 +2,7 @@ name: Deploy Identity Service
 
 on:
   push:
-    branches: [ main ]
+    branches: [ Microservices ]
     paths:
       - 'SP.IdentityService/**'
 
