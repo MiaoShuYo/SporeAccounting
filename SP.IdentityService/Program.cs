@@ -61,7 +61,7 @@ public class Program
 
         // 替换默认的 UserStore
         builder.Services.AddScoped<IUserStore<SpUser>, SPUserStore>();
-
+        // 添加OpenIddict
         builder.Services.AddOpenIddict(builder.Configuration);
 
         builder.Services.AddSwaggerGen();
