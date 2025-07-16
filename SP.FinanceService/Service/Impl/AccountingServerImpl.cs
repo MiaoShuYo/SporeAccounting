@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using SP.Common.ExceptionHandling.Exceptions;
+using SP.Common.Message.Mq;
 using SP.Common.Model;
 using SP.FinanceService.DB;
 using SP.FinanceService.Models.Entity;
@@ -17,8 +18,16 @@ public class AccountingServerImpl : IAccountingServer
     /// 数据库上下文
     /// </summary>
     private readonly FinanceServiceDbContext _dbContext;
-
+    
+    /// <summary>
+    /// 账本服务
+    /// </summary>
     private readonly IAccountBookServer _accountBookServer;
+    
+    /// <summary>
+    /// RabbitMQ消息处理
+    /// </summary>
+    private readonly RabbitMqMessage _rabbitMqMessage;
 
     /// <summary>
     /// 自动映射器
@@ -31,12 +40,14 @@ public class AccountingServerImpl : IAccountingServer
     /// <param name="dbContext"></param>
     /// <param name="autoMapper"></param>
     /// <param name="accountBookServer"></param>
+    /// <param name="rabbitMqMessage"></param>
     public AccountingServerImpl(FinanceServiceDbContext dbContext, IMapper autoMapper,
-        IAccountBookServer accountBookServer)
+        IAccountBookServer accountBookServer, RabbitMqMessage rabbitMqMessage)
     {
         _dbContext = dbContext;
         _autoMapper = autoMapper;
         _accountBookServer = accountBookServer;
+        _rabbitMqMessage = rabbitMqMessage;
     }
 
 

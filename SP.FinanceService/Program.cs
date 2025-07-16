@@ -3,6 +3,7 @@ using Microsoft.OpenApi.Models;
 using Nacos.AspNetCore.V2;
 using Nacos.V2.DependencyInjection;
 using SP.Common.ConfigService;
+using SP.Common.Message.Mq;
 using SP.Common.Middleware;
 using SP.FinanceService.DB;
 using SP.FinanceService.Service;
@@ -44,6 +45,16 @@ builder.Services.AddScoped<IBudgetServer, BudgetServerImpl>();
 builder.Services.AddAutoMapper(Assembly.GetExecutingAssembly());
 
 builder.Services.AddSingleton<JwtConfigService>();
+
+// 注册MQ配置服务
+builder.Services.AddSingleton<RabbitMqConfigService>();
+// 注册RabbitMqMessage服务
+builder.Services.AddScoped<RabbitMqMessage>(provider =>
+{
+    var configService = provider.GetRequiredService<RabbitMqConfigService>();
+    var logger = provider.GetRequiredService<ILogger<RabbitMqMessage>>();
+    return new RabbitMqMessage(logger, configService.GetRabbitMqConfig());
+});
 
 var app = builder.Build();
 
