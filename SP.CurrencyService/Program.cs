@@ -7,6 +7,7 @@ using SP.CurrencyService.DB;
 using SP.CurrencyService.Service;
 using SP.CurrencyService.Service.Impl;
 using SP.CurrencyService.Task.ExchangeRate;
+using SP.Common.ConfigService;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -39,6 +40,9 @@ builder.Services.AddAutoMapper(Assembly.GetExecutingAssembly());
 // 服务注册
 builder.Services.AddScoped<ICurrencyServer, CurrencyServerImpl>();
 builder.Services.AddScoped<IExchangeRateRecordServer, ExchangeRateRecordServerImpl>();
+
+// 注册JwtConfigService（ApplicationMiddleware需要）
+builder.Services.AddSingleton<JwtConfigService>();
 
 // 添加定时任务
 builder.Services.AddQuartz(q =>
