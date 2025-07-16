@@ -2,10 +2,12 @@ using System.Reflection;
 using Microsoft.OpenApi.Models;
 using Nacos.AspNetCore.V2;
 using Nacos.V2.DependencyInjection;
+using Refit;
 using SP.Common.ConfigService;
 using SP.Common.Message.Mq;
 using SP.Common.Middleware;
 using SP.FinanceService.DB;
+using SP.FinanceService.RefitClient;
 using SP.FinanceService.Service;
 using SP.FinanceService.Service.Impl;
 
@@ -33,6 +35,13 @@ builder.Services.AddNacosAspNet(builder.Configuration);
 // 添加Nacos配置中心
 builder.Configuration.AddNacosV2Configuration(builder.Configuration.GetSection("nacos"));
 builder.Services.AddNacosV2Naming(builder.Configuration);
+
+// 注册Refit客户端
+var currencyServiceUrl = builder.Configuration.GetValue<string>("Services:CurrencyService:BaseUrl") ??
+                         "http://localhost:5103";
+builder.Services.AddRefitClient<ICurrencyServiceApi>()
+    .ConfigureHttpClient(c => c.BaseAddress = new Uri(currencyServiceUrl));
+
 // 注册 DbContext
 builder.Services.AddDbContext<FinanceServiceDbContext>(ServiceLifetime.Scoped);
 
@@ -41,6 +50,7 @@ builder.Services.AddScoped<ITransactionCategoryServer, TransactionCategoryServer
 builder.Services.AddScoped<IAccountBookServer, AccountBookServerImpl>();
 builder.Services.AddScoped<IAccountingServer, AccountingServerImpl>();
 builder.Services.AddScoped<IBudgetServer, BudgetServerImpl>();
+builder.Services.AddScoped<ICurrencyService, CurrencyServiceImpl>();
 
 builder.Services.AddAutoMapper(Assembly.GetExecutingAssembly());
 
@@ -66,6 +76,7 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
+
 app.UseMiddleware<ApplicationMiddleware>();
 
 app.UseHttpsRedirection();

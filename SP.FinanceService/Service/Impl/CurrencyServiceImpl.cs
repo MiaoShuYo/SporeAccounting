@@ -1,3 +1,4 @@
+using SP.Common.ExceptionHandling.Exceptions;
 using SP.FinanceService.Models.Response;
 using SP.FinanceService.RefitClient;
 
@@ -27,8 +28,10 @@ public class CurrencyServiceImpl : ICurrencyService
     {
         try
         {
+            // 调用货币服务API获取今日汇率
             var response = await _currencyServiceApi.GetTodayExchangeRateByCode(sourceCurrencyId, targetCurrencyId);
             
+            // 检查响应是否成功，并且内容不为空
             if (response.IsSuccessStatusCode && response.Content != null)
             {
                 return response.Content;
@@ -37,12 +40,12 @@ public class CurrencyServiceImpl : ICurrencyService
             _logger.LogError("获取汇率失败: {StatusCode}, {ErrorMessage}", 
                 response.StatusCode, response.Error?.Content);
             
-            throw new Exception($"获取汇率失败: {response.StatusCode}");
+            throw new RefitException($"获取汇率失败: {response.StatusCode}");
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "调用货币服务获取汇率时发生异常");
-            throw;
+            throw new RefitException("获取汇率时发生异常", ex);
         }
     }
 } 

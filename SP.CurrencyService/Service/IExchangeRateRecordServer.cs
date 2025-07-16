@@ -21,7 +21,7 @@ public interface IExchangeRateRecordServer
     /// </summary>
     /// <param name="exchangeRateRecordPage">分页请求</param>
     /// <returns>返回分页结果</returns>
-    Task<PageResponse<ExchangeRateRecordResponse>> QueryByPage(
+    PageResponse<ExchangeRateRecordResponse> QueryByPage(
         ExchangeRateRecordPageRequestRequest exchangeRateRecordPage);
 
     /// <summary>
@@ -30,5 +30,5 @@ public interface IExchangeRateRecordServer
     /// <param name="sourceCurrencyId">源币种</param>
     /// <param name="targetCurrencyId">目标币种</param>
     /// <returns>返回今日汇率记录</returns>
-    Task<ExchangeRateRecordResponse> GetTodayExchangeRate(long sourceCurrencyId, long targetCurrencyId);
+    ExchangeRateRecordResponse GetTodayExchangeRate(long sourceCurrencyId, long targetCurrencyId);
 }

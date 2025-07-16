@@ -76,7 +76,7 @@ public class RabbitMqMessage
         }
 
         MqMessage mqMessage =
-            new MqMessage(Snow.GetId(), publisher.Body, publisher.MessageType);
+            new MqMessage(Snow.GetId(),publisher.MessageType, publisher.Body);
 
         _logger.LogInformation(
             $"RabbitMQ消息发送开始：\r\n消息id：{mqMessage.Id}\r\n队列：{publisher.Queue}\r\n" +

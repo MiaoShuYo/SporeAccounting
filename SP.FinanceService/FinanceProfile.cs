@@ -23,13 +23,16 @@ public class FinanceProfile : Profile
 
         // Accounting 映射
         CreateMap<AccountingAddRequest, Accounting>()
-            .ForMember(dest => dest.BeforAmount, opt => opt.MapFrom(src => src.Amount));
-        
+            .ForMember(dest => dest.BeforAmount, opt =>
+                opt.MapFrom(src => src.Amount));
+
         CreateMap<AccountingEditRequest, Accounting>()
-            .ForMember(dest => dest.BeforAmount, opt => opt.MapFrom(src => src.Amount));
-        
+            .ForMember(dest => dest.BeforAmount, opt =>
+                opt.MapFrom(src => src.Amount));
+
         CreateMap<Accounting, AccountingResponse>()
-            .ForMember(dest => dest.Amount, opt => opt.MapFrom(src => src.AfterAmount));
+            .ForMember(dest => dest.Amount, opt =>
+                opt.MapFrom(src => src.BeforAmount));
 
         // Budget 映射
         CreateMap<BudgetAddRequest, Budget>();

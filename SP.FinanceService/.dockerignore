@@ -54,6 +54,12 @@ docker-compose*.yml
 *.md
 LICENSE
 
-# 配置文件（可选，根据需要调整）
-# appsettings.Development.json
-# appsettings.Production.json 
+# 配置文件（根据需要调整）
+# 开发环境配置文件 - 通常不包含在Docker镜像中
+appsettings.Development.json
+
+# 生产环境配置文件 - 可以通过环境变量或外部挂载覆盖
+# appsettings.Production.json
+
+# Docker专用配置文件 - 包含在镜像中
+# appsettings.Docker.json 

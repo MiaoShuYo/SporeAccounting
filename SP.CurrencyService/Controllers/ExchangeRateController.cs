@@ -28,10 +28,10 @@ public class ExchangeRateController : ControllerBase
     /// <param name="request">分页请求</param>
     /// <returns>返回分页结果</returns>
     [HttpPost("queryByPage")]
-    public async Task<ActionResult<PageResponse<ExchangeRateRecordResponse>>> QueryByPage(
+    public ActionResult<PageResponse<ExchangeRateRecordResponse>> QueryByPage(
         [FromBody] ExchangeRateRecordPageRequestRequest request)
     {
-        PageResponse<ExchangeRateRecordResponse> response = await _exchangeRateRecordServer.QueryByPage(request);
+        PageResponse<ExchangeRateRecordResponse> response = _exchangeRateRecordServer.QueryByPage(request);
         return Ok(response);
     }
 
@@ -42,10 +42,22 @@ public class ExchangeRateController : ControllerBase
     /// <param name="targetCurrencyId">目标币种ID</param>
     /// <returns>返回今日汇率记录</returns>
     [HttpGet("getTodayExchangeRate/{sourceCurrencyId}/{targetCurrencyId}")]
-    public async Task<ActionResult<List<ExchangeRateRecordResponse>>> GetTodayExchangeRate(
-        [FromRoute]long sourceCurrencyId,  [FromRoute]long targetCurrencyId)
+    public ActionResult<List<ExchangeRateRecordResponse>> GetTodayExchangeRate(
+        [FromRoute] long sourceCurrencyId, [FromRoute] long targetCurrencyId)
     {
-        ExchangeRateRecordResponse response = await _exchangeRateRecordServer.GetTodayExchangeRate(
+        ExchangeRateRecordResponse response = _exchangeRateRecordServer.GetTodayExchangeRate(
+            sourceCurrencyId, targetCurrencyId);
+        return Ok(response);
+    }
+
+    /// <summary>
+    /// 获取两个币种之间的今日汇率
+    /// </summary>
+    [HttpGet("getTodayExchangeRateByCode/{sourceCurrencyId}/{targetCurrencyId}")]
+    public ActionResult<ExchangeRateRecordResponse> GetTodayExchangeRateByCode(
+        [FromRoute] long sourceCurrencyId, [FromRoute] long targetCurrencyId)
+    {
+        ExchangeRateRecordResponse response = _exchangeRateRecordServer.GetTodayExchangeRate(
             sourceCurrencyId, targetCurrencyId);
         return Ok(response);
     }

@@ -14,4 +14,19 @@ public static class MessageType
     /// 找回密码
     ///</summary>
     public const string ResetPassword = "ResetPassword";
+
+    /// <summary>
+    /// 预算扣除
+    /// </summary>
+    public const string BudgetDeduct = "BudgetDeduct";
+
+    /// <summary>
+    /// 预算增加
+    /// </summary>
+    public const string BudgetAdd = "BudgetAdd";
+    
+    /// <summary>
+    /// 预算更新
+    /// </summary>
+    public const string BudgetUpdate = "BudgetUpdate";
 }

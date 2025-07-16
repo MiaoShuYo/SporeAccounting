@@ -38,7 +38,7 @@ public class ExchangeRateRecordServerImpl : IExchangeRateRecordServer
     /// </summary>
     /// <param name="exchangeRateRecordPage">分页查询请求</param>
     /// <returns></returns>
-    public async Task<PageResponse<ExchangeRateRecordResponse>> QueryByPage(
+    public PageResponse<ExchangeRateRecordResponse> QueryByPage(
         ExchangeRateRecordPageRequestRequest exchangeRateRecordPage)
     {
         if (exchangeRateRecordPage == null)
@@ -59,9 +59,9 @@ public class ExchangeRateRecordServerImpl : IExchangeRateRecordServer
         var pageSize = exchangeRateRecordPage.PageSize;
         var skip = (pageIndex - 1) * pageSize;
 
-        var totalCount = await query.CountAsync();
+        var totalCount = query.Count();
 
-        var data = await query
+        var data = query
             .OrderByDescending(x => x.Date)
             .Skip(skip)
             .Take(pageSize)
@@ -72,7 +72,7 @@ public class ExchangeRateRecordServerImpl : IExchangeRateRecordServer
                 ExchangeRate = x.ExchangeRate,
                 Date = x.Date
             })
-            .ToListAsync();
+            .ToList();
 
         var page = new PageResponse<ExchangeRateRecordResponse>
         {
@@ -92,12 +92,12 @@ public class ExchangeRateRecordServerImpl : IExchangeRateRecordServer
     /// <param name="sourceCurrencyId">源币种</param>
     /// <param name="targetCurrencyId">目标币种</param>
     /// <returns>返回今日汇率记录</returns>
-    public async Task<ExchangeRateRecordResponse> GetTodayExchangeRate(long sourceCurrencyId,
+    public ExchangeRateRecordResponse GetTodayExchangeRate(long sourceCurrencyId,
         long targetCurrencyId)
     {
         var today = DateTime.Today;
-        var todayExchangeRate = await _dbContext.ExchangeRateRecords
-            .FirstOrDefaultAsync(x => x.Date.Date == today && x.SourceCurrencyId == sourceCurrencyId &&
+        var todayExchangeRate = _dbContext.ExchangeRateRecords
+            .FirstOrDefault(x => x.Date.Date == today && x.SourceCurrencyId == sourceCurrencyId &&
                                       x.TargetCurrencyId == targetCurrencyId);
         if (todayExchangeRate == null)
         {

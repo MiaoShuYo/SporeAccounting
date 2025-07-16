@@ -9,6 +9,7 @@ using OpenIddict.Abstractions;
 using OpenIddict.Server.AspNetCore;
 using SP.Common;
 using SP.Common.ExceptionHandling.Exceptions;
+using SP.Common.Message.Model;
 using SP.Common.Message.Mq;
 using SP.Common.Message.Mq.Model;
 using SP.Common.Redis;
@@ -388,9 +389,9 @@ public class AuthorizationServiceImpl : IAuthorizationService
     public async Task SendEmailAsync(SendEmailRequest email)
     {
         MqPublisher publisher = new MqPublisher(email.Email,
-            "message",
-            "email",
-            "email",
+            MqExchange.EmailExchange,
+            MqRoutingKey.EmailRoutingKey,
+            MqQueue.EmailQueue,
             email.MessageType,
             ExchangeType.Direct);
         await _rabbitMqMessage.SendAsync(publisher);

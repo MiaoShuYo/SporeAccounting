@@ -1,6 +1,8 @@
 ﻿using AutoMapper;
 using SP.Common.ExceptionHandling.Exceptions;
+using SP.Common.Message.Model;
 using SP.Common.Message.Mq;
+using SP.Common.Message.Mq.Model;
 using SP.Common.Model;
 using SP.FinanceService.DB;
 using SP.FinanceService.Models.Entity;
@@ -18,12 +20,17 @@ public class AccountingServerImpl : IAccountingServer
     /// 数据库上下文
     /// </summary>
     private readonly FinanceServiceDbContext _dbContext;
-    
+
     /// <summary>
     /// 账本服务
     /// </summary>
     private readonly IAccountBookServer _accountBookServer;
-    
+
+    /// <summary>
+    /// 货币服务
+    /// </summary>
+    private readonly ICurrencyService _currencyServer;
+
     /// <summary>
     /// RabbitMQ消息处理
     /// </summary>
@@ -42,12 +49,13 @@ public class AccountingServerImpl : IAccountingServer
     /// <param name="accountBookServer"></param>
     /// <param name="rabbitMqMessage"></param>
     public AccountingServerImpl(FinanceServiceDbContext dbContext, IMapper autoMapper,
-        IAccountBookServer accountBookServer, RabbitMqMessage rabbitMqMessage)
+        IAccountBookServer accountBookServer, RabbitMqMessage rabbitMqMessage, ICurrencyService currencyServer)
     {
         _dbContext = dbContext;
         _autoMapper = autoMapper;
         _accountBookServer = accountBookServer;
         _rabbitMqMessage = rabbitMqMessage;
+        _currencyServer = currencyServer;
     }
 
 
@@ -74,13 +82,31 @@ public class AccountingServerImpl : IAccountingServer
 
         // 将请求映射到实体
         var accounting = _autoMapper.Map<Accounting>(request);
+        long targetCurrencyId = GetUserTargetCurrencyId();
+
+        if (request.CurrencyId == targetCurrencyId)
+        {
+            accounting.AfterAmount = request.Amount;
+        }
+        else
+        {
+            accounting.AfterAmount = CalculateConvertedAmount(
+                request.CurrencyId, targetCurrencyId, request.Amount);
+        }
+
+        SettingCommProperty.Create(accounting);
 
         // 添加到数据库
         _dbContext.Accountings.Add(accounting);
         _dbContext.SaveChanges();
-        
-        //TODO:通过MQ发送记账数据到消息队列，从预算中扣除金额等操作
-        
+
+        //通过MQ发送记账数据到消息队列，从预算中扣除金额
+        MqPublisher mqPublisher = new MqPublisher(accounting.AfterAmount.ToString("F2"),
+            MqExchange.BudgetExchange,
+            MqRoutingKey.BudgetRoutingKey,
+            MqQueue.BudgetQueue, MessageType.BudgetAdd, ExchangeType.Direct);
+        _rabbitMqMessage.SendAsync(mqPublisher).Start();
+
         // 返回新增的记账ID
         return accounting.Id;
     }
@@ -106,8 +132,13 @@ public class AccountingServerImpl : IAccountingServer
         // 保存更改
         _dbContext.Accountings.Update(accounting);
         _dbContext.SaveChanges();
-        
-        //TODO:通过MQ发送删除记账数据到消息队列，把预算中的金额恢复
+
+        //通过MQ发送删除记账数据到消息队列，把预算中的金额恢复
+        MqPublisher mqPublisher = new MqPublisher(accounting.AfterAmount.ToString("F2"),
+            MqExchange.BudgetExchange,
+            MqRoutingKey.BudgetRoutingKey,
+            MqQueue.BudgetQueue, MessageType.BudgetDeduct, ExchangeType.Direct);
+        _rabbitMqMessage.SendAsync(mqPublisher).Start();
     }
 
     /// <summary>
@@ -129,14 +160,31 @@ public class AccountingServerImpl : IAccountingServer
 
         // 将请求模型映射到实体
         existingAccounting = _autoMapper.Map<Accounting>(request);
+        long targetCurrencyId = GetUserTargetCurrencyId();
+
+        if (request.CurrencyId == targetCurrencyId)
+        {
+            existingAccounting.AfterAmount = request.Amount;
+        }
+        else
+        {
+            existingAccounting.AfterAmount = CalculateConvertedAmount(
+                request.CurrencyId, targetCurrencyId, request.Amount);
+        }
+
         SettingCommProperty.Edit(existingAccounting);
 
         // 更新记账信息
         _dbContext.Accountings.Update(existingAccounting);
         // 保存更改到数据库
         _dbContext.SaveChanges();
-        
-        //TODO:通过MQ发送修改记账数据到消息队列，更新预算中的金额
+
+        // 通过MQ发送修改记账数据到消息队列，更新预算中的金额
+        MqPublisher mqPublisher = new MqPublisher(existingAccounting.AfterAmount.ToString("F2"),
+            MqExchange.BudgetExchange,
+            MqRoutingKey.BudgetRoutingKey,
+            MqQueue.BudgetQueue, MessageType.BudgetUpdate, ExchangeType.Direct);
+        _rabbitMqMessage.SendAsync(mqPublisher).Start();
     }
 
     /// <summary>
@@ -229,5 +277,32 @@ public class AccountingServerImpl : IAccountingServer
         }
 
         return accounting;
+    }
+
+    /// <summary>
+    /// 计算源货币和目标货币转换后的金额
+    /// </summary>
+    /// <param name="sourceCurrencyId">源货币ID</param>
+    /// <param name="targetCurrencyId">目标货币ID</param>
+    /// <returns>返回转换后的金额</returns>
+    private decimal CalculateConvertedAmount(long sourceCurrencyId, long targetCurrencyId, decimal amount)
+    {
+        // 获取今日汇率记录
+        var todayExchangeRate = _currencyServer
+            .GetTodayExchangeRateByCode(sourceCurrencyId, targetCurrencyId);
+        // 返回汇率
+        decimal exchangeRate = todayExchangeRate.Result.ExchangeRate;
+        // 计算转换后的金额
+        return amount * exchangeRate;
+    }
+
+    /// <summary>
+    /// 从用户配置中获取用户设置的目标币种
+    /// </summary>
+    /// <returns>返回目标币种ID</returns>
+    private long GetUserTargetCurrencyId()
+    {
+        // TODO:从用户配置中获取用户设置的目标币种
+        return 0L;
     }
 }

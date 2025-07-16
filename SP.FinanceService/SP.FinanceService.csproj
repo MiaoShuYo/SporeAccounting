@@ -21,6 +21,8 @@
         <PackageReference Include="nacos-sdk-csharp" Version="1.3.10"/>
         <PackageReference Include="nacos-sdk-csharp.Extensions.Configuration" Version="1.3.10"/>
         <PackageReference Include="nacos-sdk-csharp.AspNetCore" Version="1.3.10"/>
+        <PackageReference Include="Refit" Version="8.0.0" />
+        <PackageReference Include="Refit.HttpClientFactory" Version="8.0.0" />
     </ItemGroup>
 
     <ItemGroup>

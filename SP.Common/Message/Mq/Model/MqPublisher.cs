@@ -8,12 +8,12 @@ public class MqPublisher
     /// <summary>
     /// 构造函数
     /// </summary>
-    /// <param name="body"></param>
-    /// <param name="exchange"></param>
-    /// <param name="routingKey"></param>
-    /// <param name="queue"></param>
-    /// <param name="messageType"></param>
-    /// <param name="exchangeType"></param>
+    /// <param name="body">消息体</param>
+    /// <param name="exchange">交换机名称</param>
+    /// <param name="routingKey">路由键</param>
+    /// <param name="queue">队列</param>
+    /// <param name="messageType">消息类型</param>
+    /// <param name="exchangeType">ExchangeType</param>
     public MqPublisher(string body, string exchange, string routingKey, string queue, string messageType,
         string exchangeType)
     {
