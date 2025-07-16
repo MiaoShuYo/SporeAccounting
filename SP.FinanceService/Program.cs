@@ -3,6 +3,7 @@ using Microsoft.OpenApi.Models;
 using Nacos.AspNetCore.V2;
 using Nacos.V2.DependencyInjection;
 using SP.Common.ConfigService;
+using SP.Common.Middleware;
 using SP.FinanceService.DB;
 using SP.FinanceService.Service;
 using SP.FinanceService.Service.Impl;
@@ -54,6 +55,7 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
+app.UseMiddleware<ApplicationMiddleware>();
 
 app.UseHttpsRedirection();
 

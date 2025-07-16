@@ -2,6 +2,7 @@ using System.Reflection;
 using Nacos.AspNetCore.V2;
 using Nacos.V2.DependencyInjection;
 using Quartz;
+using SP.Common.Middleware;
 using SP.CurrencyService.DB;
 using SP.CurrencyService.Service;
 using SP.CurrencyService.Service.Impl;
@@ -64,6 +65,8 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
+
+app.UseMiddleware<ApplicationMiddleware>();
 
 app.UseHttpsRedirection();
 
