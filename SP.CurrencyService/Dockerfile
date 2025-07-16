@@ -47,9 +47,6 @@ EXPOSE 443
 ENV ASPNETCORE_URLS=http://+:80
 ENV ASPNETCORE_ENVIRONMENT=Production
 
-# 健康检查
-HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
-    CMD curl -f http://localhost/health || exit 1
 
 # 启动应用程序
 ENTRYPOINT ["dotnet", "SP.CurrencyService.dll"] 
