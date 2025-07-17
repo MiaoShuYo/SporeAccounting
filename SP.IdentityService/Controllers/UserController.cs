@@ -8,7 +8,7 @@ namespace SP.IdentityService.Controllers;
 /// <summary>
 /// 用户控制器
 /// </summary>
-[Route("/api/Users")]
+[Route("/api/users")]
 [ApiController]
 public class UserController : ControllerBase
 {
@@ -29,7 +29,7 @@ public class UserController : ControllerBase
     /// <param name="id">用户id</param>
     /// <returns></returns>
     [HttpGet("{id}")]
-    public async Task<ActionResult<UserResponse>> GetUserInfo([FromRoute] long id)
+    public async Task<ActionResult<UserResponse>> GetUser([FromRoute] long id)
     {
         var result = await _userService.GetUserInfo(id);
         return Ok(result);
@@ -41,7 +41,7 @@ public class UserController : ControllerBase
     /// <param name="page">分页查询参数</param>
     /// <returns></returns>
     [HttpGet]
-    public async Task<ActionResult<PagedResponse<UserResponse>>> GetUserList([FromQuery] UserPageRequest page)
+    public async Task<ActionResult<PagedResponse<UserResponse>>> GetUsers([FromQuery] UserPageRequest page)
     {
         var result = await _userService.GetUserList(page);
         return Ok(result);
@@ -65,8 +65,8 @@ public class UserController : ControllerBase
     /// <param name="id">用户id</param>
     /// <param name="isDisabled">是否禁用</param>
     /// <returns></returns>
-    [HttpPut("{id}/disable")]
-    public async Task<ActionResult> DisableUser([FromRoute] long id, [FromBody] bool isDisabled)
+    [HttpPut("{id}/status")]
+    public async Task<ActionResult> UpdateUserStatus([FromRoute] long id, [FromBody] bool isDisabled)
     {
         await _userService.DisableUser(id, isDisabled);
         return Ok();

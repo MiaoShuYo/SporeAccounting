@@ -9,7 +9,7 @@ namespace SP.FinanceService.Controllers;
 /// <summary>
 /// 记账接口
 /// </summary>
-[Route("/api/accounting")]
+[Route("/api/accountings")]
 [ApiController]
 public class AccountingController : ControllerBase
 {
@@ -27,65 +27,80 @@ public class AccountingController : ControllerBase
     }
 
     /// <summary>
-    /// 新增记账
+    /// 创建记账记录
     /// </summary>
-    /// <param name="accountBookId">账本ID</param>
     /// <param name="request">记账请求</param>
     /// <returns>返回记账记录id</returns>
-    [HttpPost("{accountBookId}/add")]
-    public ActionResult<long> Add([FromRoute] long accountBookId, [FromBody] AccountingAddRequest request)
+    [HttpPost]
+    public ActionResult<long> CreateAccounting([FromBody] AccountingAddRequest request)
     {
-        long accountingId = _accountingServer.Add(accountBookId,request);
+        long accountingId = _accountingServer.Add(request.AccountBookId, request);
         return Ok(accountingId);
     }
 
     /// <summary>
-    /// 删除记账
+    /// 删除记账记录
     /// </summary>
     /// <param name="id">记账ID</param>
     /// <returns>返回删除结果</returns>
-    [HttpDelete("{accountBookId}/delete/{id}")]
-    public ActionResult<bool> Delete([FromRoute] long accountBookId,[FromRoute] long id)
+    [HttpDelete("{id}")]
+    public ActionResult<bool> DeleteAccounting([FromRoute] long id)
     {
-        _accountingServer.Delete(accountBookId,id);
+        _accountingServer.Delete(id, id);
         return Ok(true);
     }
 
     /// <summary>
-    /// 修改记账
+    /// 更新记账记录
     /// </summary>
+    /// <param name="id">记账ID</param>
     /// <param name="request">记账修改请求</param>
     /// <returns>返回修改结果</returns>
-    [HttpPut("/{accountBookId}/edit")]
-    public ActionResult<bool> Edit([FromRoute] long accountBookId,[FromBody] AccountingEditRequest request)
+    [HttpPut("{id}")]
+    public ActionResult<bool> UpdateAccounting([FromRoute] long id, [FromBody] AccountingEditRequest request)
     {
-        _accountingServer.Edit(accountBookId,request);
+        _accountingServer.Edit(request.AccountBookId, request);
         return Ok(true);
     }
 
     /// <summary>
-    /// 查询记账记录详细信息
+    /// 获取记账记录详细信息
     /// </summary>
     /// <param name="id">记账ID</param>
     /// <returns>返回记账记录详细信息</returns>
-    [HttpGet("{accountBookId}/query/{id}")]
-    public ActionResult<AccountingResponse> Query([FromRoute] long accountBookId,[FromRoute] long id)
+    [HttpGet("{id}")]
+    public ActionResult<AccountingResponse> GetAccounting([FromRoute] long id)
     {
-        AccountingResponse accountingRecord = _accountingServer.QueryById(accountBookId,id);
+        AccountingResponse accountingRecord = _accountingServer.QueryById(id, id);
         return Ok(accountingRecord);
     }
 
     /// <summary>
-    /// 分页查询记账记录
+    /// 分页获取记账记录列表
     /// </summary>
     /// <param name="accountBookId">账本ID</param>
-    /// <param name="page">查询请求</param>
+    /// <param name="page">页码</param>
+    /// <param name="size">每页数量</param>
+    /// <param name="startTime">开始时间</param>
+    /// <param name="endTime">结束时间</param>
     /// <returns>返回分页查询结果</returns>
-    [HttpPost("{accountBookId}/page")]
-    public ActionResult<PageResponse<AccountingResponse>> QueryPage([FromRoute] long accountBookId,
-        [FromBody] AccountingPageRequest page)
+    [HttpGet]
+    public ActionResult<PageResponse<AccountingResponse>> GetAccountings(
+        [FromQuery] long accountBookId,
+        [FromQuery] int page = 1,
+        [FromQuery] int size = 10,
+        [FromQuery] DateTime? startTime = null,
+        [FromQuery] DateTime? endTime = null)
     {
-        PageResponse<AccountingResponse> result = _accountingServer.QueryPage(accountBookId,page);
+        var request = new AccountingPageRequest
+        {
+            AccountBookId = accountBookId,
+            PageIndex = page,
+            PageSize = size,
+            StartTime = startTime,
+            EndTime = endTime
+        };
+        PageResponse<AccountingResponse> result = _accountingServer.QueryPage(accountBookId, request);
         return Ok(result);
     }
 }

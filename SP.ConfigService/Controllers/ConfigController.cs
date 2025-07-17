@@ -7,7 +7,7 @@ namespace SP.ConfigService.Controllers
     /// <summary>
     /// 用户配置控制器
     /// </summary>
-    [Route("api/config")]
+    [Route("api/configs")]
     [ApiController]
     public class ConfigController : ControllerBase
     {
@@ -26,22 +26,22 @@ namespace SP.ConfigService.Controllers
         }
 
         /// <summary>
-        /// 查询用户配置
+        /// 获取所有配置
         /// </summary>
-        /// <returns>用户配置</returns>
-        [HttpGet("query")]
-        public ActionResult<List<ConfigResponse>> GetConfig()
+        /// <returns>用户配置列表</returns>
+        [HttpGet]
+        public ActionResult<List<ConfigResponse>> GetConfigs()
         {
             List<ConfigResponse> configs = _configServer.GetConfig();
             return Ok(configs);
         }
 
         /// <summary>
-        /// 更新用户配置
+        /// 更新配置
         /// </summary>
         /// <param name="config">配置更新请求</param>
-        /// <returns>>更新结果</returns>
-        [HttpPut("update")]
+        /// <returns>更新结果</returns>
+        [HttpPut]
         public ActionResult<bool> UpdateConfig([FromBody] ConfigResponse config)
         {
             _configServer.UpdateConfig(config);

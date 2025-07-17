@@ -7,7 +7,7 @@ namespace SP.CurrencyService.Controllers;
 /// <summary>
 /// 币种控制器
 /// </summary>
-[Route("/api/currency")]
+[Route("/api/currencies")]
 [ApiController]
 public class CurrencyController : ControllerBase
 {
@@ -19,11 +19,11 @@ public class CurrencyController : ControllerBase
     }
     
     /// <summary>
-    /// 查询所有币种
+    /// 获取所有币种
     /// </summary>
     /// <returns>返回币种列表</returns>
-    [HttpGet("query")]
-    public ActionResult<List<CurrencyResponse>> Query()
+    [HttpGet]
+    public ActionResult<List<CurrencyResponse>> GetCurrencies()
     {
         List<CurrencyResponse> currencies = _currencyServer.Query();
         return Ok(currencies);

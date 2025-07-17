@@ -9,7 +9,7 @@ namespace SP.IdentityService.Controllers;
 /// 角色控制器
 /// </summary>
 [ApiController]
-[Route("/api/Roles")]
+[Route("/api/roles")]
 public class RoleController : ControllerBase
 {
     /// <summary>
@@ -39,7 +39,7 @@ public class RoleController : ControllerBase
     /// <param name="page">分页查询参数</param>
     /// <returns></returns>
     [HttpGet]
-    public async Task<ActionResult<PagedResponse<RoleResponse>>> GetRoleList([FromQuery] RolePageRequest page)
+    public async Task<ActionResult<PagedResponse<RoleResponse>>> GetRoles([FromQuery] RolePageRequest page)
     {
         var result = await _roleService.GetRoleList(page);
         return Ok(result);
@@ -51,7 +51,7 @@ public class RoleController : ControllerBase
     /// <param name="id">角色id</param>
     /// <returns></returns>
     [HttpGet("{id}")]
-    public async Task<ActionResult<RoleResponse>> GetRoleInfo([FromRoute] long id)
+    public async Task<ActionResult<RoleResponse>> GetRole([FromRoute] long id)
     {
         var result = await _roleService.GetRoleInfo(id);
         return Ok(result);
@@ -95,7 +95,7 @@ public class RoleController : ControllerBase
     }
 
     /// <summary>
-    /// 角色添加权限
+    /// 为角色添加权限
     /// </summary>
     /// <param name="roleId">角色id</param>
     /// <param name="permission">权限</param>
@@ -112,7 +112,7 @@ public class RoleController : ControllerBase
     /// <param name="roleId"></param>
     /// <returns></returns>
     [HttpGet("{roleId}/permissions")]
-    public async Task<ActionResult<List<string>>> GetPermissionsByRole([FromRoute] long roleId)
+    public async Task<ActionResult<List<string>>> GetRolePermissions([FromRoute] long roleId)
     {
         var result = await _rolePermissionService.GetPermissionsByRole(roleId);
         return Ok(result);

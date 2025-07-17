@@ -9,52 +9,58 @@ namespace SP.CurrencyService.Controllers;
 /// <summary>
 /// 汇率控制器
 /// </summary>
-[Route("/api/exchangeRate")]
+[Route("/api/exchange-rates")]
 [ApiController]
 public class ExchangeRateController : ControllerBase
 {
+    /// <summary>
+    /// 汇率记录服务
+    /// </summary>
     private readonly IExchangeRateRecordServer _exchangeRateRecordServer;
-    private readonly ICurrencyServer _currencyServer;
 
-    public ExchangeRateController(IExchangeRateRecordServer exchangeRateRecordServer, ICurrencyServer currencyServer)
+    /// <summary>
+    /// 汇率控制器构造函数
+    /// </summary>
+    /// <param name="exchangeRateRecordServer">汇率记录服务</param>
+    public ExchangeRateController(IExchangeRateRecordServer exchangeRateRecordServer)
     {
         _exchangeRateRecordServer = exchangeRateRecordServer;
-        _currencyServer = currencyServer;
     }
 
     /// <summary>
-    /// 查询汇率记录分页
+    /// 分页获取汇率记录列表
     /// </summary>
-    /// <param name="request">分页请求</param>
+    /// <param name="sourceCurrencyId">源币种ID</param>
+    /// <param name="targetCurrencyId">目标币种ID</param>
+    /// <param name="page">页码</param>
+    /// <param name="size">每页数量</param>
     /// <returns>返回分页结果</returns>
-    [HttpPost("queryByPage")]
-    public ActionResult<PageResponse<ExchangeRateRecordResponse>> QueryByPage(
-        [FromBody] ExchangeRateRecordPageRequestRequest request)
+    [HttpGet]
+    public ActionResult<PageResponse<ExchangeRateRecordResponse>> GetExchangeRates(
+        [FromQuery] long sourceCurrencyId,
+        [FromQuery] long targetCurrencyId,
+        [FromQuery] int page = 1,
+        [FromQuery] int size = 10)
     {
+        var request = new ExchangeRateRecordPageRequestRequest
+        {
+            SourceCurrencyId = sourceCurrencyId,
+            TargetCurrencyId = targetCurrencyId,
+            PageIndex = page,
+            PageSize = size
+        };
         PageResponse<ExchangeRateRecordResponse> response = _exchangeRateRecordServer.QueryByPage(request);
         return Ok(response);
     }
 
     /// <summary>
-    /// 获取今日源币种和目标币种之间的汇率
+    /// 获取指定币种对的今日汇率
     /// </summary>
     /// <param name="sourceCurrencyId">源币种ID</param>
     /// <param name="targetCurrencyId">目标币种ID</param>
     /// <returns>返回今日汇率记录</returns>
-    [HttpGet("getTodayExchangeRate/{sourceCurrencyId}/{targetCurrencyId}")]
-    public ActionResult<List<ExchangeRateRecordResponse>> GetTodayExchangeRate(
-        [FromRoute] long sourceCurrencyId, [FromRoute] long targetCurrencyId)
-    {
-        ExchangeRateRecordResponse response = _exchangeRateRecordServer.GetTodayExchangeRate(
-            sourceCurrencyId, targetCurrencyId);
-        return Ok(response);
-    }
-
-    /// <summary>
-    /// 获取两个币种之间的今日汇率
-    /// </summary>
-    [HttpGet("getTodayExchangeRateByCode/{sourceCurrencyId}/{targetCurrencyId}")]
-    public ActionResult<ExchangeRateRecordResponse> GetTodayExchangeRateByCode(
+    [HttpGet("{sourceCurrencyId}/{targetCurrencyId}/today")]
+    public ActionResult<ExchangeRateRecordResponse> GetTodayExchangeRate(
         [FromRoute] long sourceCurrencyId, [FromRoute] long targetCurrencyId)
     {
         ExchangeRateRecordResponse response = _exchangeRateRecordServer.GetTodayExchangeRate(

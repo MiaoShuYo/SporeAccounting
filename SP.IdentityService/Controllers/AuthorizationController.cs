@@ -13,7 +13,7 @@ namespace SP.IdentityService.Controllers;
 /// <summary>
 /// 授权控制器
 /// </summary>
-[Route("connect")]
+[Route("api/auth")]
 [ApiController]
 public class AuthorizationController : ControllerBase
 {
@@ -32,12 +32,12 @@ public class AuthorizationController : ControllerBase
     }
 
     /// <summary>
-    /// 令牌端点 - 获取访问令牌
+    /// 获取访问令牌
     /// </summary>
     /// <remarks>
     /// 请求示例:
     /// 
-    ///     POST /connect/token
+    ///     POST /api/auth/token
     ///     Content-Type: application/x-www-form-urlencoded
     ///     
     ///     grant_type=password&amp;username=admin&amp;password=123*asdasd&amp;scope=api offline_access
@@ -66,7 +66,7 @@ public class AuthorizationController : ControllerBase
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status403Forbidden)]
-    public async Task<ActionResult> Token()
+    public async Task<ActionResult> GetToken()
     {
         // 检查是否通过查询参数传递敏感信息
         if (Request.Query.Count > 0 &&
@@ -157,7 +157,7 @@ public class AuthorizationController : ControllerBase
     /// 发送邮件
     /// </summary>
     /// <param name="email"></param>
-    [HttpPost("emails/send")]
+    [HttpPost("emails")]
     public async Task<ActionResult> SendEmail([FromBody] SendEmailRequest email)
     {
         await _authorizationService.SendEmailAsync(email);

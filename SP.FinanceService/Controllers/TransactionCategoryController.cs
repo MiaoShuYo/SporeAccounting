@@ -9,7 +9,7 @@ namespace SP.FinanceService.Controllers
     /// <summary>
     /// 收支分类接口
     /// </summary>
-    [Route("/api/transactionCategory")]
+    [Route("/api/transaction-categories")]
     [ApiController]
     public class TransactionCategoryController : ControllerBase
     {
@@ -28,24 +28,25 @@ namespace SP.FinanceService.Controllers
         }
 
         /// <summary>
-        /// 查询指定分类下的所有子分类
+        /// 获取指定分类下的所有子分类
         /// </summary>
         /// <param name="parentId">父分类ID</param>
         /// <returns>返回子分类列表</returns>
-        [HttpGet("{parentId}/query")]
-        public ActionResult<List<TransactionCategoryResponse>> QueryByParentId([FromRoute] long parentId)
+        [HttpGet("by-parent/{parentId}")]
+        public ActionResult<List<TransactionCategoryResponse>> GetCategoriesByParent([FromRoute] long parentId)
         {
             List<TransactionCategoryResponse> categories = _transactionCategoryServer.QueryByParentId(parentId);
             return Ok(categories);
         }
 
         /// <summary>
-        /// 修改收支分类
+        /// 更新收支分类
         /// </summary>
+        /// <param name="id">分类ID</param>
         /// <param name="category">收支分类信息</param>
         /// <returns>返回修改结果</returns>
-        [HttpPut("edit")]
-        public ActionResult<bool> Edit([FromBody] TransactionCategoryEditRequest category)
+        [HttpPut("{id}")]
+        public ActionResult<bool> UpdateCategory([FromRoute] long id, [FromBody] TransactionCategoryEditRequest category)
         {
             if (category == null || category.Id <= 0)
             {
@@ -64,12 +65,12 @@ namespace SP.FinanceService.Controllers
         }
 
         /// <summary>
-        /// 批量修改父级分类
+        /// 批量更新父级分类
         /// </summary>
         /// <param name="category">修改父级分类信息</param>
         /// <returns>返回修改结果</returns>
-        [HttpPut("editParent")]
-        public ActionResult<bool> EditParent([FromBody] TransactionCategoryParentEditRequest category)
+        [HttpPut("update-parent")]
+        public ActionResult<bool> UpdateParentCategory([FromBody] TransactionCategoryParentEditRequest category)
         {
             bool result = _transactionCategoryServer.EditParent(category);
             if (result)
@@ -87,8 +88,8 @@ namespace SP.FinanceService.Controllers
         /// </summary>
         /// <param name="categoryIds">要删除的分类ID列表</param>
         /// <returns>返回删除结果</returns>
-        [HttpPost("delete")]
-        public ActionResult<bool> Delete([FromBody] List<long> categoryIds)
+        [HttpDelete("batch")]
+        public ActionResult<bool> DeleteCategories([FromBody] List<long> categoryIds)
         {
             var result = _transactionCategoryServer.Delete(categoryIds);
             return Ok(result);

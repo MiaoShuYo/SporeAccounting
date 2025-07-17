@@ -1,4 +1,5 @@
-﻿using SP.Common.Model;
+﻿using System.ComponentModel.DataAnnotations;
+using SP.Common.Model;
 
 namespace SP.FinanceService.Models.Request;
 
@@ -21,4 +22,10 @@ public class AccountingPageRequest : PageRequest
     /// 分类ID
     /// </summary>
     public long? CategoryId { get; set; }
+
+    /// <summary>
+    /// 账本id
+    /// </summary>
+    [Required(ErrorMessage = "账本id不能为空")]
+    public long AccountBookId { get; set; }
 }

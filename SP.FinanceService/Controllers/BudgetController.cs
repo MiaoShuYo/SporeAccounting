@@ -9,7 +9,7 @@ namespace SP.FinanceService.Controllers
     /// <summary>
     /// 预算控制器
     /// </summary>
-    [Route("api/budget")]
+    [Route("api/budgets")]
     [ApiController]
     public class BudgetController : ControllerBase
     {
@@ -28,12 +28,12 @@ namespace SP.FinanceService.Controllers
         }
 
         /// <summary>
-        /// 新增预算
+        /// 创建预算
         /// </summary>
         /// <param name="budget">预算</param>
         /// <returns>预算id</returns>
-        [HttpPost("add")]
-        public ActionResult<long> AddBudget([FromBody] BudgetAddRequest budget)
+        [HttpPost]
+        public ActionResult<long> CreateBudget([FromBody] BudgetAddRequest budget)
         {
             long id = _budgetServer.Add(budget);
             return Ok(id);
@@ -44,7 +44,7 @@ namespace SP.FinanceService.Controllers
         /// </summary>
         /// <param name="id">预算ID</param>
         /// <returns>删除结果</returns>
-        [HttpDelete("delete/{id}")]
+        [HttpDelete("{id}")]
         public ActionResult<bool> DeleteBudget([FromRoute] long id)
         {
             _budgetServer.Delete(id);
@@ -52,25 +52,40 @@ namespace SP.FinanceService.Controllers
         }
 
         /// <summary>
-        /// 修改预算
+        /// 更新预算
         /// </summary>
+        /// <param name="id">预算ID</param>
         /// <param name="budget">预算修改请求</param>
         /// <returns>修改结果</returns>
-        [HttpPut("edit")]
-        public ActionResult<bool> EditBudget([FromBody] BudgetEditRequest budget)
+        [HttpPut("{id}")]
+        public ActionResult<bool> UpdateBudget([FromRoute] long id, [FromBody] BudgetEditRequest budget)
         {
             _budgetServer.Edit(budget);
             return Ok(true);
         }
 
-        /// <summary>·
-        /// 获取预算列表
+        /// <summary>
+        /// 分页获取预算列表
         /// </summary>
-        /// <param name="request">分页查询请求</param>
+        /// <param name="page">页码</param>
+        /// <param name="size">每页数量</param>
+        /// <param name="year">年份</param>
+        /// <param name="month">月份</param>
         /// <returns>预算分页列表</returns>
-        [HttpPost("page")]
-        public ActionResult<PageResponse<BudgetResponse>> QueryPage([FromBody] BudgetPageRequest request)
+        [HttpGet]
+        public ActionResult<PageResponse<BudgetResponse>> GetBudgets(
+            [FromQuery] int page = 1, 
+            [FromQuery] int size = 10,
+            [FromQuery] int year = 0,
+            [FromQuery] int month = 0)
         {
+            var request = new BudgetPageRequest
+            {
+                PageIndex = page,
+                PageSize = size,
+                Year = year,
+                Month = month
+            };
             PageResponse<BudgetResponse> budgets = _budgetServer.QueryPage(request);
             return Ok(budgets);
         }
@@ -80,8 +95,8 @@ namespace SP.FinanceService.Controllers
         /// </summary>
         /// <param name="id">预算ID</param>
         /// <returns>预算信息</returns>
-        [HttpGet("query/{id}")]
-        public ActionResult<BudgetResponse> QueryById([FromRoute] long id)
+        [HttpGet("{id}")]
+        public ActionResult<BudgetResponse> GetBudget([FromRoute] long id)
         {
             BudgetResponse budget = _budgetServer.QueryById(id);
             return Ok(budget);

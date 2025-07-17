@@ -9,7 +9,7 @@ namespace SP.FinanceService.Controllers;
 /// <summary>
 /// 账本接口
 /// </summary>
-[Route("/api/accountBook")]
+[Route("/api/account-books")]
 [ApiController]
 public class AccountBookController : ControllerBase
 {
@@ -25,12 +25,12 @@ public class AccountBookController : ControllerBase
     }
 
     /// <summary>
-    /// 新增账本
+    /// 创建账本
     /// </summary>
     /// <param name="request">账本请求</param>
     /// <returns>返回新增账本id</returns>
-    [HttpPost("add")]
-    public ActionResult<bool> Add([FromBody] AccountBookAddRequest request)
+    [HttpPost]
+    public ActionResult<long> CreateAccountBook([FromBody] AccountBookAddRequest request)
     {
         long accountBookId = _accountBookServer.Add(request);
         return Ok(accountBookId);
@@ -41,20 +41,21 @@ public class AccountBookController : ControllerBase
     /// </summary>
     /// <param name="id">账本ID</param>
     /// <returns>返回删除结果</returns>
-    [HttpDelete("delete/{id}")]
-    public ActionResult<bool> Delete([FromRoute] long id)
+    [HttpDelete("{id}")]
+    public ActionResult<bool> DeleteAccountBook([FromRoute] long id)
     {
         _accountBookServer.Delete(id);
         return Ok();
     }
 
     /// <summary>
-    /// 修改账本
+    /// 更新账本
     /// </summary>
+    /// <param name="id">账本ID</param>
     /// <param name="request">账本修改请求</param>
     /// <returns>返回修改结果</returns>
-    [HttpPut("edit")]
-    public ActionResult<bool> Edit([FromBody] AccountBookEditeRequest request)
+    [HttpPut("{id}")]
+    public ActionResult<bool> UpdateAccountBook([FromRoute] long id, [FromBody] AccountBookEditeRequest request)
     {
         _accountBookServer.Edit(request);
         return Ok();
@@ -63,12 +64,20 @@ public class AccountBookController : ControllerBase
     /// <summary>
     /// 分页查询账本列表
     /// </summary>
-    /// <param name="page">查询请求</param>
+    /// <param name="page">页码</param>
+    /// <param name="size">每页数量</param>
     /// <returns>返回账本列表</returns>
-    [HttpGet("page")]
-    public ActionResult<PageResponse<AccountBookResponse>> Query([FromQuery] AccountBookPageRequest page)
+    [HttpGet]
+    public ActionResult<PageResponse<AccountBookResponse>> GetAccountBooks(
+        [FromQuery] int page = 1,
+        [FromQuery] int size = 10)
     {
-        PageResponse<AccountBookResponse> result = _accountBookServer.QueryPage(page);
+        var pageRequest = new AccountBookPageRequest
+        {
+            PageIndex = page,
+            PageSize = size
+        };
+        PageResponse<AccountBookResponse> result = _accountBookServer.QueryPage(pageRequest);
         return Ok(result);
     }
 }
