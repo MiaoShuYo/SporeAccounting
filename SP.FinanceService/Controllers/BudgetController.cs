@@ -32,8 +32,7 @@ namespace SP.FinanceService.Controllers
         /// </summary>
         /// <param name="budget">预算</param>
         /// <returns>预算id</returns>
-        [HttpPost]
-        [Route("add")]
+        [HttpPost("add")]
         public ActionResult<long> AddBudget([FromBody] BudgetAddRequest budget)
         {
             long id = _budgetServer.Add(budget);
@@ -45,8 +44,7 @@ namespace SP.FinanceService.Controllers
         /// </summary>
         /// <param name="id">预算ID</param>
         /// <returns>删除结果</returns>
-        [HttpDelete]
-        [Route("delete/{id}")]
+        [HttpDelete("delete/{id}")]
         public ActionResult<bool> DeleteBudget([FromRoute] long id)
         {
             _budgetServer.Delete(id);
@@ -58,8 +56,7 @@ namespace SP.FinanceService.Controllers
         /// </summary>
         /// <param name="budget">预算修改请求</param>
         /// <returns>修改结果</returns>
-        [HttpPut]
-        [Route("edit")]
+        [HttpPut("edit")]
         public ActionResult<bool> EditBudget([FromBody] BudgetEditRequest budget)
         {
             _budgetServer.Edit(budget);
@@ -71,8 +68,7 @@ namespace SP.FinanceService.Controllers
         /// </summary>
         /// <param name="request">分页查询请求</param>
         /// <returns>预算分页列表</returns>
-        [HttpPost]
-        [Route("page")]
+        [HttpPost("page")]
         public ActionResult<PageResponse<BudgetResponse>> QueryPage([FromBody] BudgetPageRequest request)
         {
             PageResponse<BudgetResponse> budgets = _budgetServer.QueryPage(request);
@@ -84,8 +80,7 @@ namespace SP.FinanceService.Controllers
         /// </summary>
         /// <param name="id">预算ID</param>
         /// <returns>预算信息</returns>
-        [HttpGet]
-        [Route("query/{id}")]
+        [HttpGet("query/{id}")]
         public ActionResult<BudgetResponse> QueryById([FromRoute] long id)
         {
             BudgetResponse budget = _budgetServer.QueryById(id);

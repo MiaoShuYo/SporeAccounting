@@ -1,4 +1,4 @@
-﻿namespace SP.Config.Models.Enumeration;
+﻿namespace SP.ConfigService.Models.Enumeration;
 
 /// <summary>
 /// 用户配置类型

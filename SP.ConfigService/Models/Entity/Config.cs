@@ -1,9 +1,9 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using SP.Common.Model;
-using SP.Config.Models.Enumeration;
+using SP.ConfigService.Models.Enumeration;
 
-namespace SP.Config.Models.Entity;
+namespace SP.ConfigService.Models.Entity;
 
 /// <summary>
 /// 用户配置实体

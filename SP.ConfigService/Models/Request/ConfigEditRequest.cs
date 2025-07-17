@@ -1,7 +1,7 @@
 ﻿using System.ComponentModel.DataAnnotations;
-using SP.Config.Models.Enumeration;
+using SP.ConfigService.Models.Enumeration;
 
-namespace SP.Config.Models.Request;
+namespace SP.ConfigService.Models.Request;
 
 /// <summary>
 /// 用户配置修改请求模型
