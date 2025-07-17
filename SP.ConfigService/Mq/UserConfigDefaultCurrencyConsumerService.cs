@@ -1,11 +1,10 @@
-﻿using SP.Common;
-using SP.Common.ExceptionHandling.Exceptions;
+﻿using SP.Common.ExceptionHandling.Exceptions;
 using SP.Common.Message.Model;
 using SP.Common.Message.Mq;
 using SP.Common.Message.Mq.Model;
-using SP.CurrencyService.Service;
+using SP.ConfigService.Service;
 
-namespace SP.CurrencyService.Mq;
+namespace SP.ConfigService.Mq;
 
 /// <summary>
 /// 用户配置默认币种消息消费者服务
@@ -18,10 +17,10 @@ public class UserConfigDefaultCurrencyConsumerService : BackgroundService
     private readonly RabbitMqMessage _rabbitMqMessage;
 
     /// <summary>
-    /// 币种服务
+    /// 用户配置服务
     /// </summary>
-    private readonly ICurrencyServer _currencyServer;
-
+    private readonly IConfigServer _configServer;
+    
     /// <summary>
     /// 日志记录器
     /// </summary>
@@ -37,15 +36,12 @@ public class UserConfigDefaultCurrencyConsumerService : BackgroundService
     /// 用户配置默认币种消息消费者服务构造函数
     /// </summary>
     /// <param name="rabbitMqMessage"></param>
-    /// <param name="currencyServer"></param>
     /// <param name="logger"></param>
     /// <param name="configuration"></param>
-    public UserConfigDefaultCurrencyConsumerService(RabbitMqMessage rabbitMqMessage,
-        ICurrencyServer currencyServer, ILogger<UserConfigDefaultCurrencyConsumerService> logger,
+    public UserConfigDefaultCurrencyConsumerService(RabbitMqMessage rabbitMqMessage, ILogger<UserConfigDefaultCurrencyConsumerService> logger,
         IConfiguration configuration)
     {
         _rabbitMqMessage = rabbitMqMessage;
-        _currencyServer = currencyServer;
         _logger = logger;
         _configuration = configuration;
     }
@@ -54,7 +50,7 @@ public class UserConfigDefaultCurrencyConsumerService : BackgroundService
     /// <summary>
     /// 消费者服务
     /// </summary>
-    protected override async System.Threading.Tasks.Task ExecuteAsync(CancellationToken stoppingToken)
+    protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
         MqSubscriber subscriber = new MqSubscriber(MqExchange.UserConfigExchange,
             MqRoutingKey.UserConfigDefaultCurrencyRoutingKey, MqQueue.UserConfigQueue);
@@ -83,19 +79,9 @@ public class UserConfigDefaultCurrencyConsumerService : BackgroundService
 
             // 设置用户默认币种，默认币种id从配置文件中获取
             string defaultCurrencyId = _configuration["DefaultCurrencyId"];
-            if (string.IsNullOrEmpty(defaultCurrencyId))
-            {
-                _logger.LogError("默认币种ID未配置");
-                throw new BusinessException("默认币种ID未配置");
-            }
-            if (!long.TryParse(defaultCurrencyId, out long parsedDefaultCurrencyId))
-            {
-                _logger.LogError("默认币种ID格式错误");
-                throw new BusinessException("默认币种ID格式错误");
-            }
-            _logger.LogInformation($"nacos中配置的默认币种ID: {parsedDefaultCurrencyId}");
+            _logger.LogInformation($"nacos中配置的默认币种ID: {defaultCurrencyId}");
             // 调用币种服务设置用户默认币种
-            await _currencyServer.SetUserDefaultCurrencyAsync(parsedUserId,parsedDefaultCurrencyId);
+            await _configServer.SetUserDefaultCurrencyAsync(parsedUserId,defaultCurrencyId);
         });
     }
 }

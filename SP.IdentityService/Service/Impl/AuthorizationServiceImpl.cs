@@ -369,6 +369,14 @@ public class AuthorizationServiceImpl : IAuthorizationService
                 }
 
                 transaction.Commit();
+                // 发送mq，设配默认币种
+                MqPublisher publisher = new MqPublisher(newUser.Id.ToString(),
+                    MqExchange.UserConfigExchange,
+                    MqRoutingKey.UserConfigDefaultCurrencyRoutingKey,
+                    MqQueue.UserConfigQueue,
+                    MessageType.UserConfigDefaultCurrency,
+                    ExchangeType.Direct);
+                await _rabbitMqMessage.SendAsync(publisher);
                 return newUser.Id;
             }
 

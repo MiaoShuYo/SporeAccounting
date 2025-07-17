@@ -9,8 +9,14 @@ public class MqExchange
     /// 预算消息交换机
     /// </summary>
     public const string BudgetExchange = "budget_exchange";
+
     /// <summary>
-    /// 发送邮件消息交换机
+    /// 发送邮件/短信消息交换机
     /// </summary>
-    public const string EmailExchange = "email_exchange";
+    public const string EmailExchange = "message_exchange";
+    
+    /// <summary>
+    /// 用户配置交换机
+    /// </summary>
+    public const string UserConfigExchange = "user_config_exchange";
 }

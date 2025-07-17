@@ -18,4 +18,12 @@ public interface IConfigServer
     /// </summary>
     /// <param name="config">配置更新请求</param>
     void UpdateConfig(ConfigResponse config);
+    
+    /// <summary>
+    /// 设置用户默认货币
+    /// </summary>
+    /// <param name="userId"></param>
+    /// <param name="defaultCurrencyId"></param>
+    /// <returns></returns>
+    Task SetUserDefaultCurrencyAsync(long userId, string defaultCurrencyId);
 }

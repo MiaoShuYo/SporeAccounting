@@ -5,6 +5,7 @@ using SP.Common.ExceptionHandling.Exceptions;
 using SP.Common.Model;
 using SP.ConfigService.DB;
 using SP.ConfigService.Models.Entity;
+using SP.ConfigService.Models.Enumeration;
 using SP.ConfigService.Models.Response;
 
 namespace SP.ConfigService.Service.Impl;
@@ -78,5 +79,29 @@ public class ConfigServerImpl : IConfigServer
         _context.Configs.Update(existingConfig);
         // 保存更改到数据库
         _context.SaveChanges();
+    }
+
+    /// <summary>
+    /// 设置用户默认货币
+    /// </summary>
+    /// <param name="userId"></param>
+    /// <param name="defaultCurrencyId"></param>
+    /// <returns></returns>
+    public Task SetUserDefaultCurrencyAsync(long userId, string defaultCurrencyId)
+    {
+        Config userConfig = new Config();
+        // 更新默认货币ID
+        userConfig.Value = defaultCurrencyId;
+        userConfig.UserId = userId;
+        userConfig.ConfigType = ConfigTypeEnum.Currency;
+        userConfig.Id = Snow.GetId();
+        userConfig.CreateDateTime = DateTime.Now;
+        userConfig.CreateUserId = userId;
+        _context.Configs.Add(userConfig);
+
+        // 保存到数据库
+        _context.SaveChanges();
+
+        return Task.CompletedTask;
     }
 }

@@ -29,4 +29,9 @@ public static class MessageType
     /// 预算更新
     /// </summary>
     public const string BudgetUpdate = "BudgetUpdate";
+    
+    /// <summary>
+    /// 用户配置默认币种
+    /// </summary>
+    public const string UserConfigDefaultCurrency = "UserConfigDefaultCurrency";
 }
