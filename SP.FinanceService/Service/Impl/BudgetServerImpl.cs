@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using Microsoft.EntityFrameworkCore;
+using SP.Common;
 using SP.Common.ExceptionHandling.Exceptions;
 using SP.Common.Model;
 using SP.FinanceService.DB;
@@ -26,6 +27,11 @@ public class BudgetServerImpl : IBudgetServer
     private readonly ITransactionCategoryServer _transactionCategoryServer;
 
     /// <summary>
+    /// 上下文会话
+    /// </summary>
+    private readonly ContextSession _contextSession;
+
+    /// <summary>
     /// 自动映射器
     /// </summary>
     private readonly IMapper _auMapper;
@@ -36,12 +42,14 @@ public class BudgetServerImpl : IBudgetServer
     /// <param name="dbContext">数据库上下文</param>
     /// <param name="auMapper">自动映射器</param>
     /// <param name="transactionCategoryServer">交易分类服务器</param>
+    /// <param name="contextSession">上下文会话</param>
     public BudgetServerImpl(FinanceServiceDbContext dbContext, IMapper auMapper,
-        ITransactionCategoryServer transactionCategoryServer)
+        ITransactionCategoryServer transactionCategoryServer, ContextSession contextSession)
     {
         _dbContext = dbContext;
         _auMapper = auMapper;
         _transactionCategoryServer = transactionCategoryServer;
+        _contextSession = contextSession;
     }
 
     /// <summary>
@@ -240,5 +248,66 @@ public class BudgetServerImpl : IBudgetServer
         }
 
         return response;
+    }
+
+    /// <summary>
+    /// 查询预算信息
+    /// </summary>
+    /// <returns>预算信息</returns>
+    public List<Budget> QueryCurrentBudgets()
+    {
+        long userId = _contextSession.UserId;
+        // 查询当前用户当月或者当季度或者当年的预算列表
+        var currentMonth = DateTime.Now.Month;
+        var currentQuarter = (currentMonth - 1) / 3 + 1;
+        var currentYear = DateTime.Now.Year;
+        var budgets = _dbContext.Budgets
+            .Where(b => !b.IsDeleted
+                        && b.StartTime.Year == currentYear
+                        && (b.StartTime.Month == currentMonth || b.StartTime.Month / 3 + 1 == currentQuarter)
+                        && b.CreateUserId == userId)
+            .ToList();
+
+        if (budgets == null || budgets.Count == 0)
+        {
+            return new List<Budget>();
+        }
+
+        return budgets;
+    }
+
+    /// <summary>
+    /// 更新预算列表
+    /// </summary>
+    /// <param name="budgets"></param>
+    public void UpdateBudgets(List<Budget> budgets)
+    {
+        if (budgets == null || budgets.Count == 0)
+        {
+            throw new ArgumentNullException(nameof(budgets), "预算列表不能为空");
+        }
+
+        foreach (var budget in budgets)
+        {
+            var existingBudget = _dbContext.Budgets
+                .FirstOrDefault(b => b.Id == budget.Id && !b.IsDeleted);
+
+            if (existingBudget == null)
+            {
+                throw new NotFoundException($"预算不存在，ID: {budget.Id}");
+            }
+
+            // 更新预算信息
+            existingBudget.Amount = budget.Amount;
+            existingBudget.Remaining = budget.Remaining;
+            existingBudget.Period = budget.Period;
+            existingBudget.StartTime = budget.StartTime;
+            existingBudget.EndTime = budget.EndTime;
+
+            SettingCommProperty.Edit(existingBudget);
+        }
+
+        _dbContext.Budgets.UpdateRange(budgets);
+        _dbContext.SaveChanges();
     }
 }

@@ -104,7 +104,7 @@ public class AccountingServerImpl : IAccountingServer
         MqPublisher mqPublisher = new MqPublisher(accounting.AfterAmount.ToString("F2"),
             MqExchange.BudgetExchange,
             MqRoutingKey.BudgetRoutingKey,
-            MqQueue.BudgetQueue, MessageType.BudgetAdd, ExchangeType.Direct);
+            MqQueue.BudgetQueue, MessageType.BudgetDeduct, ExchangeType.Direct);
         _rabbitMqMessage.SendAsync(mqPublisher).Start();
 
         // 返回新增的记账ID
@@ -137,7 +137,7 @@ public class AccountingServerImpl : IAccountingServer
         MqPublisher mqPublisher = new MqPublisher(accounting.AfterAmount.ToString("F2"),
             MqExchange.BudgetExchange,
             MqRoutingKey.BudgetRoutingKey,
-            MqQueue.BudgetQueue, MessageType.BudgetDeduct, ExchangeType.Direct);
+            MqQueue.BudgetQueue, MessageType.BudgetAdd, ExchangeType.Direct);
         _rabbitMqMessage.SendAsync(mqPublisher).Start();
     }
 
@@ -161,7 +161,9 @@ public class AccountingServerImpl : IAccountingServer
         // 将请求模型映射到实体
         existingAccounting = _autoMapper.Map<Accounting>(request);
         long targetCurrencyId = GetUserTargetCurrencyId();
-
+        // 计算原金额与现金额的差额，用于更新预算
+        decimal originalAmount = existingAccounting.AfterAmount;
+        // 如果修改的货币与目标货币相同，直接使用原金额，否则进行转换
         if (request.CurrencyId == targetCurrencyId)
         {
             existingAccounting.AfterAmount = request.Amount;
@@ -172,6 +174,9 @@ public class AccountingServerImpl : IAccountingServer
                 request.CurrencyId, targetCurrencyId, request.Amount);
         }
 
+        // 计算金额差额
+        decimal amountDifference = originalAmount - existingAccounting.AfterAmount;
+
         SettingCommProperty.Edit(existingAccounting);
 
         // 更新记账信息
@@ -180,7 +185,7 @@ public class AccountingServerImpl : IAccountingServer
         _dbContext.SaveChanges();
 
         // 通过MQ发送修改记账数据到消息队列，更新预算中的金额
-        MqPublisher mqPublisher = new MqPublisher(existingAccounting.AfterAmount.ToString("F2"),
+        MqPublisher mqPublisher = new MqPublisher(amountDifference.ToString("F2"),
             MqExchange.BudgetExchange,
             MqRoutingKey.BudgetRoutingKey,
             MqQueue.BudgetQueue, MessageType.BudgetUpdate, ExchangeType.Direct);

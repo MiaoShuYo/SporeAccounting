@@ -31,4 +31,13 @@ public class MqMessage
     /// 消息主题
     /// </summary>
     public string Body { get; }
+
+    /// <summary>
+    /// 重写ToString方法
+    /// </summary>
+    /// <returns></returns>
+    public override string ToString()
+    {
+        return "消息ID: " + Id + ", 消息类型: " + Type + ", 消息内容: " + Body;
+    }
 }

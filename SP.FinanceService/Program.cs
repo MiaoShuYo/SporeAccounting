@@ -3,6 +3,7 @@ using Microsoft.OpenApi.Models;
 using Nacos.AspNetCore.V2;
 using Nacos.V2.DependencyInjection;
 using Refit;
+using SP.Common;
 using SP.Common.ConfigService;
 using SP.Common.Message.Mq;
 using SP.Common.Middleware;
@@ -52,6 +53,11 @@ builder.Services.AddScoped<IAccountingServer, AccountingServerImpl>();
 builder.Services.AddScoped<IBudgetServer, BudgetServerImpl>();
 builder.Services.AddScoped<ICurrencyService, CurrencyServiceImpl>();
 
+// 注册 IHttpContextAccessor
+builder.Services.AddHttpContextAccessor(); 
+// 注册 ContextSession
+builder.Services.AddScoped<ContextSession>(); 
+
 builder.Services.AddAutoMapper(Assembly.GetExecutingAssembly());
 
 builder.Services.AddSingleton<JwtConfigService>();
@@ -67,8 +73,6 @@ builder.Services.AddScoped<RabbitMqMessage>(provider =>
 });
 
 var app = builder.Build();
-
-AppDomain.CurrentDomain.SetData("HttpContextAccessor", app.Services.GetService<IHttpContextAccessor>());
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())

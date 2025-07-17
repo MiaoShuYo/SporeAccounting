@@ -1,4 +1,5 @@
 ﻿using SP.Common.Model;
+using SP.FinanceService.Models.Entity;
 using SP.FinanceService.Models.Request;
 using SP.FinanceService.Models.Response;
 
@@ -36,9 +37,21 @@ public interface IBudgetServer
     PageResponse<BudgetResponse> QueryPage(BudgetPageRequest request);
 
     /// <summary>
-    /// 查询预算列表
+    /// 查询预算信息
     /// </summary>
     /// <param name="id">预算id</param>
     /// <returns>预算信息</returns>
     BudgetResponse QueryById(long id);
+    
+    /// <summary>
+    /// 查询当前在用的预算列表
+    /// </summary>
+    /// <returns>预算列表</returns>
+    List<Budget> QueryCurrentBudgets();
+    
+    /// <summary>
+    /// 更新预算列表
+    /// </summary>
+    /// <param name="budgets"></param>
+    void UpdateBudgets(List<Budget> budgets);
 }
