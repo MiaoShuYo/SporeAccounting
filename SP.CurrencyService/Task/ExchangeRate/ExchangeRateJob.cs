@@ -22,12 +22,15 @@ public class ExchangeRateTimer : IJob
     /// <param name="httpClientFactory"></param>
     /// <param name="configuration"></param>
     /// <param name="serviceScopeFactory"></param>
+    /// <param name="currencyServer"></param>
     public ExchangeRateTimer(IHttpClientFactory httpClientFactory,
-        IConfiguration configuration, IServiceScopeFactory serviceScopeFactory)
+        IConfiguration configuration, IServiceScopeFactory serviceScopeFactory,
+        ICurrencyServer currencyServer)
     {
         _httpClientFactory = httpClientFactory;
         _configuration = configuration;
         _serviceScopeFactory = serviceScopeFactory;
+        _currencyServer = currencyServer;
     }
 
     /// <summary>
