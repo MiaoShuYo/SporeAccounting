@@ -141,6 +141,7 @@ namespace SporeAccounting
             builder.Services.AddScoped(typeof(IExchangeRateRecordServer), typeof(ExchangeRateRecordImp));
             builder.Services.AddScoped(typeof(IAccountBookServer), typeof(AccountBookImp));
             builder.Services.AddScoped(typeof(IBudgetServer), typeof(BudgetImp));
+            builder.Services.AddScoped(typeof(IReportServer), typeof(ReportImp));
             builder.Services.AddScoped(typeof(IIncomeExpenditureRecordServer), typeof(IncomeExpenditureRecordImp));
             builder.Services.AddHttpClient();
             // 注册通用订阅服务
