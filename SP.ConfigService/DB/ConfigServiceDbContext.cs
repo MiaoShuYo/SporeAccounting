@@ -6,7 +6,7 @@ namespace SP.ConfigService.DB;
 /// <summary>
 /// 配置服务数据库上下文
 /// </summary>
-public class ConfigServiceDbContext: DbContext
+public class ConfigServiceDbContext : DbContext
 {
     /// <summary>
     /// 配置表
