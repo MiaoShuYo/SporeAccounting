@@ -67,7 +67,7 @@ public class IdentityServerDbContext : IdentityDbContext<SpUser, SpRole, long>
         // 添加默认角色
         SpRole adminRole = new SpRole { Id = Snow.GetId(), Name = "Admin", NormalizedName = "ADMIN" };
         SpRole userRole = new SpRole { Id = Snow.GetId(), Name = "User", NormalizedName = "USER" };
-        builder.Entity<SpRole>().HasData(adminRole,userRole);
+        builder.Entity<SpRole>().HasData(adminRole, userRole);
 
         // 添加默认用户
         var hasher = new PasswordHasher<SpUser>();
