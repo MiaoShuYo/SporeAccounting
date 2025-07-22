@@ -8,7 +8,7 @@ namespace SP.ConfigService;
 /// <summary>
 /// 用户配置映射配置
 /// </summary>
-public class ConfigProfile:Profile
+public class ConfigProfile : Profile
 {
     public ConfigProfile()
     {
