@@ -17,10 +17,13 @@ SP.ConfigService/obj/
 SP.ConfigService/bin/
 SP.Gateway/obj/
 SP.Gateway/bin/
+SP.ReportService/obj/
+SP.ReportService/bin/
 SP.Common/SP.Common.csproj.user
 SP.Config/SP.ConfigService.csproj.user
 SP.FinanceService/SP.FinanceService.csproj.user
 SP.CurrencyService/SP.CurrencyService.csproj.user
 SP.IdentityService/SP.IdentityService.csproj.user
 SP.Gateway/SP.Gateway.csproj.user
+SP.ReportService/SP.ReportService.csproj.user
 SporeAccounting.sln.DotSettings.user
