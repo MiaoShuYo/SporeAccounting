@@ -21,7 +21,7 @@ public class ContextSession
     {
         get
         {
-            // 假设UserId存储在Claims中
+            // UserId存储在Claims中
             var userIdClaim = _httpContextAccessor.HttpContext?.User?.FindFirst("UserId");
             if (userIdClaim != null && long.TryParse(userIdClaim.Value, out var userId))
             {
@@ -38,7 +38,7 @@ public class ContextSession
     {
         get
         {
-            // 假设UserName存储在Claims中
+            // UserName存储在Claims中
             var userNameClaim = _httpContextAccessor.HttpContext?.User?.FindFirst("UserName");
             return userNameClaim?.Value ?? string.Empty;
         }
