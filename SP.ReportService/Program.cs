@@ -4,6 +4,8 @@ using Nacos.V2.DependencyInjection;
 using SP.Common;
 using SP.Common.Middleware;
 using SP.ReportService.DB;
+using SP.ReportService.Service;
+using SP.ReportService.Service.Impl;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -35,6 +37,8 @@ builder.Services.AddHttpContextAccessor();
 // 注册 ContextSession
 builder.Services.AddScoped<ContextSession>(); 
 builder.Services.AddAutoMapper(Assembly.GetExecutingAssembly());
+
+builder.Services.AddScoped<IReportServer,ReportServerImpl>();
 
 var app = builder.Build();
 
