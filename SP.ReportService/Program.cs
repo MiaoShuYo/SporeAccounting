@@ -2,6 +2,7 @@ using System.Reflection;
 using Nacos.AspNetCore.V2;
 using Nacos.V2.DependencyInjection;
 using SP.Common;
+using SP.Common.ConfigService;
 using SP.Common.Middleware;
 using SP.ReportService.DB;
 using SP.ReportService.Service;
@@ -37,7 +38,7 @@ builder.Services.AddHttpContextAccessor();
 // 注册 ContextSession
 builder.Services.AddScoped<ContextSession>(); 
 builder.Services.AddAutoMapper(Assembly.GetExecutingAssembly());
-
+builder.Services.AddSingleton<JwtConfigService>();
 builder.Services.AddScoped<IReportServer,ReportServerImpl>();
 
 var app = builder.Build();
