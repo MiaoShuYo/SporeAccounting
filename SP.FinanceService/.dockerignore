@@ -1,0 +1,65 @@
+# Git相关
+.git
+.gitignore
+.gitattributes
+
+# Visual Studio相关
+.vs/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# 构建输出
+bin/
+obj/
+[Dd]ebug/
+[Rr]elease/
+x64/
+x86/
+[Aa][Rr][Mm]/
+[Aa][Rr][Mm]64/
+bld/
+[Bb]in/
+[Oo]bj/
+[Ll]og/
+[Ll]ogs/
+
+# NuGet包
+*.nupkg
+**/packages/*
+!**/packages/build/
+*.nuget.props
+*.nuget.targets
+
+# 测试相关
+**/[Tt]est[Rr]esult*/
+**/[Bb]uild[Ll]og.*
+
+# 其他
+*.tmp
+*.temp
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+*~
+
+# Docker相关
+Dockerfile*
+.dockerignore
+docker-compose*.yml
+
+# 文档
+*.md
+LICENSE
+
+# 配置文件（根据需要调整）
+# 开发环境配置文件 - 通常不包含在Docker镜像中
+appsettings.Development.json
+
+# 生产环境配置文件 - 可以通过环境变量或外部挂载覆盖
+# appsettings.Production.json
+
+# Docker专用配置文件 - 包含在镜像中
+# appsettings.Docker.json 

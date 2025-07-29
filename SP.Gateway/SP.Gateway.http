@@ -1,0 +1,6 @@
+@SP.Gateway_HostAddress = http://localhost:5112
+
+GET {{SP.Gateway_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

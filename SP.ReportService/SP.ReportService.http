@@ -1,0 +1,6 @@
+@SP.ReportService_HostAddress = http://localhost:5041
+
+GET {{SP.ReportService_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

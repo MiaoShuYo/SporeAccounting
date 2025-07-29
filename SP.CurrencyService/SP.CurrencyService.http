@@ -1,0 +1,6 @@
+@SP.CurrencyService_HostAddress = http://localhost:5103
+
+GET {{SP.CurrencyService_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
