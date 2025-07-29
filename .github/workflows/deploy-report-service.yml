@@ -39,4 +39,4 @@ jobs:
             docker pull ${{ secrets.DOCKER_USERNAME }}/sp-report-service:latest
             docker stop sp-report-service || true
             docker rm sp-report-service || true
-            docker run -d --name sp-report-service -p 8398:80 ${{ secrets.DOCKER_USERNAME }}/sp-report-service:latest
+            docker run -d --name sp-report-service -p 8400:80 ${{ secrets.DOCKER_USERNAME }}/sp-report-service:latest
