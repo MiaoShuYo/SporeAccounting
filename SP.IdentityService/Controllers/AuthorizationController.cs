@@ -1,10 +1,13 @@
+using System.Security.Claims;
 using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Identity.Data;
 using Microsoft.AspNetCore.Mvc;
 using OpenIddict.Abstractions;
 using OpenIddict.Server.AspNetCore;
+using SP.Common;
 using SP.Common.ExceptionHandling.Exceptions;
+using SP.Common.Redis;
 using SP.IdentityService.Models.Request;
 using SP.IdentityService.Service;
 
@@ -19,16 +22,23 @@ public class AuthorizationController : ControllerBase
 {
     private readonly IAuthorizationService _authorizationService;
     private readonly ILogger<AuthorizationController> _logger;
+    private readonly IRedisService _redisService;
+    private readonly ContextSession _contextSession;
 
     /// <summary>
     /// 授权控制器构造函数
     /// </summary>
     /// <param name="authorizationService"></param>
     /// <param name="logger"></param>
-    public AuthorizationController(IAuthorizationService authorizationService, ILogger<AuthorizationController> logger)
+    /// <param name="redisService"></param>
+    /// <param name="contextSession"></param>
+    public AuthorizationController(IAuthorizationService authorizationService,
+        ILogger<AuthorizationController> logger, IRedisService redisService,ContextSession contextSession)
     {
         _logger = logger;
         _authorizationService = authorizationService;
+        _redisService = redisService;
+        _contextSession = contextSession;
     }
 
     /// <summary>
@@ -103,7 +113,13 @@ public class AuthorizationController : ControllerBase
                 await _authorizationService.LoginByPasswordAsync(request.Username, request.Password,
                     request.GetScopes());
             // 确保 SignIn 方法只在授权端点调用
-            return SignIn(principal, OpenIddictServerAspNetCoreDefaults.AuthenticationScheme);
+            SignInResult signInResult = SignIn(principal, OpenIddictServerAspNetCoreDefaults.AuthenticationScheme);
+            
+            // 注意：在 OpenIddict 中，token 是在中间件处理过程中生成的
+            // SignInResult 的 Properties 可能不会立即包含 token 值
+            // 我们将在响应处理完成后存储 token
+            
+            return signInResult;
         }
 
         // 处理刷新令牌
@@ -117,7 +133,10 @@ public class AuthorizationController : ControllerBase
             var newPrincipal =
                 await _authorizationService.RefreshTokenAsync(request.RefreshToken, request.GetScopes(), principal);
 
-            return SignIn(newPrincipal, OpenIddictServerAspNetCoreDefaults.AuthenticationScheme);
+            var signInResult = SignIn(newPrincipal, OpenIddictServerAspNetCoreDefaults.AuthenticationScheme);
+            
+            // 注意：token 将在 OpenIddict 中间件处理过程中生成
+            return signInResult;
         }
 
         // 处理客户端凭证模式
@@ -131,7 +150,11 @@ public class AuthorizationController : ControllerBase
 
             var principal =
                 await _authorizationService.HandleClientCredentialsAsync(clientId, request.GetScopes());
-            return SignIn(principal, OpenIddictServerAspNetCoreDefaults.AuthenticationScheme);
+            
+            var signInResult = SignIn(principal, OpenIddictServerAspNetCoreDefaults.AuthenticationScheme);
+            
+            // 注意：token 将在 OpenIddict 中间件处理过程中生成
+            return signInResult;
         }
 
         // 不支持的授权类型
@@ -184,5 +207,198 @@ public class AuthorizationController : ControllerBase
     {
         await _authorizationService.ResetPasswordAsync(resetPasswordRequest);
         return Ok();
+    }
+    
+    /// <summary>
+    /// 退出登录
+    /// </summary>
+    [HttpPost("logout")]
+    public async Task<ActionResult> Logout()
+    {
+        try
+        {
+            // 获取当前用户ID
+            var userId = _contextSession.UserId;
+            var username = _contextSession.UserName;
+            
+            // 1. 清除 Redis 中的 token
+            string tokenKey = string.Format(SPRedisKey.Token, userId);
+            await _redisService.RemoveAsync(tokenKey);
+                
+            // 2. 清除相关的刷新令牌（如果有的话）
+            string refreshTokenKey = string.Format("RefreshToken:{0}", userId);
+            await _redisService.RemoveAsync(refreshTokenKey);
+                
+            // 3. 记录登出日志
+            _logger.LogInformation("用户 {Username} (ID: {UserId}) 已退出登录", username, userId);
+                
+            return Ok(new { 
+                message = "已成功退出登录并撤销令牌",
+                user_id = userId,
+                username = username
+            });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "退出登录时发生错误");
+            return StatusCode(500, new { 
+                error = "InternalServerError",
+                error_description = "退出登录时发生内部错误"
+            });
+        }
+    }
+
+    /// <summary>
+    /// OpenIddict 退出端点
+    /// </summary>
+    /// <remarks>
+    /// 符合 OpenID Connect 规范的退出端点
+    /// </remarks>
+    [HttpPost("connect/logout")]
+    public async Task<ActionResult> OpenIddictLogout()
+    {
+        try
+        {
+            // 获取 OpenIddict 请求
+            var request = HttpContext.GetOpenIddictServerRequest();
+            if (request == null)
+            {
+                return BadRequest(new
+                {
+                    error = OpenIddictConstants.Errors.InvalidRequest,
+                    error_description = "无效的退出请求"
+                });
+            }
+
+            // 获取当前用户信息
+            var userId = _contextSession.UserId;
+            var username = _contextSession.UserName;
+            
+            // 1. 清除访问令牌
+            string tokenKey = string.Format(SPRedisKey.Token, userId);
+            await _redisService.RemoveAsync(tokenKey);
+                
+            // 2. 清除刷新令牌
+            string refreshTokenKey = string.Format("RefreshToken:{0}", userId);
+            await _redisService.RemoveAsync(refreshTokenKey);
+                
+            // 3. 记录退出日志
+            _logger.LogInformation("用户 {Username} (ID: {UserId}) 通过 OpenIddict 退出", username, userId);
+
+            // 使用 OpenIddict 的标准退出方法
+            return SignOut(OpenIddictServerAspNetCoreDefaults.AuthenticationScheme);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "OpenIddict 退出时发生错误");
+            return StatusCode(500, new { 
+                error = "InternalServerError",
+                error_description = "退出时发生内部错误"
+            });
+        }
+    }
+
+    /// <summary>
+    /// 撤销令牌
+    /// </summary>
+    /// <remarks>
+    /// 用于撤销访问令牌和刷新令牌，符合 OpenID Connect 规范
+    /// </remarks>
+    [HttpPost("revoke")]
+    public async Task<ActionResult> RevokeToken()
+    {
+        try
+        {
+            var request = HttpContext.GetOpenIddictServerRequest();
+            if (request == null)
+            {
+                return BadRequest(new
+                {
+                    error = OpenIddictConstants.Errors.InvalidRequest,
+                    error_description = "无效的撤销请求"
+                });
+            }
+
+            // 获取当前用户信息
+            var userId = _contextSession.UserId;
+            var username = _contextSession.UserName;
+            
+            // 1. 清除访问令牌
+            string tokenKey = string.Format(SPRedisKey.Token, userId);
+            await _redisService.RemoveAsync(tokenKey);
+                
+            // 2. 清除刷新令牌
+            string refreshTokenKey = string.Format("RefreshToken:{0}", userId);
+            await _redisService.RemoveAsync(refreshTokenKey);
+                
+            // 3. 如果请求中包含特定的刷新令牌，也清除它
+            if (!string.IsNullOrEmpty(request.RefreshToken))
+            {
+                string specificRefreshTokenKey = string.Format("RefreshToken:{0}:{1}", userId, request.RefreshToken);
+                await _redisService.RemoveAsync(specificRefreshTokenKey);
+            }
+                
+            // 4. 记录撤销日志
+            _logger.LogInformation("用户 {Username} (ID: {UserId}) 的令牌已被撤销", username, userId);
+                
+            return Ok(new { 
+                message = "令牌已成功撤销",
+                user_id = userId,
+                username = username,
+                revoked_at = DateTime.UtcNow
+            });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "撤销令牌时发生错误");
+            return StatusCode(500, new { 
+                error = "InternalServerError",
+                error_description = "撤销令牌时发生内部错误"
+            });
+        }
+    }
+
+    /// <summary>
+    /// 用户信息端点
+    /// </summary>
+    /// <remarks>
+    /// 符合 OpenID Connect 规范的用户信息端点
+    /// </remarks>
+    [HttpGet("userinfo")]
+    public async Task<ActionResult> GetUserInfo()
+    {
+        try
+        {
+            // 获取当前用户信息
+            var userId = User.FindFirstValue("sub");
+            var username = User.FindFirstValue("username");
+            var email = User.FindFirstValue("email");
+            
+            if (string.IsNullOrEmpty(userId))
+            {
+                return Unauthorized(new
+                {
+                    error = OpenIddictConstants.Errors.InvalidToken,
+                    error_description = "无效的访问令牌"
+                });
+            }
+
+            // 返回用户信息
+            return Ok(new
+            {
+                sub = userId,
+                name = username,
+                email = email,
+                updated_at = DateTimeOffset.UtcNow.ToUnixTimeSeconds()
+            });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "获取用户信息时发生错误");
+            return StatusCode(500, new { 
+                error = "InternalServerError",
+                error_description = "获取用户信息时发生内部错误"
+            });
+        }
     }
 }

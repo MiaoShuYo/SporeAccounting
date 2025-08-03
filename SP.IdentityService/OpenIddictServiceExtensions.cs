@@ -31,6 +31,9 @@ public static class OpenIddictServiceExtensions
             {
                 // 设置令牌端点
                 options.SetTokenEndpointUris("api/auth/token");
+                
+                // 设置撤销端点
+                options.SetRevocationEndpointUris("api/auth/revoke");
 
                 // 启用密码模式
                 options.AllowPasswordFlow() // 开启密码模式

@@ -1,3 +1,4 @@
+using System.Reflection;
 using Microsoft.AspNetCore.Identity;
 using Nacos.AspNetCore.V2;
 using Nacos.V2.DependencyInjection;
@@ -12,6 +13,8 @@ using SP.IdentityService.Impl;
 using SP.IdentityService.Service;
 using SP.IdentityService.Service.Impl;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+using SP.Common.Middleware;
+using SP.IdentityService.Middleware;
 
 namespace SP.IdentityService;
 
@@ -78,6 +81,32 @@ public class Program
 
             // 添加SwaggerTokenRequestFilter
             c.OperationFilter<SwaggerTokenRequestFilter>();
+    
+            // 添加JWT认证配置
+            c.AddSecurityDefinition("Bearer", new Microsoft.OpenApi.Models.OpenApiSecurityScheme
+            {
+                Description = "JWT授权(数据将在请求头中进行传输) 参数结构: \"Authorization: Bearer {token}\"",
+                Name = "Authorization",
+                In = Microsoft.OpenApi.Models.ParameterLocation.Header,
+                Type = Microsoft.OpenApi.Models.SecuritySchemeType.ApiKey,
+                BearerFormat = "JWT",
+                Scheme = "Bearer"
+            });
+    
+            c.AddSecurityRequirement(new Microsoft.OpenApi.Models.OpenApiSecurityRequirement
+            {
+                {
+                    new Microsoft.OpenApi.Models.OpenApiSecurityScheme
+                    {
+                        Reference = new Microsoft.OpenApi.Models.OpenApiReference
+                        {
+                            Type = Microsoft.OpenApi.Models.ReferenceType.SecurityScheme,
+                            Id = "Bearer"
+                        }
+                    },
+                    new string[] {}
+                }
+            });
         });
 
         builder.Services.AddScoped<IAuthorizationService, AuthorizationServiceImpl>();
@@ -109,12 +138,15 @@ public class Program
         }
 
         app.UseHttpsRedirection();
-
         app.UseRouting();
 
         // 添加认证中间件
         app.UseAuthentication();
         app.UseAuthorization();
+        app.UseMiddleware<ApplicationMiddleware>();
+        
+        // 添加 Token 存储中间件
+        app.UseTokenStorage();
 
         app.MapControllers();
 

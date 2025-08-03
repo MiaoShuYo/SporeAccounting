@@ -17,7 +17,6 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
 builder.Services.AddSwaggerGen(c =>
 {
     // 添加XML文档
@@ -76,15 +75,6 @@ builder.Services.AddDbContext<ConfigServiceDbContext>(ServiceLifetime.Scoped);
 builder.Services.AddScoped<IConfigServer, ConfigServerImpl>();
 // 注册JwtConfigService（ApplicationMiddleware需要）
 builder.Services.AddSingleton<JwtConfigService>();
-
-// 添加JWT认证
-builder.Services.AddAuthentication("Bearer")
-    .AddJwtBearer("Bearer", options =>
-    {
-        options.Authority = "http://localhost:5001"; // IdentityService的地址
-        options.RequireHttpsMetadata = false; // 开发环境禁用HTTPS要求
-        options.Audience = "api";
-    });
 
 // 注册Redis服务
 builder.Services.AddRedisService(builder.Configuration);
