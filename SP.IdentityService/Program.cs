@@ -54,7 +54,8 @@ public class Program
 
                 // 禁用用户名和邮箱规范化
                 options.User.RequireUniqueEmail = false;
-                options.User.AllowedUserNameCharacters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-._@+";
+                options.User.AllowedUserNameCharacters =
+                    "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-._@+";
             })
             .AddEntityFrameworkStores<IdentityServerDbContext>()
             .AddDefaultTokenProviders();
@@ -74,6 +75,9 @@ public class Program
             {
                 c.IncludeXmlComments(xmlPath);
             }
+
+            // 添加SwaggerTokenRequestFilter
+            c.OperationFilter<SwaggerTokenRequestFilter>();
         });
 
         builder.Services.AddScoped<IAuthorizationService, AuthorizationServiceImpl>();

@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using SP.ConfigService.Models.Request;
 using SP.ConfigService.Models.Response;
 using SP.ConfigService.Service;
 
@@ -32,7 +33,7 @@ namespace SP.ConfigService.Controllers
         [HttpGet]
         public ActionResult<List<ConfigResponse>> GetConfigs()
         {
-            List<ConfigResponse> configs = _configServer.GetConfig();
+            List<ConfigResponse> configs = _configServer.GetConfig().Result;
             return Ok(configs);
         }
 
@@ -42,7 +43,7 @@ namespace SP.ConfigService.Controllers
         /// <param name="config">配置更新请求</param>
         /// <returns>更新结果</returns>
         [HttpPut]
-        public ActionResult<bool> UpdateConfig([FromBody] ConfigResponse config)
+        public ActionResult<bool> UpdateConfig([FromBody] ConfigEditRequest config)
         {
             _configServer.UpdateConfig(config);
             return Ok(true);

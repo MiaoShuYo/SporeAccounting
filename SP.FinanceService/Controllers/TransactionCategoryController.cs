@@ -45,7 +45,8 @@ namespace SP.FinanceService.Controllers
         /// <param name="category">收支分类信息</param>
         /// <returns>返回修改结果</returns>
         [HttpPut("{id}")]
-        public ActionResult<bool> UpdateCategory([FromRoute] long id, [FromBody] TransactionCategoryEditRequest category)
+        public ActionResult<bool> UpdateCategory([FromRoute] long id,
+            [FromBody] TransactionCategoryEditRequest category)
         {
             if (category == null || category.Id <= 0)
             {

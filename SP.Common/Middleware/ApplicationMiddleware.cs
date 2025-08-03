@@ -43,8 +43,8 @@ public class ApplicationMiddleware
                 var jwtToken = handler.ReadJwtToken(token);
                 var claims = jwtToken.Claims.ToList();
                 // 查找UserId和UserName
-                var userId = claims.FirstOrDefault(c => c.Type == "UserId")?.Value;
-                var userName = claims.FirstOrDefault(c => c.Type == "UserName")?.Value;
+                var userId = claims.FirstOrDefault(c => c.Type == "sub")?.Value;
+                var userName = claims.FirstOrDefault(c => c.Type == "username")?.Value;
                 // 如果HttpContext.User没有身份，则新建
                 if (context.User == null || !context.User.Identities.Any())
                 {
@@ -56,17 +56,21 @@ public class ApplicationMiddleware
                     // 合并claims到现有identity
                     var identity = context.User.Identities.First();
                     if (!string.IsNullOrEmpty(userId) && !identity.HasClaim(c => c.Type == "UserId"))
-                        identity.AddClaim(new Claim("UserId", userId));
+                        identity.AddClaim(new Claim("sub", userId));
                     if (!string.IsNullOrEmpty(userName) && !identity.HasClaim(c => c.Type == "UserName"))
-                        identity.AddClaim(new Claim("UserName", userName));
+                        identity.AddClaim(new Claim("username", userName));
                 }
+                // 调用下一个中间件
+                await _next(context);
             }
             catch
             {
                 throw new UnauthorizedException("用户未登录");
             }
         }
-        // 调用下一个中间件
-        await _next(context);
+        else
+        {
+            throw new UnauthorizedException("用户未登录");
+        }
     }
 }

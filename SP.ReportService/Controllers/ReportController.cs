@@ -1,5 +1,3 @@
-using System.Net;
-using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
 using SP.ReportService.Models.Request;
 using SP.ReportService.Models.Response;
