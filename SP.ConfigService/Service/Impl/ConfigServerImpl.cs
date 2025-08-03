@@ -1,5 +1,4 @@
-﻿using System.Configuration;
-using AutoMapper;
+﻿using AutoMapper;
 using SP.Common;
 using SP.Common.ExceptionHandling.Exceptions;
 using SP.Common.Model;
@@ -62,7 +61,6 @@ public class ConfigServerImpl : IConfigServer
         _context = context;
         _autoMapper = mapper;
         _userId = _contextSession.UserId;
-        // 从redis中获取用户配置
         _redisUserConfigKey = ConfigRedisKey.UserConfig;
         _redisUserConfigKey = string.Format(_redisUserConfigKey, _userId);
     }
