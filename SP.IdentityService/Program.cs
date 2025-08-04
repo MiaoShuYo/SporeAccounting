@@ -13,6 +13,7 @@ using SP.IdentityService.Impl;
 using SP.IdentityService.Service;
 using SP.IdentityService.Service.Impl;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+using SP.Common;
 using SP.Common.Middleware;
 using SP.IdentityService.Middleware;
 
@@ -109,6 +110,9 @@ public class Program
             });
         });
 
+        // 注册 ContextSession
+        builder.Services.AddScoped<ContextSession>();
+        
         builder.Services.AddScoped<IAuthorizationService, AuthorizationServiceImpl>();
         builder.Services.AddScoped<IUserService, UserServiceImpl>();
         builder.Services.AddScoped<IRolePermissionService, RolePermissionService>();
