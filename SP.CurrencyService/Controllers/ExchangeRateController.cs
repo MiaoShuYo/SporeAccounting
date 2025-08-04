@@ -64,7 +64,7 @@ public class ExchangeRateController : ControllerBase
         [FromRoute] long sourceCurrencyId, [FromRoute] long targetCurrencyId)
     {
         ExchangeRateRecordResponse response = _exchangeRateRecordServer.GetTodayExchangeRate(
-            sourceCurrencyId, targetCurrencyId);
+            sourceCurrencyId, targetCurrencyId).Result;
         return Ok(response);
     }
 }
