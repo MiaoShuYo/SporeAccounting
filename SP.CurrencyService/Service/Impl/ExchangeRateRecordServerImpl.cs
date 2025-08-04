@@ -1,9 +1,10 @@
 ﻿using AutoMapper;
-using Microsoft.EntityFrameworkCore;
 using SP.Common.ExceptionHandling.Exceptions;
 using SP.Common.Model;
+using SP.Common.Redis;
 using SP.CurrencyService.DB;
 using SP.CurrencyService.Models.Entity;
+using SP.CurrencyService.Models.Enumeration;
 using SP.CurrencyService.Models.Request;
 using SP.CurrencyService.Models.Response;
 
@@ -16,21 +17,28 @@ public class ExchangeRateRecordServerImpl : IExchangeRateRecordServer
 {
     private readonly CurrencyServiceDbContext _dbContext;
     private readonly IMapper _mapper;
+    private readonly IRedisService _redisService;
+    private readonly string _spRedisKey = "";
 
-    public ExchangeRateRecordServerImpl(CurrencyServiceDbContext dbContext, IMapper mapper)
+    public ExchangeRateRecordServerImpl(CurrencyServiceDbContext dbContext, IMapper mapper, IRedisService redisService)
     {
         _mapper = mapper;
+        _redisService = redisService;
         _dbContext = dbContext;
+        _spRedisKey = CurrencyRedisKey.ExchangeRate;
     }
 
     /// <summary>
     /// 添加汇率记录
     /// </summary>
     /// <param name="exchangeRateRecords">汇率记录</param>
-    public void Add(List<ExchangeRateRecord> exchangeRateRecords)
+    public async System.Threading.Tasks.Task Add(List<ExchangeRateRecord> exchangeRateRecords)
     {
+        // 清空以_spRedisKey开头的汇率记录
+        string exchangeRateKey = string.Format(_spRedisKey, "", "", "");
+        await _redisService.RemoveFrontAsync(exchangeRateKey);
         _dbContext.ExchangeRateRecords.AddRange(exchangeRateRecords);
-        _dbContext.SaveChanges();
+        await _dbContext.SaveChangesAsync();
     }
 
     /// <summary>
@@ -92,19 +100,29 @@ public class ExchangeRateRecordServerImpl : IExchangeRateRecordServer
     /// <param name="sourceCurrencyId">源币种</param>
     /// <param name="targetCurrencyId">目标币种</param>
     /// <returns>返回今日汇率记录</returns>
-    public ExchangeRateRecordResponse GetTodayExchangeRate(long sourceCurrencyId,
+    public async Task<ExchangeRateRecordResponse> GetTodayExchangeRate(long sourceCurrencyId,
         long targetCurrencyId)
     {
         var today = DateTime.Today;
+        string exchangeRedisKey =
+            string.Format(_spRedisKey, today.ToString("yyyyMMdd"), sourceCurrencyId, targetCurrencyId);
+        ExchangeRateRecordResponse? recordResponse =
+            await _redisService.GetAsync<ExchangeRateRecordResponse>(exchangeRedisKey);
+        if (recordResponse != null)
+        {
+            return recordResponse;
+        }
+
         var todayExchangeRate = _dbContext.ExchangeRateRecords
             .FirstOrDefault(x => x.Date.Date == today && x.SourceCurrencyId == sourceCurrencyId &&
-                                      x.TargetCurrencyId == targetCurrencyId);
+                                 x.TargetCurrencyId == targetCurrencyId);
         if (todayExchangeRate == null)
         {
             throw new BusinessException("今日没有汇率记录");
         }
 
         ExchangeRateRecordResponse response = _mapper.Map<ExchangeRateRecordResponse>(todayExchangeRate);
+        await _redisService.SetAsync(exchangeRedisKey, response, 60 * 60 * 24);
         return response;
     }
 }

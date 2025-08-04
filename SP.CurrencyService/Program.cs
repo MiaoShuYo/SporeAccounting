@@ -8,6 +8,7 @@ using SP.CurrencyService.Service;
 using SP.CurrencyService.Service.Impl;
 using SP.CurrencyService.Task.ExchangeRate;
 using SP.Common.ConfigService;
+using SP.Common.Redis;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -43,6 +44,9 @@ builder.Services.AddScoped<IExchangeRateRecordServer, ExchangeRateRecordServerIm
 
 // 注册JwtConfigService（ApplicationMiddleware需要）
 builder.Services.AddSingleton<JwtConfigService>();
+
+// 注入redis
+builder.Services.AddRedisService(builder.Configuration);
 
 // 添加定时任务
 builder.Services.AddQuartz(q =>

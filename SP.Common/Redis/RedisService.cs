@@ -25,14 +25,14 @@ namespace SP.Common.Redis
             _logger = logger;
             _options = options.Value;
             _lockValuePrefix = $"lock:{Environment.MachineName}:{Guid.NewGuid()}:";
-            
+
             _connectionMultiplexer = new Lazy<ConnectionMultiplexer>(() =>
             {
                 var configOptions = ConfigurationOptions.Parse(_options.ConnectionString);
                 configOptions.DefaultDatabase = _options.DefaultDatabase;
                 configOptions.ConnectTimeout = _options.ConnectTimeout;
                 configOptions.AbortOnConnectFail = false;
-                
+
                 return ConnectionMultiplexer.Connect(configOptions);
             });
         }
@@ -142,6 +142,33 @@ namespace SP.Common.Redis
         }
 
         /// <summary>
+        /// 移除指定开头的key
+        /// </summary>
+        /// <param name="frontKey">key的开头</param>
+        /// <returns>是否成功</returns>
+        public async Task<bool> RemoveFrontAsync(string frontKey)
+        {
+            try
+            {
+                // 获取所有以frontKey开头的key，并批量删除
+                var endpoints = Connection.GetEndPoints();
+                var server = Connection.GetServer(endpoints.First());
+                var keys = server.Keys(pattern: frontKey + "*").ToArray();
+                if (keys.Length == 0)
+                {
+                    return true;
+                }
+                var deletedCount = await Database.KeyDeleteAsync(keys);
+                return deletedCount == keys.Length;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Redis删除键失败，Key: {Key}", frontKey);
+                return false;
+            }
+        }
+
+        /// <summary>
         /// 键是否存在
         /// </summary>
         public async Task<bool> ExistsAsync(string key)
@@ -211,7 +238,7 @@ namespace SP.Common.Redis
             {
                 var keys = new List<string>();
                 var endpoints = Connection.GetEndPoints();
-                
+
                 foreach (var endpoint in endpoints)
                 {
                     var server = Connection.GetServer(endpoint);
@@ -305,7 +332,7 @@ namespace SP.Common.Redis
             {
                 var lockKey = $"lock:{key}";
                 var lockValue = $"{_lockValuePrefix}{DateTime.UtcNow.Ticks}";
-                
+
                 // SET命令的NX选项确保键不存在时才设置值
                 return await Database.StringSetAsync(lockKey, lockValue, expiry, When.NotExists);
             }
@@ -333,4 +360,4 @@ namespace SP.Common.Redis
             }
         }
     }
-} 
+}

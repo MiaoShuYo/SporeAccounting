@@ -43,7 +43,7 @@ public class ExchangeRateTimer : IJob
         string exchangeRateUrl = _configuration["ExchangeRate"];
 
         //获取全部币种
-        List<CurrencyResponse> currencies = _currencyServer.Query().ToList();
+        List<CurrencyResponse> currencies = _currencyServer.Query().Result.ToList();
         //获取对每种币种的汇率
         foreach (var currency in currencies)
         {
