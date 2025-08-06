@@ -2,6 +2,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Serilog;
+using Microsoft.Extensions.Options;
 
 namespace SP.Common.Logger
 {
@@ -27,6 +28,27 @@ namespace SP.Common.Logger
             // 配置Serilog并设置为默认日志提供程序
             var sp = services.BuildServiceProvider();
             var lokiConfigService = sp.GetRequiredService<ILokiLoggerConfigService>();
+            
+            // 从Nacos配置中获取ServiceName并设置到LokiOptions
+            var serviceName = configuration.GetValue<string>("nacos:ServiceName");
+            if (!string.IsNullOrEmpty(serviceName))
+            {
+                var lokiOptions = sp.GetRequiredService<IOptions<LokiOptions>>();
+                lokiOptions.Value.AppName = serviceName;
+                Console.WriteLine($"从Nacos获取到ServiceName: {serviceName}");
+            }
+            
+            // 检查Loki配置
+            var lokiUrl = configuration.GetSection("Loki")["Url"];
+            if (string.IsNullOrEmpty(lokiUrl))
+            {
+                Console.WriteLine("警告: 未找到Loki配置，请检查Nacos中的Loki配置");
+            }
+            else
+            {
+                Console.WriteLine($"找到Loki配置，URL: {lokiUrl}");
+            }
+            
             Log.Logger = lokiConfigService.ConfigureLogger();
 
             // 添加Serilog

@@ -3,6 +3,7 @@ using Nacos.AspNetCore.V2;
 using Nacos.V2.DependencyInjection;
 using SP.Common;
 using SP.Common.ConfigService;
+using SP.Common.Logger;
 using SP.Common.Middleware;
 using SP.ReportService.DB;
 using SP.ReportService.Service;
@@ -66,7 +67,8 @@ builder.Services.AddScoped<ContextSession>();
 builder.Services.AddAutoMapper(Assembly.GetExecutingAssembly());
 builder.Services.AddSingleton<JwtConfigService>();
 builder.Services.AddScoped<IReportServer,ReportServerImpl>();
-
+// 注入loki日志服务
+builder.Services.AddLoggerService(builder.Configuration);
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.

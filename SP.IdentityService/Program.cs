@@ -14,6 +14,7 @@ using SP.IdentityService.Service;
 using SP.IdentityService.Service.Impl;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using SP.Common;
+using SP.Common.Logger;
 using SP.Common.Middleware;
 using SP.IdentityService.Middleware;
 
@@ -130,6 +131,9 @@ public class Program
             var logger = provider.GetRequiredService<ILogger<RabbitMqMessage>>();
             return new RabbitMqMessage(logger, configService.GetRabbitMqConfig());
         });
+        
+        // 注入loki日志服务
+        builder.Services.AddLoggerService(builder.Configuration);
 
         var app = builder.Build();
 

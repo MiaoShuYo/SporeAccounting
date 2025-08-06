@@ -16,6 +16,8 @@
 
 ### 1. 配置Loki
 
+#### 方式一：在appsettings.json中配置
+
 在 `appsettings.json` 中添加Loki配置:
 
 ```json
@@ -26,6 +28,20 @@
     "Environment": "development",
     "Username": "optional_username",
     "Password": "optional_password"
+  }
+}
+```
+
+#### 方式二：在Nacos中配置（推荐）
+
+在Nacos配置中心添加配置，DataId为 `Common`，Group为 `DEFAULT_GROUP`：
+
+```json
+{
+  "Loki": {
+    "Url": "http://14.103.224.141:3100",
+    "AppName": "SporeAccounting",
+    "Environment": "development"
   }
 }
 ```
@@ -124,6 +140,34 @@ public void TestLogging(ILoggerService loggerService, IConfiguration configurati
 ```
 {app="SporeAccounting"} | level="error"
 ```
+
+## 故障排除
+
+### 1. 在Grafana中查不到日志
+
+可能的原因和解决方案：
+
+1. **检查Loki配置是否正确**：
+   - 确认Nacos中的Loki配置URL正确
+   - 确认Loki服务正在运行
+
+2. **检查网络连接**：
+   - 确认应用可以访问Loki服务器
+   - 检查防火墙设置
+
+3. **检查日志级别**：
+   - 确认日志级别设置正确
+   - 检查是否有足够的日志产生
+
+4. **检查Grafana查询**：
+   - 使用正确的标签查询：`{app="你的服务名"}`
+   - 尝试不同的查询方式
+
+### 2. 常见错误
+
+- **Loki URL未配置**：检查Nacos中的Loki配置
+- **连接超时**：检查网络连接和Loki服务状态
+- **认证失败**：检查用户名密码配置
 
 ## 日志最佳实践
 

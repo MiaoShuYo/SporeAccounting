@@ -5,6 +5,7 @@ using Nacos.V2.DependencyInjection;
 using Refit;
 using SP.Common;
 using SP.Common.ConfigService;
+using SP.Common.Logger;
 using SP.Common.Message.Mq;
 using SP.Common.Middleware;
 using SP.Common.Redis;
@@ -103,6 +104,8 @@ builder.Services.AddScoped<RabbitMqMessage>(provider =>
 });
 
 builder.Services.AddRedisService(builder.Configuration);
+// 注入loki日志服务
+builder.Services.AddLoggerService(builder.Configuration);
 
 var app = builder.Build();
 

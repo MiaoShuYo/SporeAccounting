@@ -3,6 +3,7 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using SP.Common.ExceptionHandling.Exceptions;
 using SP.Common.Redis;
 
@@ -14,14 +15,17 @@ namespace SP.Common.Middleware;
 public class ApplicationMiddleware
 {
     private readonly RequestDelegate _next;
+    private readonly ILogger<ApplicationMiddleware> _logger;
 
     /// <summary>
     /// 应用程序中间件构造函数
     /// </summary>
     /// <param name="next">下一个中间件</param>
-    public ApplicationMiddleware(RequestDelegate next)
+    /// <param name="logger">日志记录器</param>
+    public ApplicationMiddleware(RequestDelegate next,ILogger<ApplicationMiddleware> logger)
     {
         _next = next;
+        _logger = logger;
     }
 
     /// <summary>
@@ -41,6 +45,7 @@ public class ApplicationMiddleware
         // 如果请求路径在不需要身份验证的列表中，直接调用下一个中间件
         if (noAuthPaths.Any(p => path.StartsWith(p, StringComparison.OrdinalIgnoreCase)))
         {
+            _logger.LogInformation("{Path}不需要进行身份验证", path);
             await _next(context);
             return;
         }
@@ -63,6 +68,7 @@ public class ApplicationMiddleware
                 string? tokenRedis = await redisService.GetStringAsync(tokenKey);
                 if (tokenRedis == null || tokenRedis != token)
                 {
+                    _logger.LogWarning("Token验证失败，用户未登录或Token已失效");
                     throw new UnauthorizedException("用户未登录或Token已失效");
                 }
 
@@ -87,11 +93,13 @@ public class ApplicationMiddleware
             }
             catch
             {
+                _logger.LogWarning("用户未登录");
                 throw new UnauthorizedException("用户未登录");
             }
         }
         else
         {
+            _logger.LogWarning("用户未登录");
             throw new UnauthorizedException("用户未登录");
         }
     }

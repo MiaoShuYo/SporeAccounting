@@ -8,6 +8,7 @@ using SP.ConfigService.Service.Impl;
 using Nacos.V2.DependencyInjection;
 using Nacos.AspNetCore.V2;
 using SP.Common.ConfigService;
+using SP.Common.Logger;
 using SP.Common.Redis;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -78,6 +79,8 @@ builder.Services.AddSingleton<JwtConfigService>();
 
 // 注册Redis服务
 builder.Services.AddRedisService(builder.Configuration);
+// 注入loki日志服务
+builder.Services.AddLoggerService(builder.Configuration);
 
 var app = builder.Build();
 

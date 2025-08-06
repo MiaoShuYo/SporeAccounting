@@ -27,6 +27,20 @@ namespace SP.Common.Logger
         /// <returns>已配置的Serilog日志记录器</returns>
         public Serilog.Core.Logger ConfigureLogger()
         {
+            // 检查Loki URL是否配置
+            if (string.IsNullOrEmpty(_options.Url))
+            {
+                Console.WriteLine("警告: Loki URL未配置，将只输出到控制台");
+                return new LoggerConfiguration()
+                    .MinimumLevel.Debug()
+                    .WriteTo.Console()
+                    .CreateLogger();
+            }
+
+            // 清理URL（移除末尾斜杠）
+            var lokiUrl = _options.Url.TrimEnd('/');
+            Console.WriteLine($"配置Loki日志，URL: {lokiUrl}, AppName: {_options.AppName}");
+
             // 创建基本标签
             var labels = new List<LokiLabel>()
             {
@@ -39,6 +53,11 @@ namespace SP.Common.Logger
                 {
                     Key = "environment",
                     Value = _options.Environment
+                },
+                new LokiLabel()
+                {
+                    Key = "service",
+                    Value = _options.AppName
                 }
             };
 
@@ -58,9 +77,13 @@ namespace SP.Common.Logger
                 .Enrich.FromLogContext()
                 .WriteTo.Console(
                     restrictedToMinimumLevel: LogEventLevel.Debug,
-                    outputTemplate: "[{Timestamp:HH:mm:ss} {Level:u3}] {Message:lj}{NewLine}{Exception}")
-                .WriteTo.GrafanaLoki(
-                    uri: _options.Url,
+                    outputTemplate: "[{Timestamp:HH:mm:ss} {Level:u3}] {Message:lj}{NewLine}{Exception}");
+
+            // 只有在URL配置时才添加Loki sink
+            if (!string.IsNullOrEmpty(lokiUrl))
+            {
+                configuration = configuration.WriteTo.GrafanaLoki(
+                    uri: lokiUrl,
                     credentials: credentials,
                     textFormatter: null,
                     batchPostingLimit: 100,
@@ -68,6 +91,8 @@ namespace SP.Common.Logger
                     period: TimeSpan.FromSeconds(2),
                     labels: labels,
                     restrictedToMinimumLevel: LogEventLevel.Information);
+            }
+
             return configuration.CreateLogger();
         }
     }

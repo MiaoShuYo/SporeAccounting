@@ -8,6 +8,7 @@ using SP.CurrencyService.Service;
 using SP.CurrencyService.Service.Impl;
 using SP.CurrencyService.Task.ExchangeRate;
 using SP.Common.ConfigService;
+using SP.Common.Logger;
 using SP.Common.Redis;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -89,6 +90,9 @@ builder.Services.AddQuartzHostedService(options =>
     //启用 Quartz 的托管服务，`WaitForJobsToComplete = true` 表示在应用程序停止时等待任务完成后再关闭。
     options.WaitForJobsToComplete = true;
 });
+
+// 注入loki日志服务
+builder.Services.AddLoggerService(builder.Configuration);
 
 var app = builder.Build();
 
