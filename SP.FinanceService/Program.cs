@@ -7,6 +7,7 @@ using SP.Common;
 using SP.Common.ConfigService;
 using SP.Common.Message.Mq;
 using SP.Common.Middleware;
+using SP.Common.Redis;
 using SP.FinanceService.DB;
 using SP.FinanceService.RefitClient;
 using SP.FinanceService.Service;
@@ -22,12 +23,38 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
     // 添加XML文档
-    var xmlFile = $"{System.Reflection.Assembly.GetExecutingAssembly().GetName().Name}.xml";
+    var xmlFile = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
     var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
     if (File.Exists(xmlPath))
     {
         c.IncludeXmlComments(xmlPath);
     }
+
+    // 添加JWT认证配置
+    c.AddSecurityDefinition("Bearer", new Microsoft.OpenApi.Models.OpenApiSecurityScheme
+    {
+        Description = "JWT授权(数据将在请求头中进行传输) 参数结构: \"Authorization: Bearer {token}\"",
+        Name = "Authorization",
+        In = Microsoft.OpenApi.Models.ParameterLocation.Header,
+        Type = Microsoft.OpenApi.Models.SecuritySchemeType.ApiKey,
+        BearerFormat = "JWT",
+        Scheme = "Bearer"
+    });
+
+    c.AddSecurityRequirement(new Microsoft.OpenApi.Models.OpenApiSecurityRequirement
+    {
+        {
+            new Microsoft.OpenApi.Models.OpenApiSecurityScheme
+            {
+                Reference = new Microsoft.OpenApi.Models.OpenApiReference
+                {
+                    Type = Microsoft.OpenApi.Models.ReferenceType.SecurityScheme,
+                    Id = "Bearer"
+                }
+            },
+            new string[] { }
+        }
+    });
 });
 
 // 添加Nacos服务注册
@@ -41,6 +68,10 @@ var currencyServiceUrl = builder.Configuration.GetValue<string>("Services:Curren
                          "http://localhost:5103";
 builder.Services.AddRefitClient<ICurrencyServiceApi>()
     .ConfigureHttpClient(c => c.BaseAddress = new Uri(currencyServiceUrl));
+var configServiceUrl = builder.Configuration.GetValue<string>("Services:ConfigService:BaseUrl") ??
+                       "http://localhost:5102";
+builder.Services.AddRefitClient<IConfigServiceApi>()
+    .ConfigureHttpClient(c => c.BaseAddress = new Uri(configServiceUrl));
 
 // 注册 DbContext
 builder.Services.AddDbContext<FinanceServiceDbContext>(ServiceLifetime.Scoped);
@@ -53,9 +84,9 @@ builder.Services.AddScoped<IBudgetServer, BudgetServerImpl>();
 builder.Services.AddScoped<ICurrencyService, CurrencyServiceImpl>();
 
 // 注册 IHttpContextAccessor
-builder.Services.AddHttpContextAccessor(); 
+builder.Services.AddHttpContextAccessor();
 // 注册 ContextSession
-builder.Services.AddScoped<ContextSession>(); 
+builder.Services.AddScoped<ContextSession>();
 
 builder.Services.AddAutoMapper(Assembly.GetExecutingAssembly());
 
@@ -70,6 +101,8 @@ builder.Services.AddScoped<RabbitMqMessage>(provider =>
     var logger = provider.GetRequiredService<ILogger<RabbitMqMessage>>();
     return new RabbitMqMessage(logger, configService.GetRabbitMqConfig());
 });
+
+builder.Services.AddRedisService(builder.Configuration);
 
 var app = builder.Build();
 

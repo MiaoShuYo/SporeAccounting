@@ -42,4 +42,11 @@ public interface ITransactionCategoryServer
     /// <param name="categoryId">分类id</param>
     /// <returns>返回分类信息</returns>
     TransactionCategory?  QueryById(long categoryId);
+    
+    /// <summary>
+    /// 新增收支分类
+    /// </summary>
+    /// <param name="category"></param>
+    /// <returns></returns>
+    long Add(TransactionCategoryAddRequest category);
 }

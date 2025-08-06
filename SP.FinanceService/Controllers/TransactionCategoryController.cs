@@ -17,6 +17,7 @@ namespace SP.FinanceService.Controllers
         /// </summary>
         private readonly ITransactionCategoryServer _transactionCategoryServer;
 
+
         /// <summary>
         /// 收支分类控制器构造函数
         /// </summary>
@@ -24,6 +25,26 @@ namespace SP.FinanceService.Controllers
         public TransactionCategoryController(ITransactionCategoryServer transactionCategoryServer)
         {
             _transactionCategoryServer = transactionCategoryServer;
+        }
+
+
+        /// <summary>
+        /// 新增分类
+        /// </summary>
+        /// <param name="category">分类信息</param>
+        /// <returns>返回新增结果</returns>
+        [HttpPost]
+        public ActionResult<long> AddCategory([FromBody] TransactionCategoryAddRequest category)
+        {
+            long result = _transactionCategoryServer.Add(category);
+            if (result > 0)
+            {
+                return Ok(result);
+            }
+            else
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, "Failed to add category.");
+            }
         }
 
         /// <summary>

@@ -1,6 +1,7 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using SP.Common.Model;
+using SP.Common.Model.Enumeration;
 using SP.ConfigService.Models.Enumeration;
 
 namespace SP.ConfigService.Models.Entity;

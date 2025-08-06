@@ -1,4 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
+using SP.Common.Model.Enumeration;
+using SP.ConfigService.Models.Enumeration;
 using SP.ConfigService.Models.Request;
 using SP.ConfigService.Models.Response;
 using SP.ConfigService.Service;
@@ -47,6 +49,16 @@ namespace SP.ConfigService.Controllers
         {
             _configServer.UpdateConfig(config);
             return Ok(true);
+        }
+
+        ///<summary>
+        /// 根据配置类型获取配置
+        ///</summary>
+        [HttpGet("by-type/{type}")]
+        public ActionResult<ConfigResponse> QueryByType([FromRoute] ConfigTypeEnum type)
+        {
+            ConfigResponse config=_configServer.QueryByType(type);
+            return Ok(config);
         }
     }
 }

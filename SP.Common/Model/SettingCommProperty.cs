@@ -35,6 +35,7 @@ public class SettingCommProperty
             throw new BusinessException("Model cannot be null");
         }
 
+        model.Id = Snow.GetId();
         model.CreateDateTime = DateTime.Now;
         model.CreateUserId = GetCurrentUserId();
     }

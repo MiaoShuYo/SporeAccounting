@@ -2,6 +2,7 @@
 using SP.Common;
 using SP.Common.ExceptionHandling.Exceptions;
 using SP.Common.Model;
+using SP.Common.Model.Enumeration;
 using SP.Common.Redis;
 using SP.ConfigService.DB;
 using SP.ConfigService.Models.Entity;
@@ -79,7 +80,7 @@ public class ConfigServerImpl : IConfigServer
         }
 
         // 查询用户配置
-        List<Config> configs = _context.Configs
+        List<Config?> configs = _context.Configs
             .Where(c => c.UserId == _userId)
             .ToList();
         if (configs == null)
@@ -128,7 +129,7 @@ public class ConfigServerImpl : IConfigServer
     /// <returns></returns>
     public async Task SetUserDefaultCurrencyAsync(long userId, string defaultCurrencyId)
     {
-        Config userConfig = new Config();
+        Config? userConfig = new Config();
         // 更新默认货币ID
         userConfig.Value = defaultCurrencyId;
         userConfig.UserId = userId;
@@ -142,5 +143,22 @@ public class ConfigServerImpl : IConfigServer
         await _context.SaveChangesAsync();
         // 删除Redis缓存
         await _redisService.RemoveAsync(_redisUserConfigKey);
+    }
+
+    /// <summary>
+    /// 根据类型获取配置
+    /// </summary>
+    /// <param name="type">类型</param>
+    /// <returns>配置信息</returns>
+    public ConfigResponse QueryByType(ConfigTypeEnum type)
+    {
+        Config? config = _context.Configs.FirstOrDefault(p => p.ConfigType == type);
+        if (config == null)
+        {
+            return new ConfigResponse();
+        }
+
+        ConfigResponse configResponse = _autoMapper.Map<ConfigResponse>(config);
+        return configResponse;
     }
 }

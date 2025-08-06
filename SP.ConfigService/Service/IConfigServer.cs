@@ -1,4 +1,6 @@
-﻿using SP.ConfigService.Models.Request;
+﻿using SP.Common.Model.Enumeration;
+using SP.ConfigService.Models.Enumeration;
+using SP.ConfigService.Models.Request;
 using SP.ConfigService.Models.Response;
 
 namespace SP.ConfigService.Service;
@@ -27,4 +29,11 @@ public interface IConfigServer
     /// <param name="defaultCurrencyId"></param>
     /// <returns></returns>
     Task SetUserDefaultCurrencyAsync(long userId, string defaultCurrencyId);
+    
+    /// <summary>
+    /// 根据类型获取配置
+    /// </summary>
+    /// <param name="type">类型</param>
+    /// <returns>配置信息</returns>
+    ConfigResponse QueryByType(ConfigTypeEnum type);
 }

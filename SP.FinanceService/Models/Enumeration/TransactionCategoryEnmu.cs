@@ -6,10 +6,6 @@
 public enum TransactionCategoryEnmu
 {
     /// <summary>
-    /// 其他
-    /// </summary>
-    Other=-1,
-    /// <summary>
     /// 支出
     /// </summary>
     Income =0,

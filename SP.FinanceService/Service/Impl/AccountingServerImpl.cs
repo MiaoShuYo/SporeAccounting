@@ -1,13 +1,16 @@
 ﻿using AutoMapper;
+using Refit;
 using SP.Common.ExceptionHandling.Exceptions;
 using SP.Common.Message.Model;
 using SP.Common.Message.Mq;
 using SP.Common.Message.Mq.Model;
 using SP.Common.Model;
+using SP.Common.Model.Enumeration;
 using SP.FinanceService.DB;
 using SP.FinanceService.Models.Entity;
 using SP.FinanceService.Models.Request;
 using SP.FinanceService.Models.Response;
+using SP.FinanceService.RefitClient;
 
 namespace SP.FinanceService.Service.Impl;
 
@@ -41,21 +44,30 @@ public class AccountingServerImpl : IAccountingServer
     /// </summary>
     private readonly IMapper _autoMapper;
 
+    ///<summary>
+    /// 用户配置接口
+    ///</summary>
+    private readonly IConfigServiceApi _configService;
+
     /// <summary>
     /// 记账服务构造函数
     /// </summary>
     /// <param name="dbContext"></param>
     /// <param name="autoMapper"></param>
+    /// <param name="configService"></param>
     /// <param name="accountBookServer"></param>
     /// <param name="rabbitMqMessage"></param>
+    /// <param name="currencyServer"></param>
     public AccountingServerImpl(FinanceServiceDbContext dbContext, IMapper autoMapper,
-        IAccountBookServer accountBookServer, RabbitMqMessage rabbitMqMessage, ICurrencyService currencyServer)
+        IConfigServiceApi configService, IAccountBookServer accountBookServer, RabbitMqMessage rabbitMqMessage,
+        ICurrencyService currencyServer)
     {
         _dbContext = dbContext;
         _autoMapper = autoMapper;
         _accountBookServer = accountBookServer;
         _rabbitMqMessage = rabbitMqMessage;
         _currencyServer = currencyServer;
+        _configService = configService;
     }
 
 
@@ -307,7 +319,13 @@ public class AccountingServerImpl : IAccountingServer
     /// <returns>返回目标币种ID</returns>
     private long GetUserTargetCurrencyId()
     {
-        // TODO:从用户配置中获取用户设置的目标币种
-        return 0L;
+        ApiResponse<ConfigResponse> apiResponse = _configService.QueryByType(ConfigTypeEnum.Currency);
+        // 检查响应是否成功，并且内容不为空
+        if (apiResponse.IsSuccessStatusCode && apiResponse.Content != null)
+        {
+            return long.Parse(apiResponse.Content.ToString() ?? string.Empty);
+        }
+
+        throw new RefitException($"获取汇率失败: {apiResponse.StatusCode}");
     }
 }

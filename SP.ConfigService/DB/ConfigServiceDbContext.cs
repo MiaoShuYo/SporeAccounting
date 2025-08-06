@@ -11,7 +11,7 @@ public class ConfigServiceDbContext : DbContext
     /// <summary>
     /// 配置表
     /// </summary>
-    public DbSet<Config> Configs { get; set; }
+    public DbSet<Config?> Configs { get; set; }
 
     /// <summary>
     /// 数据库连接配置

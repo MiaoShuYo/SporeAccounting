@@ -24,22 +24,23 @@ public class CurrencyServiceImpl : ICurrencyService
     /// <param name="sourceCurrencyId">源币种ID</param>
     /// <param name="targetCurrencyId">目标币种ID</param>
     /// <returns>返回今日汇率记录</returns>
-    public async Task<ExchangeRateRecordResponse> GetTodayExchangeRateByCode(long sourceCurrencyId, long targetCurrencyId)
+    public async Task<ExchangeRateRecordResponse> GetTodayExchangeRateByCode(long sourceCurrencyId,
+        long targetCurrencyId)
     {
         try
         {
             // 调用货币服务API获取今日汇率
             var response = await _currencyServiceApi.GetTodayExchangeRateByCode(sourceCurrencyId, targetCurrencyId);
-            
+
             // 检查响应是否成功，并且内容不为空
             if (response.IsSuccessStatusCode && response.Content != null)
             {
                 return response.Content;
             }
-            
-            _logger.LogError("获取汇率失败: {StatusCode}, {ErrorMessage}", 
+
+            _logger.LogError("获取汇率失败: {StatusCode}, {ErrorMessage}",
                 response.StatusCode, response.Error?.Content);
-            
+
             throw new RefitException($"获取汇率失败: {response.StatusCode}");
         }
         catch (Exception ex)
@@ -48,4 +49,4 @@ public class CurrencyServiceImpl : ICurrencyService
             throw new RefitException("获取汇率时发生异常", ex);
         }
     }
-} 
+}

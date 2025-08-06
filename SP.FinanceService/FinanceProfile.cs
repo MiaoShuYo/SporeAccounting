@@ -15,7 +15,9 @@ public class FinanceProfile : Profile
         // TransactionCategory 映射
         CreateMap<TransactionCategory, TransactionCategoryResponse>()
             .ForMember(dest => dest.Type, opt => opt.MapFrom(src => (int)src.Type));
-
+        CreateMap<TransactionCategoryAddRequest, TransactionCategory>();
+        CreateMap<TransactionCategoryEditRequest, TransactionCategory>();
+        
         // AccountBook 映射
         CreateMap<AccountBookAddRequest, AccountBook>();
         CreateMap<AccountBookEditeRequest, AccountBook>();
