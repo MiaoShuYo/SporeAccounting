@@ -3,6 +3,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Serilog;
 using Microsoft.Extensions.Options;
+using SP.Common.ExceptionHandling.Exceptions;
 
 namespace SP.Common.Logger
 {
@@ -35,18 +36,6 @@ namespace SP.Common.Logger
             {
                 var lokiOptions = sp.GetRequiredService<IOptions<LokiOptions>>();
                 lokiOptions.Value.AppName = serviceName;
-                Console.WriteLine($"从Nacos获取到ServiceName: {serviceName}");
-            }
-            
-            // 检查Loki配置
-            var lokiUrl = configuration.GetSection("Loki")["Url"];
-            if (string.IsNullOrEmpty(lokiUrl))
-            {
-                Console.WriteLine("警告: 未找到Loki配置，请检查Nacos中的Loki配置");
-            }
-            else
-            {
-                Console.WriteLine($"找到Loki配置，URL: {lokiUrl}");
             }
             
             Log.Logger = lokiConfigService.ConfigureLogger();
