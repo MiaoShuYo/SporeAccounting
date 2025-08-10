@@ -5,6 +5,7 @@ on:
     branches: [ Microservices ]
     paths:
       - 'SP.FinanceService/**'
+  workflow_dispatch:
 
 jobs:
   deploy:
@@ -29,6 +30,14 @@ jobs:
           push: true
           tags: ${{ secrets.DOCKER_USERNAME }}/sp-finance-service:latest
 
+      - name: Set deployment environment
+        run: |
+          if [ "${{ github.event_name }}" == "push" ]; then
+            echo "ENVIRONMENT=Development" >> $GITHUB_ENV
+          else
+            echo "ENVIRONMENT=Production" >> $GITHUB_ENV
+          fi
+
       - name: Deploy to Server
         uses: appleboy/ssh-action@master
         with:
@@ -39,4 +48,4 @@ jobs:
             docker pull ${{ secrets.DOCKER_USERNAME }}/sp-finance-service:latest
             docker stop sp-finance-service || true
             docker rm sp-finance-service || true
-            docker run -d --name sp-finance-service -p 8399:80 ${{ secrets.DOCKER_USERNAME }}/sp-finance-service:latest 
+            docker run -d --name sp-finance-service -p 8399:80 -e ASPNETCORE_ENVIRONMENT=${{ env.ENVIRONMENT }} ${{ secrets.DOCKER_USERNAME }}/sp-finance-service:latest 

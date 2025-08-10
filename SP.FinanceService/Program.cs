@@ -2,6 +2,7 @@ using System.Reflection;
 using Microsoft.OpenApi.Models;
 using Nacos.AspNetCore.V2;
 using Nacos.V2.DependencyInjection;
+using Nacos.V2;
 using Refit;
 using SP.Common;
 using SP.Common.ConfigService;
@@ -64,15 +65,30 @@ builder.Services.AddNacosAspNet(builder.Configuration);
 builder.Configuration.AddNacosV2Configuration(builder.Configuration.GetSection("nacos"));
 builder.Services.AddNacosV2Naming(builder.Configuration);
 
-// 注册Refit客户端
-var currencyServiceUrl = builder.Configuration.GetValue<string>("Services:CurrencyService:BaseUrl") ??
-                         "http://localhost:5103";
+// 注册 Refit 客户端（基于 Nacos 的服务发现，不再硬编码 BaseUrl）
+var nacosSection = builder.Configuration.GetSection("nacos");
+var groupName = nacosSection.GetValue<string>("GroupName") ?? "DEFAULT_GROUP";
+var clusterName = nacosSection.GetValue<string>("ClusterName") ?? "DEFAULT";
+
 builder.Services.AddRefitClient<ICurrencyServiceApi>()
-    .ConfigureHttpClient(c => c.BaseAddress = new Uri(currencyServiceUrl));
-var configServiceUrl = builder.Configuration.GetValue<string>("Services:ConfigService:BaseUrl") ??
-                       "http://localhost:5102";
+    .ConfigureHttpClient(c => c.BaseAddress = new Uri("http://placeholder"))
+    .AddHttpMessageHandler(sp => new NacosDiscoveryHandler(
+        sp.GetRequiredService<INacosNamingService>(),
+        serviceName: "SPCurrencyService",
+        groupName: groupName,
+        clusterName: clusterName,
+        downstreamScheme: "http",
+        logger: sp.GetRequiredService<ILogger<NacosDiscoveryHandler>>()));
+
 builder.Services.AddRefitClient<IConfigServiceApi>()
-    .ConfigureHttpClient(c => c.BaseAddress = new Uri(configServiceUrl));
+    .ConfigureHttpClient(c => c.BaseAddress = new Uri("http://placeholder"))
+    .AddHttpMessageHandler(sp => new NacosDiscoveryHandler(
+        sp.GetRequiredService<INacosNamingService>(),
+        serviceName: "SPConfigService",
+        groupName: groupName,
+        clusterName: clusterName,
+        downstreamScheme: "http",
+        logger: sp.GetRequiredService<ILogger<NacosDiscoveryHandler>>()));
 
 // 注册 DbContext
 builder.Services.AddDbContext<FinanceServiceDbContext>(ServiceLifetime.Scoped);
@@ -110,7 +126,7 @@ builder.Services.AddLoggerService(builder.Configuration);
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
+if (app.Environment.IsDevelopment() || app.Environment.EnvironmentName == "Local")
 {
     app.UseSwagger();
     app.UseSwaggerUI();

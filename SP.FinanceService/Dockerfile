@@ -45,7 +45,6 @@ EXPOSE 443
 
 # 设置环境变量
 ENV ASPNETCORE_URLS=http://+:80
-ENV ASPNETCORE_ENVIRONMENT=Production
 
 # 启动应用程序
 ENTRYPOINT ["dotnet", "SP.FinanceService.dll"] 

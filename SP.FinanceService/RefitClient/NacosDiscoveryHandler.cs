@@ -15,6 +15,17 @@ namespace SP.FinanceService.RefitClient
         private readonly string _downstreamScheme;
         private readonly ILogger<NacosDiscoveryHandler> _logger;
 
+        /// <summary>
+        /// 构造函数，初始化 NacosDiscoveryHandler。
+        /// </summary>
+        /// <param name="nacosNamingService"></param>
+        /// <param name="serviceName"></param>
+        /// <param name="groupName"></param>
+        /// <param name="clusterName"></param>
+        /// <param name="downstreamScheme"></param>
+        /// <param name="logger"></param>
+        /// <exception cref="ArgumentNullException"></exception>
+        /// <exception cref="ArgumentException"></exception>
         public NacosDiscoveryHandler(
             INacosNamingService nacosNamingService,
             string serviceName,
