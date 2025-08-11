@@ -8,6 +8,8 @@ var builder = WebApplication.CreateBuilder(args);
 // Nacos 配置中心
 builder.Services.AddNacosV2Naming(builder.Configuration);
 builder.Configuration.AddNacosV2Configuration(builder.Configuration.GetSection("nacos"));
+// 添加Nacos服务注册
+builder.Services.AddNacosAspNet(builder.Configuration);
 
 // 基础服务
 builder.Services.AddControllers();
