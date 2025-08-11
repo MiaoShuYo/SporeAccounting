@@ -13,7 +13,7 @@ namespace SP.ConfigService.Controllers
     [Route("api/configs")]
     [ApiController]
     public class ConfigController : ControllerBase
-    {
+    { 
         /// <summary>
         /// 用户配置服务
         /// </summary>
