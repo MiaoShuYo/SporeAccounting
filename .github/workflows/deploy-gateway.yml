@@ -6,6 +6,20 @@ on:
     paths:
       - 'SP.Gateway/**'
   workflow_dispatch:
+    inputs:
+      environment:
+        description: '部署环境'
+        required: true
+        default: 'Development'
+        type: choice
+        options:
+          - Development
+          - Production
+      tag:
+        description: 'Docker 镜像标签'
+        required: false
+        default: 'latest'
+        type: string
 
 jobs:
   deploy:
@@ -28,14 +42,14 @@ jobs:
           context: .
           file: ./SP.Gateway/Dockerfile
           push: true
-          tags: ${{ secrets.DOCKER_USERNAME }}/sp-gateway:latest
+          tags: ${{ secrets.DOCKER_USERNAME }}/sp-gateway:${{ github.event.inputs.tag || 'latest' }}
 
       - name: Set deployment environment
         run: |
           if [ "${{ github.event_name }}" == "push" ]; then
             echo "ENVIRONMENT=Development" >> $GITHUB_ENV
           else
-            echo "ENVIRONMENT=Production" >> $GITHUB_ENV
+            echo "ENVIRONMENT=${{ github.event.inputs.environment }}" >> $GITHUB_ENV
           fi
 
       - name: Deploy to Server
@@ -45,7 +59,7 @@ jobs:
           username: ${{ secrets.SERVER_USERNAME }}
           key: ${{ secrets.SERVER_SSH_KEY }}
           script: |
-            docker pull ${{ secrets.DOCKER_USERNAME }}/sp-gateway:latest
+            docker pull ${{ secrets.DOCKER_USERNAME }}/sp-gateway:${{ github.event.inputs.tag || 'latest' }}
             docker stop sp-gateway || true
             docker rm sp-gateway || true
-            docker run -d --name sp-gateway -p 5100:80 -e ASPNETCORE_ENVIRONMENT=${{ env.ENVIRONMENT }} ${{ secrets.DOCKER_USERNAME }}/sp-gateway:latest
+            docker run -d --name sp-gateway -p 5100:80 -e ASPNETCORE_ENVIRONMENT=${{ env.ENVIRONMENT }} ${{ secrets.DOCKER_USERNAME }}/sp-gateway:${{ github.event.inputs.tag || 'latest' }}

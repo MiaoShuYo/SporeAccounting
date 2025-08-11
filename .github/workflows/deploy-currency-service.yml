@@ -6,6 +6,20 @@ on:
     paths:
       - 'SP.CurrencyService/**'
   workflow_dispatch:
+    inputs:
+      environment:
+        description: '部署环境'
+        required: true
+        default: 'Development'
+        type: choice
+        options:
+          - Development
+          - Production
+      tag:
+        description: 'Docker 镜像标签'
+        required: false
+        default: 'latest'
+        type: string
 
 jobs:
   deploy:
@@ -28,14 +42,14 @@ jobs:
           context: .
           file: ./SP.CurrencyService/Dockerfile
           push: true
-          tags: ${{ secrets.DOCKER_USERNAME }}/sp-currency-service:latest
+          tags: ${{ secrets.DOCKER_USERNAME }}/sp-currency-service:${{ github.event.inputs.tag || 'latest' }}
 
       - name: Set deployment environment
         run: |
           if [ "${{ github.event_name }}" == "push" ]; then
             echo "ENVIRONMENT=Development" >> $GITHUB_ENV
           else
-            echo "ENVIRONMENT=Production" >> $GITHUB_ENV
+            echo "ENVIRONMENT=${{ github.event.inputs.environment }}" >> $GITHUB_ENV
           fi
 
       - name: Deploy to Server
@@ -45,7 +59,7 @@ jobs:
           username: ${{ secrets.SERVER_USERNAME }}
           key: ${{ secrets.SERVER_SSH_KEY }}
           script: |
-            docker pull ${{ secrets.DOCKER_USERNAME }}/sp-currency-service:latest
+            docker pull ${{ secrets.DOCKER_USERNAME }}/sp-currency-service:${{ github.event.inputs.tag || 'latest' }}
             docker stop sp-currency-service || true
             docker rm sp-currency-service || true
-            docker run -d --name sp-currency-service -p 8398:80 -e ASPNETCORE_ENVIRONMENT=${{ env.ENVIRONMENT }} ${{ secrets.DOCKER_USERNAME }}/sp-currency-service:latest 
+            docker run -d --name sp-currency-service -p 8398:80 -e ASPNETCORE_ENVIRONMENT=${{ env.ENVIRONMENT }} ${{ secrets.DOCKER_USERNAME }}/sp-currency-service:${{ github.event.inputs.tag || 'latest' }} 
