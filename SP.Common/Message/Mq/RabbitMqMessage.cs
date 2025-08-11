@@ -77,7 +77,7 @@ public class RabbitMqMessage
 
         MqMessage mqMessage =
             new MqMessage(Snow.GetId(),publisher.MessageType, publisher.Body);
-
+        
         var body = Encoding.UTF8.GetBytes(System.Text.Json.JsonSerializer.Serialize(mqMessage));
 
         // 发送消息
