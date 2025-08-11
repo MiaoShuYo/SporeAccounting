@@ -8,7 +8,7 @@ namespace SP.ConfigService.DB;
 /// </summary>
 public class ConfigServiceDbContext : DbContext
 {
-    /// <summary>
+    /// <summary> 
     /// 配置表
     /// </summary>
     public DbSet<Config?> Configs { get; set; }
