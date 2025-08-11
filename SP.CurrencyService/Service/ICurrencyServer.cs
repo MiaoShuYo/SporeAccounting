@@ -12,5 +12,5 @@ public interface ICurrencyServer
     /// 查询所有货币
     /// </summary>
     /// <returns>返回货币列表</returns>
-    List<CurrencyResponse> Query();
+    Task<List<CurrencyResponse>> Query();
 }

@@ -45,6 +45,13 @@ namespace SP.Common.Redis
         /// <param name="key">键</param>
         /// <returns>是否成功</returns>
         Task<bool> RemoveAsync(string key);
+        
+        /// <summary>
+        /// 移除指定开头的key
+        /// </summary>
+        /// <param name="frontKey">key的开头</param>
+        /// <returns>是否成功</returns>
+        Task<bool> RemoveFrontAsync(string frontKey);
 
         /// <summary>
         /// 键是否存在

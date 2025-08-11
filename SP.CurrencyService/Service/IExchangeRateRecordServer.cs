@@ -14,7 +14,7 @@ public interface IExchangeRateRecordServer
     /// 添加汇率记录
     /// </summary>
     /// <param name="exchangeRateRecords">汇率记录</param>
-    void Add(List<ExchangeRateRecord> exchangeRateRecords);
+    System.Threading.Tasks.Task Add(List<ExchangeRateRecord> exchangeRateRecords);
 
     /// <summary>
     /// 分页查询汇率
@@ -30,5 +30,5 @@ public interface IExchangeRateRecordServer
     /// <param name="sourceCurrencyId">源币种</param>
     /// <param name="targetCurrencyId">目标币种</param>
     /// <returns>返回今日汇率记录</returns>
-    ExchangeRateRecordResponse GetTodayExchangeRate(long sourceCurrencyId, long targetCurrencyId);
+    Task<ExchangeRateRecordResponse> GetTodayExchangeRate(long sourceCurrencyId, long targetCurrencyId);
 }

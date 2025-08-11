@@ -17,7 +17,7 @@ public class CurrencyController : ControllerBase
     {
         _currencyServer = currencyServer;
     }
-    
+
     /// <summary>
     /// 获取所有币种
     /// </summary>
@@ -25,7 +25,7 @@ public class CurrencyController : ControllerBase
     [HttpGet]
     public ActionResult<List<CurrencyResponse>> GetCurrencies()
     {
-        List<CurrencyResponse> currencies = _currencyServer.Query();
+        List<CurrencyResponse> currencies = _currencyServer.Query().Result;
         return Ok(currencies);
     }
 }

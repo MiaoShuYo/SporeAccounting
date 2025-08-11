@@ -31,5 +31,8 @@ FROM base AS final
 WORKDIR /app
 COPY --from=publish /app/publish .
 
+# 设置环境变量
+ENV ASPNETCORE_URLS=http://+:80
+
 # 设置入口点
 ENTRYPOINT ["dotnet", "SP.IdentityService.dll"] 

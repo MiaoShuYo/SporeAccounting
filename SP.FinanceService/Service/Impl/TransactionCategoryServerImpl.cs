@@ -171,6 +171,44 @@ public class TransactionCategoryServerImpl : ITransactionCategoryServer
             .FirstOrDefault(c => c.Id == categoryId && c.IsDeleted == false);
     }
 
+    public long Add(TransactionCategoryAddRequest category)
+    {
+        // 检查是否存在同名分类
+        var existingCategory = _dbContext.TransactionCategories
+            .FirstOrDefault(c => c.Name == category.Name && c.IsDeleted == false);
+        if (existingCategory != null)
+        {
+            throw new BusinessException($"分类名称已存在：{category.Name}");
+        }
+
+        // 如果指定了父级分类，检查父级分类是否存在
+        if (category.ParentId.HasValue && category.ParentId > 0)
+        {
+            var parentCategory = QueryById(category.ParentId.Value);
+            if (parentCategory == null)
+            {
+                throw new NotFoundException($"父级分类不存在，ID: {category.ParentId.Value}");
+            }
+
+            // 检查父级分类与子分类的类型是否一致
+            if (parentCategory.Type != category.Type)
+            {
+                throw new BusinessException("新增分类时父类与子类的类型必须一致");
+            }
+        }
+
+        // 创建新的收支分类实体
+        TransactionCategory newCategory = _automapper.Map<TransactionCategory>(category);
+        SettingCommProperty.Create(newCategory);
+
+
+        // 添加到数据库上下文
+        _dbContext.TransactionCategories.Add(newCategory);
+        // 保存更改到数据库
+        _dbContext.SaveChanges();
+        return newCategory.Id;
+    }
+
     /// <summary>
     /// 根据id列表批量查询收支分类
     /// </summary>

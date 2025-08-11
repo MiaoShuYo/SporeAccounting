@@ -1,3 +1,5 @@
+using System;
+
 namespace SP.Common.Logger
 {
     /// <summary>
@@ -12,8 +14,15 @@ namespace SP.Common.Logger
 
         /// <summary>
         /// 应用名称，用于标识日志来源
+        /// 优先级：Nacos配置的ServiceName > 配置文件 > 默认值
         /// </summary>
-        public string AppName { get; set; } = "SporeAccounting";
+        public string AppName 
+        { 
+            get => _appName ?? "SporeAccounting";
+            set => _appName = value;
+        }
+        
+        private string? _appName;
 
         /// <summary>
         /// 环境名称，如development、production等

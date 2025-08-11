@@ -1,3 +1,4 @@
+using System.Reflection;
 using Microsoft.AspNetCore.Identity;
 using Nacos.AspNetCore.V2;
 using Nacos.V2.DependencyInjection;
@@ -12,6 +13,10 @@ using SP.IdentityService.Impl;
 using SP.IdentityService.Service;
 using SP.IdentityService.Service.Impl;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+using SP.Common;
+using SP.Common.Logger;
+using SP.Common.Middleware;
+using SP.IdentityService.Middleware;
 
 namespace SP.IdentityService;
 
@@ -54,7 +59,8 @@ public class Program
 
                 // 禁用用户名和邮箱规范化
                 options.User.RequireUniqueEmail = false;
-                options.User.AllowedUserNameCharacters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-._@+";
+                options.User.AllowedUserNameCharacters =
+                    "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-._@+";
             })
             .AddEntityFrameworkStores<IdentityServerDbContext>()
             .AddDefaultTokenProviders();
@@ -74,8 +80,40 @@ public class Program
             {
                 c.IncludeXmlComments(xmlPath);
             }
+
+            // 添加SwaggerTokenRequestFilter
+            c.OperationFilter<SwaggerTokenRequestFilter>();
+    
+            // 添加JWT认证配置
+            c.AddSecurityDefinition("Bearer", new Microsoft.OpenApi.Models.OpenApiSecurityScheme
+            {
+                Description = "JWT授权(数据将在请求头中进行传输) 参数结构: \"Authorization: Bearer {token}\"",
+                Name = "Authorization",
+                In = Microsoft.OpenApi.Models.ParameterLocation.Header,
+                Type = Microsoft.OpenApi.Models.SecuritySchemeType.ApiKey,
+                BearerFormat = "JWT",
+                Scheme = "Bearer"
+            });
+    
+            c.AddSecurityRequirement(new Microsoft.OpenApi.Models.OpenApiSecurityRequirement
+            {
+                {
+                    new Microsoft.OpenApi.Models.OpenApiSecurityScheme
+                    {
+                        Reference = new Microsoft.OpenApi.Models.OpenApiReference
+                        {
+                            Type = Microsoft.OpenApi.Models.ReferenceType.SecurityScheme,
+                            Id = "Bearer"
+                        }
+                    },
+                    new string[] {}
+                }
+            });
         });
 
+        // 注册 ContextSession
+        builder.Services.AddScoped<ContextSession>();
+        
         builder.Services.AddScoped<IAuthorizationService, AuthorizationServiceImpl>();
         builder.Services.AddScoped<IUserService, UserServiceImpl>();
         builder.Services.AddScoped<IRolePermissionService, RolePermissionService>();
@@ -93,11 +131,14 @@ public class Program
             var logger = provider.GetRequiredService<ILogger<RabbitMqMessage>>();
             return new RabbitMqMessage(logger, configService.GetRabbitMqConfig());
         });
+        
+        // 注入loki日志服务
+        builder.Services.AddLoggerService(builder.Configuration);
 
         var app = builder.Build();
 
         // Configure the HTTP request pipeline.
-        if (app.Environment.IsDevelopment())
+        if (app.Environment.IsDevelopment() || app.Environment.EnvironmentName == "Local")
         {
             app.UseSwagger();
             app.UseSwaggerUI();
@@ -105,12 +146,15 @@ public class Program
         }
 
         app.UseHttpsRedirection();
-
         app.UseRouting();
 
         // 添加认证中间件
         app.UseAuthentication();
         app.UseAuthorization();
+        app.UseMiddleware<ApplicationMiddleware>();
+        
+        // 添加 Token 存储中间件
+        app.UseTokenStorage();
 
         app.MapControllers();
 

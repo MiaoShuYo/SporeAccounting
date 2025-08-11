@@ -1,4 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
+using SP.Common.Model.Enumeration;
+using SP.ConfigService.Models.Enumeration;
+using SP.ConfigService.Models.Request;
 using SP.ConfigService.Models.Response;
 using SP.ConfigService.Service;
 
@@ -10,7 +13,7 @@ namespace SP.ConfigService.Controllers
     [Route("api/configs")]
     [ApiController]
     public class ConfigController : ControllerBase
-    {
+    { 
         /// <summary>
         /// 用户配置服务
         /// </summary>
@@ -32,7 +35,7 @@ namespace SP.ConfigService.Controllers
         [HttpGet]
         public ActionResult<List<ConfigResponse>> GetConfigs()
         {
-            List<ConfigResponse> configs = _configServer.GetConfig();
+            List<ConfigResponse> configs = _configServer.GetConfig().Result;
             return Ok(configs);
         }
 
@@ -42,10 +45,20 @@ namespace SP.ConfigService.Controllers
         /// <param name="config">配置更新请求</param>
         /// <returns>更新结果</returns>
         [HttpPut]
-        public ActionResult<bool> UpdateConfig([FromBody] ConfigResponse config)
+        public ActionResult<bool> UpdateConfig([FromBody] ConfigEditRequest config)
         {
             _configServer.UpdateConfig(config);
             return Ok(true);
+        }
+
+        ///<summary>
+        /// 根据配置类型获取配置
+        ///</summary>
+        [HttpGet("by-type/{type}")]
+        public ActionResult<ConfigResponse> QueryByType([FromRoute] ConfigTypeEnum type)
+        {
+            ConfigResponse config=_configServer.QueryByType(type);
+            return Ok(config);
         }
     }
 }

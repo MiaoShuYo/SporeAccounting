@@ -2,11 +2,14 @@ using System.Reflection;
 using Microsoft.OpenApi.Models;
 using Nacos.AspNetCore.V2;
 using Nacos.V2.DependencyInjection;
+using Nacos.V2;
 using Refit;
 using SP.Common;
 using SP.Common.ConfigService;
+using SP.Common.Logger;
 using SP.Common.Message.Mq;
 using SP.Common.Middleware;
+using SP.Common.Redis;
 using SP.FinanceService.DB;
 using SP.FinanceService.RefitClient;
 using SP.FinanceService.Service;
@@ -22,12 +25,38 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
     // 添加XML文档
-    var xmlFile = $"{System.Reflection.Assembly.GetExecutingAssembly().GetName().Name}.xml";
+    var xmlFile = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
     var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
     if (File.Exists(xmlPath))
     {
         c.IncludeXmlComments(xmlPath);
     }
+
+    // 添加JWT认证配置
+    c.AddSecurityDefinition("Bearer", new Microsoft.OpenApi.Models.OpenApiSecurityScheme
+    {
+        Description = "JWT授权(数据将在请求头中进行传输) 参数结构: \"Authorization: Bearer {token}\"",
+        Name = "Authorization",
+        In = Microsoft.OpenApi.Models.ParameterLocation.Header,
+        Type = Microsoft.OpenApi.Models.SecuritySchemeType.ApiKey,
+        BearerFormat = "JWT",
+        Scheme = "Bearer"
+    });
+
+    c.AddSecurityRequirement(new Microsoft.OpenApi.Models.OpenApiSecurityRequirement
+    {
+        {
+            new Microsoft.OpenApi.Models.OpenApiSecurityScheme
+            {
+                Reference = new Microsoft.OpenApi.Models.OpenApiReference
+                {
+                    Type = Microsoft.OpenApi.Models.ReferenceType.SecurityScheme,
+                    Id = "Bearer"
+                }
+            },
+            new string[] { }
+        }
+    });
 });
 
 // 添加Nacos服务注册
@@ -36,11 +65,30 @@ builder.Services.AddNacosAspNet(builder.Configuration);
 builder.Configuration.AddNacosV2Configuration(builder.Configuration.GetSection("nacos"));
 builder.Services.AddNacosV2Naming(builder.Configuration);
 
-// 注册Refit客户端
-var currencyServiceUrl = builder.Configuration.GetValue<string>("Services:CurrencyService:BaseUrl") ??
-                         "http://localhost:5103";
+// 注册 Refit 客户端（基于 Nacos 的服务发现，不再硬编码 BaseUrl）
+var nacosSection = builder.Configuration.GetSection("nacos");
+var groupName = nacosSection.GetValue<string>("GroupName") ?? "DEFAULT_GROUP";
+var clusterName = nacosSection.GetValue<string>("ClusterName") ?? "DEFAULT";
+
 builder.Services.AddRefitClient<ICurrencyServiceApi>()
-    .ConfigureHttpClient(c => c.BaseAddress = new Uri(currencyServiceUrl));
+    .ConfigureHttpClient(c => c.BaseAddress = new Uri("http://placeholder"))
+    .AddHttpMessageHandler(sp => new NacosDiscoveryHandler(
+        sp.GetRequiredService<INacosNamingService>(),
+        serviceName: "SPCurrencyService",
+        groupName: groupName,
+        clusterName: clusterName,
+        downstreamScheme: "http",
+        logger: sp.GetRequiredService<ILogger<NacosDiscoveryHandler>>()));
+
+builder.Services.AddRefitClient<IConfigServiceApi>()
+    .ConfigureHttpClient(c => c.BaseAddress = new Uri("http://placeholder"))
+    .AddHttpMessageHandler(sp => new NacosDiscoveryHandler(
+        sp.GetRequiredService<INacosNamingService>(),
+        serviceName: "SPConfigService",
+        groupName: groupName,
+        clusterName: clusterName,
+        downstreamScheme: "http",
+        logger: sp.GetRequiredService<ILogger<NacosDiscoveryHandler>>()));
 
 // 注册 DbContext
 builder.Services.AddDbContext<FinanceServiceDbContext>(ServiceLifetime.Scoped);
@@ -53,9 +101,9 @@ builder.Services.AddScoped<IBudgetServer, BudgetServerImpl>();
 builder.Services.AddScoped<ICurrencyService, CurrencyServiceImpl>();
 
 // 注册 IHttpContextAccessor
-builder.Services.AddHttpContextAccessor(); 
+builder.Services.AddHttpContextAccessor();
 // 注册 ContextSession
-builder.Services.AddScoped<ContextSession>(); 
+builder.Services.AddScoped<ContextSession>();
 
 builder.Services.AddAutoMapper(Assembly.GetExecutingAssembly());
 
@@ -71,10 +119,14 @@ builder.Services.AddScoped<RabbitMqMessage>(provider =>
     return new RabbitMqMessage(logger, configService.GetRabbitMqConfig());
 });
 
+builder.Services.AddRedisService(builder.Configuration);
+// 注入loki日志服务
+builder.Services.AddLoggerService(builder.Configuration);
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
+if (app.Environment.IsDevelopment() || app.Environment.EnvironmentName == "Local")
 {
     app.UseSwagger();
     app.UseSwaggerUI();

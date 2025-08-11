@@ -4,7 +4,6 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.Data;
 using Microsoft.Build.Exceptions;
 using Microsoft.IdentityModel.Tokens;
-using Nacos;
 using OpenIddict.Abstractions;
 using OpenIddict.Server.AspNetCore;
 using SP.Common;
@@ -115,7 +114,7 @@ public class AuthorizationServiceImpl : IAuthorizationService
         // 创建用户身份并添加必要的声明
         var identity = new ClaimsIdentity(OpenIddictServerAspNetCoreDefaults.AuthenticationScheme);
         identity.AddClaim(OpenIddictConstants.Claims.Subject, await _userManager.GetUserIdAsync(user));
-        identity.AddClaim(OpenIddictConstants.Claims.Name, user.UserName);
+        identity.AddClaim(OpenIddictConstants.Claims.Username, user.UserName);
         identity.AddClaim(OpenIddictConstants.Claims.Email, user.Email);
         identity.AddClaim(OpenIddictConstants.Claims.Audience, "api"); // 添加 aud 声明
 

@@ -30,7 +30,10 @@ public static class OpenIddictServiceExtensions
             .AddServer(options =>
             {
                 // 设置令牌端点
-                options.SetTokenEndpointUris("connect/token");
+                options.SetTokenEndpointUris("api/auth/token");
+                
+                // 设置撤销端点
+                options.SetRevocationEndpointUris("api/auth/revoke");
 
                 // 启用密码模式
                 options.AllowPasswordFlow() // 开启密码模式
@@ -39,18 +42,18 @@ public static class OpenIddictServiceExtensions
 
                 // 注册授权范围
                 options.RegisterScopes("api", OpenIddictConstants.Scopes.OfflineAccess);
-                
+
                 // 注册所有资源
                 options.RegisterClaims(
                     OpenIddictConstants.Claims.Name,
                     OpenIddictConstants.Claims.Role,
                     OpenIddictConstants.Claims.Email);
-                
+
                 // 配置令牌属性
                 options.SetAccessTokenLifetime(TimeSpan.FromMinutes(30));
                 options.SetRefreshTokenLifetime(TimeSpan.FromDays(14));
                 options.SetRefreshTokenReuseLeeway(TimeSpan.FromMinutes(2));
-                
+
                 // 使用开发环境下的临时密钥（生产环境请使用持久化证书）
                 options.AddDevelopmentEncryptionCertificate()
                     .AddDevelopmentSigningCertificate();
@@ -60,14 +63,14 @@ public static class OpenIddictServiceExtensions
                         Convert.FromBase64String(signingKey)));
                 options.AddEncryptionKey(
                     new SymmetricSecurityKey(Convert.FromBase64String(encryptionKey)));
-                        
+
                 // 允许接收表单数据
                 options.AcceptAnonymousClients();
-                
+
                 // 配置令牌选项 - 使用引用刷新令牌使令牌更短
                 options.UseReferenceRefreshTokens();
                 options.DisableAccessTokenEncryption();
-                
+
                 // 集成 ASP.NET Core
                 options.UseAspNetCore()
                     .EnableTokenEndpointPassthrough()

@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using SP.Common.Model.Enumeration;
 using SP.ConfigService.Models.Enumeration;
 
 namespace SP.ConfigService.Models.Request;
