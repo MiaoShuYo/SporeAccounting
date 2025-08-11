@@ -22,6 +22,7 @@ builder.Services.AddHttpClient();
 // Ocelot + Nacos 服务发现
 builder.Services.AddOcelot(builder.Configuration)
     .AddNacosDiscovery();
+builder.Services.AddSwaggerForOcelot(builder.Configuration);
 
 var app = builder.Build();
 
@@ -29,7 +30,10 @@ var app = builder.Build();
 if (app.Environment.IsDevelopment() || app.Environment.EnvironmentName == "Local")
 {
     app.UseSwagger();
-    app.UseSwaggerUI();
+    app.UseSwaggerForOcelotUI(opt =>
+    {
+        opt.PathToSwaggerGenerator = "/swagger/docs";
+    });
 }
 
 app.UseHttpsRedirection();
