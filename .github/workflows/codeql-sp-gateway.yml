@@ -3,9 +3,9 @@ name: CodeQL Analysis for SP.Gateway
 
 on:
   push:
-    branches: [ "main" ]
+    branches: [ "Microservices" ]
   pull_request:
-    branches: [ "main" ]
+    branches: [ "Microservices" ]
   schedule:
     - cron: '0 0 * * 0'
 
