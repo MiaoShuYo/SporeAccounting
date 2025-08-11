@@ -1,11 +1,11 @@
 name: Manual Test
 
 on:
+  workflow_dispatch:
   push:
     branches: [ Microservices ]
     paths:
       - 'SP.ConfigService/**'
-  workflow_dispatch:
 
 jobs:
   test:
