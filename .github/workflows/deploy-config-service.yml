@@ -2,7 +2,7 @@ name: Deploy Config Service
 
 on:
   push:
-    branches: [ Microservices,main ]
+    branches: [ Microservices]
     paths:
       - 'SP.ConfigService/**'
   workflow_dispatch:
