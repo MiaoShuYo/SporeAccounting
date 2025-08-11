@@ -96,8 +96,6 @@ public class TokenStorageMiddleware
                             // 存储 token 到 Redis
                             string tokenKey = string.Format(SPRedisKey.Token, userId);
                             await _redisService.SetStringAsync(tokenKey, accessToken, expiresIn);
-                            
-                            _logger.LogInformation("Token 已存储到 Redis，用户ID: {UserId}", userId);
                         }
                         else
                         {
