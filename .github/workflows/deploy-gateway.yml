@@ -62,4 +62,4 @@ jobs:
             docker pull ${{ secrets.DOCKER_USERNAME }}/sp-gateway:${{ github.event.inputs.tag || 'latest' }}
             docker stop sp-gateway || true
             docker rm sp-gateway || true
-            docker run -d --name sp-gateway -p 5100:80 -e ASPNETCORE_ENVIRONMENT=${{ env.ENVIRONMENT }} ${{ secrets.DOCKER_USERNAME }}/sp-gateway:${{ github.event.inputs.tag || 'latest' }}
+            docker run -d --name sp-gateway -p 8977:80 -e ASPNETCORE_ENVIRONMENT=${{ env.ENVIRONMENT }} ${{ secrets.DOCKER_USERNAME }}/sp-gateway:${{ github.event.inputs.tag || 'latest' }}
