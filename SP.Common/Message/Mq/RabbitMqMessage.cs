@@ -78,11 +78,6 @@ public class RabbitMqMessage
         MqMessage mqMessage =
             new MqMessage(Snow.GetId(),publisher.MessageType, publisher.Body);
 
-        _logger.LogInformation(
-            $"RabbitMQ消息发送开始：\r\n消息id：{mqMessage.Id}\r\n队列：{publisher.Queue}\r\n" +
-            $"\r\n交换机：{publisher.Exchange}\r\n路由键：{publisher.RoutingKey}\r\n消息体：{publisher.Body}" +
-            $"\r\n消息类型：{publisher.MessageType}");
-
         var body = Encoding.UTF8.GetBytes(System.Text.Json.JsonSerializer.Serialize(mqMessage));
 
         // 发送消息
