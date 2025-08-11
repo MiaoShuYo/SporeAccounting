@@ -2,6 +2,7 @@ using Ocelot.DependencyInjection;
 using Ocelot.Middleware;
 using Ocelot.Provider.Nacos;
 using Nacos.V2.DependencyInjection;
+using Nacos.AspNetCore.V2;
 
 var builder = WebApplication.CreateBuilder(args);
 
