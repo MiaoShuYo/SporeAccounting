@@ -59,7 +59,7 @@ namespace SP.Common.Redis
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Redis获取字符串值失败，Key: {Key}", key);
+                _logger.LogError(ex, "Redis获取字符串值失败");
                 return null;
             }
         }
@@ -76,7 +76,7 @@ namespace SP.Common.Redis
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Redis设置字符串值失败，Key: {Key}", key);
+                _logger.LogError(ex, "Redis设置字符串值失败");
                 return false;
             }
         }
@@ -136,7 +136,7 @@ namespace SP.Common.Redis
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Redis删除键失败，Key: {Key}", key);
+                _logger.LogError(ex, "Redis删除键失败");
                 return false;
             }
         }
