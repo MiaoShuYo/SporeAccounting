@@ -131,7 +131,8 @@ public class Program
             var logger = provider.GetRequiredService<ILogger<RabbitMqMessage>>();
             return new RabbitMqMessage(logger, configService.GetRabbitMqConfig());
         });
-        
+        // 注册JwtConfigService（ApplicationMiddleware需要）
+        builder.Services.AddSingleton<JwtConfigService>();
         // 注入loki日志服务
         builder.Services.AddLoggerService(builder.Configuration);
 
