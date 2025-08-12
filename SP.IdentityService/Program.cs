@@ -17,6 +17,7 @@ using SP.Common;
 using SP.Common.Logger;
 using SP.Common.Middleware;
 using SP.IdentityService.Middleware;
+using SP.IdentityService.Services;
 
 namespace SP.IdentityService;
 
@@ -118,6 +119,10 @@ public class Program
         builder.Services.AddScoped<IUserService, UserServiceImpl>();
         builder.Services.AddScoped<IRolePermissionService, RolePermissionService>();
         builder.Services.AddScoped<IRoleService, RoleServiceImpl>();
+        
+        // 注册客户端注册服务
+        builder.Services.AddScoped<IClientRegistrationService, ClientRegistrationService>();
+        
         builder.Services.AddSingleton<EmailConfigService>();
         builder.Services.AddSingleton<RabbitMqConfigService>();
         builder.Services.AddScoped(provider =>

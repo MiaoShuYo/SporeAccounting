@@ -50,7 +50,6 @@ namespace SP.IdentityService.Controllers
                 {
                     // 必需字段
                     issuer = baseUrl,
-                    authorization_endpoint = $"{baseUrl}/api/auth/authorize",
                     token_endpoint = $"{baseUrl}/api/auth/token",
                     userinfo_endpoint = $"{baseUrl}/api/auth/userinfo",
                     jwks_uri = $"{baseUrl}/.well-known/jwks",
@@ -59,16 +58,6 @@ namespace SP.IdentityService.Controllers
                     end_session_endpoint = $"{baseUrl}/api/auth/logout",
                     revocation_endpoint = $"{baseUrl}/api/auth/revoke",
                     introspection_endpoint = $"{baseUrl}/api/auth/introspect",
-
-                    // 支持的响应类型
-                    response_types_supported = new[]
-                    {
-                        "code", // 授权码模式
-                        "token", // 隐式模式
-                        "id_token", // ID令牌模式
-                        "code token", // 混合模式
-                        "code id_token" // 混合模式
-                    },
 
                     // 支持的主体类型
                     subject_types_supported = new[] { "public" },
@@ -79,6 +68,7 @@ namespace SP.IdentityService.Controllers
                         "RS256", // RSA SHA-256
                         "HS256" // HMAC SHA-256
                     },
+                    
                     // 支持的授权范围
                     scopes_supported = new[]
                     {
@@ -110,16 +100,14 @@ namespace SP.IdentityService.Controllers
                         "iss", // 签发者
                         "aud" // 受众
                     },
-                    // 支持的授权类型
+                    
+                    // 支持的授权类型 - 只保留密码模式相关
                     grant_types_supported = new[]
                     {
-                        "authorization_code", // 授权码模式
                         "client_credentials", // 客户端凭证模式
                         "password", // 密码模式
                         "refresh_token" // 刷新令牌模式
-                    },
-                    // 支持的代码挑战方法（PKCE）
-                    code_challenge_methods_supported = new[] { "S256" }
+                    }
                 };
 
                 _logger.LogDebug("返回OpenID Connect配置信息");
@@ -147,13 +135,17 @@ namespace SP.IdentityService.Controllers
             {
                 var keys = new List<object>();
 
+                // 生成kid - 使用密钥的哈希值作为kid
+                var jwtSecret = _jwtConfigService.GetJwtSecret();
+                var kid = GenerateKeyId(jwtSecret);
+
                 var signingKey = new
                 {
-                    kty = "oct",
-                    use = "sig",
-                    kid = "default-signing-key",
-                    alg = "HS256",
-                    k = Convert.ToBase64String(Encoding.UTF8.GetBytes(_jwtConfigService.GetJwtSecret()))
+                    kty = "oct",  // 密钥类型：对称密钥
+                    use = "sig",  // 用途：签名
+                    kid = kid,    // 密钥ID：使用哈希值
+                    alg = "HS256", // 算法
+                    k = Convert.ToBase64String(Encoding.UTF8.GetBytes(jwtSecret))
                 };
 
                 keys.Add(signingKey);
@@ -175,6 +167,18 @@ namespace SP.IdentityService.Controllers
                     error_description = "获取JWKS时发生内部错误"
                 });
             }
+        }
+
+        /// <summary>
+        /// 生成密钥ID
+        /// </summary>
+        /// <param name="key">密钥</param>
+        /// <returns>密钥ID</returns>
+        private string GenerateKeyId(string key)
+        {
+            using var sha256 = System.Security.Cryptography.SHA256.Create();
+            var hash = sha256.ComputeHash(Encoding.UTF8.GetBytes(key));
+            return Convert.ToBase64String(hash).Substring(0, 8);
         }
 
         /// <summary>

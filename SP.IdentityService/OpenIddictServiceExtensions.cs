@@ -64,9 +64,6 @@ public static class OpenIddictServiceExtensions
                 options.AddEncryptionKey(
                     new SymmetricSecurityKey(Convert.FromBase64String(encryptionKey)));
 
-                // 允许接收表单数据
-                options.AcceptAnonymousClients();
-
                 // 配置令牌选项 - 使用引用刷新令牌使令牌更短
                 options.UseReferenceRefreshTokens();
                 options.DisableAccessTokenEncryption();

@@ -146,14 +146,14 @@ public class AuthorizationController : ControllerBase
         if (request.IsClientCredentialsGrantType())
         {
             var clientId = request.ClientId;
+            var clientSecret = request.ClientSecret;
+            
             if (string.IsNullOrEmpty(clientId))
             {
                 throw new BusinessException("client_id不能为空");
             }
 
-            var principal =
-                await _authorizationService.HandleClientCredentialsAsync(clientId, request.GetScopes());
-
+            var principal = await _authorizationService.HandleClientCredentialsAsync(clientId, clientSecret, request.GetScopes());
             var signInResult = SignIn(principal, OpenIddictServerAspNetCoreDefaults.AuthenticationScheme);
 
             // 注意：token 将在 OpenIddict 中间件处理过程中生成

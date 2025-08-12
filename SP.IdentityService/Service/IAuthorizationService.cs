@@ -32,10 +32,11 @@ public interface IAuthorizationService
     /// <summary>
     /// 处理客户端凭证模式
     /// </summary>
-    /// <param name="clientId"></param>
-    /// <param name="scopes"></param>
-    /// <returns></returns>
-    Task<ClaimsPrincipal> HandleClientCredentialsAsync(string clientId, ImmutableArray<string> scopes);
+    /// <param name="clientId">客户端ID</param>
+    /// <param name="clientSecret">客户端密钥</param>
+    /// <param name="scopes">授权范围</param>
+    /// <returns>ClaimsPrincipal</returns>
+    Task<ClaimsPrincipal> HandleClientCredentialsAsync(string clientId, string? clientSecret, ImmutableArray<string> scopes);
 
     /// <summary>
     /// 添加用户

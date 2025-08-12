@@ -269,68 +269,118 @@ public class AuthorizationServiceImpl : IAuthorizationService
     /// <summary>
     /// 处理客户端凭证模式
     /// </summary>
-    /// <param name="clientId"></param>
-    /// <param name="scopes"></param>
-    /// <returns></returns>
-    public async Task<ClaimsPrincipal> HandleClientCredentialsAsync(string clientId, ImmutableArray<string> scopes)
+    /// <param name="clientId">客户端ID</param>
+    /// <param name="clientSecret">客户端密钥</param>
+    /// <param name="scopes">授权范围</param>
+    /// <returns>ClaimsPrincipal</returns>
+    public async Task<ClaimsPrincipal> HandleClientCredentialsAsync(string clientId, string? clientSecret, ImmutableArray<string> scopes)
     {
-        var application = await _applicationManager.FindByClientIdAsync(clientId) ??
-                          throw new BuildAbortedException("找不到应用");
-
-        // 创建一个新的ClaimsIdentity，包含将用于创建id_token、token或code的声明。
-        var identity = new ClaimsIdentity(TokenValidationParameters.DefaultAuthenticationType,
-            OpenIddictConstants.Claims.Name, OpenIddictConstants.Claims.Role);
-
-        // 使用client_id作为主体标识符。
-        identity.SetClaim(OpenIddictConstants.Claims.Subject,
-            await _applicationManager.GetClientIdAsync(application));
-        identity.SetClaim(OpenIddictConstants.Claims.Name,
-            await _applicationManager.GetDisplayNameAsync(application));
-
-        // 添加受众声明
-        identity.SetClaim(OpenIddictConstants.Claims.Audience, "api");
-
-        // 设置声明的目标
-        identity.SetDestinations(static claim => claim.Type switch
+        try
         {
-            // 当授予"profile"范围时（通过调用principal.SetScopes(...)），
-            // 允许"name"声明同时存储在访问令牌和身份令牌中。
-            OpenIddictConstants.Claims.Name when claim.Subject.HasScope(OpenIddictConstants.Permissions.Scopes
-                    .Profile)
-                => [OpenIddictConstants.Destinations.AccessToken, OpenIddictConstants.Destinations.IdentityToken],
+            _log.LogDebug("开始处理客户端凭证模式认证，客户端ID: {ClientId}", clientId);
 
-            // 否则，仅将声明存储在访问令牌中。
-            _ => [OpenIddictConstants.Destinations.AccessToken]
-        });
-
-        var principal = new ClaimsPrincipal(identity);
-
-        // 正确设置范围
-        if (scopes.Any())
-        {
-            // 验证范围是否有效
-            var validScopes = new[] { "api" };
-            var filteredScopes = scopes.Intersect(validScopes).ToList();
-
-            if (filteredScopes.Any())
+            // 查找客户端应用
+            var application = await _applicationManager.FindByClientIdAsync(clientId);
+            if (application == null)
             {
-                principal.SetScopes(filteredScopes);
+                _log.LogWarning("客户端凭证模式认证失败，客户端ID不存在: {ClientId}", clientId);
+                throw new BusinessException($"客户端ID '{clientId}' 不存在");
+            }
+
+            // 验证客户端密钥（如果提供了的话）
+            if (!string.IsNullOrEmpty(clientSecret))
+            {
+                // 在 OpenIddict 6.x 中，客户端密钥验证通常由 OpenIddict 内部处理
+                // 我们只需要确保客户端存在且类型正确
+                var clientType = await _applicationManager.GetClientTypeAsync(application);
+                if (clientType != OpenIddictConstants.ClientTypes.Confidential)
+                {
+                    _log.LogWarning("客户端凭证模式认证失败，客户端类型不支持: {ClientId}, 类型: {ClientType}", clientId, clientType);
+                    throw new BusinessException("客户端类型不支持客户端凭证模式");
+                }
+            }
+
+            // 验证客户端权限
+            var permissions = await _applicationManager.GetPermissionsAsync(application);
+            if (!permissions.Contains(OpenIddictConstants.Permissions.GrantTypes.ClientCredentials))
+            {
+                _log.LogWarning("客户端凭证模式认证失败，客户端没有权限: {ClientId}", clientId);
+                throw new BusinessException("客户端没有客户端凭证模式的权限");
+            }
+
+            // 创建一个新的ClaimsIdentity，包含将用于创建id_token、token或code的声明。
+            var identity = new ClaimsIdentity(TokenValidationParameters.DefaultAuthenticationType,
+                OpenIddictConstants.Claims.Name, OpenIddictConstants.Claims.Role);
+
+            // 使用client_id作为主体标识符。
+            identity.SetClaim(OpenIddictConstants.Claims.Subject,
+                await _applicationManager.GetClientIdAsync(application));
+            identity.SetClaim(OpenIddictConstants.Claims.Name,
+                await _applicationManager.GetDisplayNameAsync(application));
+
+            // 添加受众声明
+            identity.SetClaim(OpenIddictConstants.Claims.Audience, "api");
+            
+            // 添加客户端ID声明
+            identity.SetClaim("client_id", clientId);
+
+            // 设置声明的目标
+            identity.SetDestinations(static claim => claim.Type switch
+            {
+                // 当授予"profile"范围时（通过调用principal.SetScopes(...)），
+                // 允许"name"声明同时存储在访问令牌和身份令牌中。
+                OpenIddictConstants.Claims.Name when claim.Subject.HasScope(OpenIddictConstants.Permissions.Scopes
+                        .Profile)
+                    => [OpenIddictConstants.Destinations.AccessToken, OpenIddictConstants.Destinations.IdentityToken],
+
+                // 否则，仅将声明存储在访问令牌中。
+                _ => [OpenIddictConstants.Destinations.AccessToken]
+            });
+
+            var principal = new ClaimsPrincipal(identity);
+
+            // 正确设置范围
+            if (scopes.Any())
+            {
+                // 验证范围是否有效
+                var validScopes = new[] { "api" };
+                var filteredScopes = scopes.Intersect(validScopes).ToList();
+
+                if (filteredScopes.Any())
+                {
+                    principal.SetScopes(filteredScopes);
+                    _log.LogDebug("设置客户端范围: {Scopes}", string.Join(", ", filteredScopes));
+                }
+                else
+                {
+                    // 如果没有有效范围，默认设置为 api
+                    principal.SetScopes("api");
+                    _log.LogDebug("使用默认范围: api");
+                }
             }
             else
             {
-                // 如果没有有效范围，默认设置为 api
+                // 默认设置为 api
                 principal.SetScopes("api");
+                _log.LogDebug("使用默认范围: api");
             }
-        }
-        else
-        {
-            // 默认设置为 api
-            principal.SetScopes("api");
-        }
 
-        // 设置令牌生命周期
-        principal.SetAccessTokenLifetime(TimeSpan.FromHours(1)); // 客户端凭证默认1小时有效期
-        return principal;
+            // 设置令牌生命周期（客户端凭证模式通常较短）
+            principal.SetAccessTokenLifetime(TimeSpan.FromHours(1));
+
+            _log.LogInformation("客户端凭证模式认证成功，客户端ID: {ClientId}", clientId);
+            return principal;
+        }
+        catch (BusinessException)
+        {
+            // 重新抛出业务异常
+            throw;
+        }
+        catch (Exception ex)
+        {
+            _log.LogError(ex, "客户端凭证模式认证时发生未预期的错误，客户端ID: {ClientId}", clientId);
+            throw new BusinessException("客户端凭证模式认证失败，请稍后重试");
+        }
     }
 
     /// <summary>
