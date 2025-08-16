@@ -3,6 +3,9 @@ using Ocelot.Middleware;
 using Ocelot.Provider.Nacos;
 using Nacos.V2.DependencyInjection;
 using Nacos.AspNetCore.V2;
+using SP.Gateway.Middleware;
+using SP.Common.Redis;
+using SP.Gateway.Extension;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -18,6 +21,12 @@ builder.Services.AddEndpointsApiExplorer();
 
 // 添加 HTTP 客户端用于获取微服务的 OpenAPI 文档
 builder.Services.AddHttpClient();
+
+// 添加Redis服务
+builder.Services.AddRedisService(builder.Configuration);
+
+// 添加OpenIddict验证服务（基于Nacos服务发现和配置）
+builder.Services.AddOpenIddictValidation(builder.Configuration);
 
 // Ocelot + Nacos 服务发现
 builder.Services.AddOcelot(builder.Configuration)
@@ -43,6 +52,10 @@ if (app.Environment.IsDevelopment() || app.Environment.EnvironmentName == "Local
 }
 
 app.UseHttpsRedirection();
+
+// 添加完整认证中间件
+app.UseMiddleware<SPAuthenticationMiddleware>();
+app.UseAuthentication();
 
 app.UseAuthorization();
 
