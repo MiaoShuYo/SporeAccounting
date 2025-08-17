@@ -157,7 +157,7 @@ public class Program
         // 添加认证中间件
         app.UseAuthentication();
         app.UseAuthorization();
-        app.UseMiddleware<ApplicationMiddleware>();
+        //app.UseMiddleware<ApplicationMiddleware>();
         
         // 添加 Token 存储中间件
         app.UseTokenStorage();

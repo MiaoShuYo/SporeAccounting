@@ -34,6 +34,9 @@ public static class OpenIddictServiceExtensions
                 
                 // 设置撤销端点
                 options.SetRevocationEndpointUris("api/auth/revoke");
+                
+                // 设置内省端点
+                options.SetIntrospectionEndpointUris("api/auth/introspect");
 
                 // 启用密码模式
                 options.AllowPasswordFlow() // 开启密码模式
@@ -42,7 +45,8 @@ public static class OpenIddictServiceExtensions
 
                 // 注册授权范围
                 options.RegisterScopes("api", OpenIddictConstants.Scopes.OfflineAccess);
-
+                // 允许匿名客户端
+                options.AcceptAnonymousClients();
                 // 注册所有资源
                 options.RegisterClaims(
                     OpenIddictConstants.Claims.Name,

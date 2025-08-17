@@ -38,9 +38,9 @@ public class SPAuthenticationMiddleware
     {
         var path = context.Request.Path.Value ?? "";
         
-        var noAuth = await _configService.IsAuthenticationRequiredAsync(path);
+        var isAuth = await _configService.IsAuthenticationRequiredAsync(path);
         
-        if (noAuth)
+        if (!isAuth)
         {
             _logger.LogDebug("路径 {Path} 跳过认证", path);
             await _next(context);

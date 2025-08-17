@@ -36,6 +36,15 @@ builder.Services.AddScoped<ITokenIntrospectionService, TokenIntrospectionService
 builder.Services.AddHttpClient("IdentityServiceHealthCheck", client => { client.Timeout = TimeSpan.FromSeconds(10); });
 builder.Services.AddHttpClient("TokenIntrospection", client => { client.Timeout = TimeSpan.FromSeconds(30); });
 
+// 注册TokenIntrospectionService，使用专门的HttpClient
+builder.Services.AddScoped<ITokenIntrospectionService>(provider =>
+{
+    var httpClient = provider.GetRequiredService<IHttpClientFactory>().CreateClient("TokenIntrospection");
+    var logger = provider.GetRequiredService<ILogger<TokenIntrospectionService>>();
+    var configService = provider.GetRequiredService<IGatewayConfigService>();
+    return new TokenIntrospectionService(httpClient, logger, configService);
+});
+
 // Ocelot + Nacos 服务发现
 builder.Services.AddOcelot(builder.Configuration)
     .AddNacosDiscovery();

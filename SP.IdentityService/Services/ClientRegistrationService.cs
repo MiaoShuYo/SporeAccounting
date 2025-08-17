@@ -53,6 +53,7 @@ public class ClientRegistrationService : IClientRegistrationService
                     // 基本权限
                     OpenIddictConstants.Permissions.Endpoints.Token,
                     OpenIddictConstants.Permissions.Endpoints.Revocation,
+                    OpenIddictConstants.Permissions.Endpoints.Introspection,
                     
                     // 授权类型权限
                     OpenIddictConstants.Permissions.GrantTypes.ClientCredentials,

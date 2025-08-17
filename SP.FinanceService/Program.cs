@@ -132,11 +132,11 @@ if (app.Environment.IsDevelopment() || app.Environment.EnvironmentName == "Local
     app.UseSwaggerUI();
 }
 
-app.UseMiddleware<ApplicationMiddleware>();
+//app.UseMiddleware<ApplicationMiddleware>();
 
 app.UseHttpsRedirection();
 
-app.UseAuthorization();
+// app.UseAuthorization();
 
 app.MapControllers();
 

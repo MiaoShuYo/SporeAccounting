@@ -55,17 +55,26 @@ public class TokenIntrospectionService : ITokenIntrospectionService
                 new KeyValuePair<string, string>("token", token)
             });
 
-            // 若配置了客户端凭证，则添加 Basic Auth 头
+            // 发送 POST 请求，确保 Content-Type 为 application/x-www-form-urlencoded
+            var request = new HttpRequestMessage(HttpMethod.Post, introspectionUrl)
+            {
+                Content = requestData
+            };
+            request.Content.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue("application/x-www-form-urlencoded");
+            
+            // 由于IdentityService配置了AcceptAnonymousClients()，我们不需要Basic认证
+            // 注释掉Basic认证，让内省端点允许匿名访问
+            /*
             if (!string.IsNullOrEmpty(config.ClientId) && !string.IsNullOrEmpty(config.ClientSecret))
             {
                 var authHeader = Convert.ToBase64String(
                     Encoding.UTF8.GetBytes($"{config.ClientId}:{config.ClientSecret}"));
-                _httpClient.DefaultRequestHeaders.Authorization =
+                request.Headers.Authorization =
                     new System.Net.Http.Headers.AuthenticationHeaderValue("Basic", authHeader);
             }
-
-            // 发送 POST 请求
-            var response = await _httpClient.PostAsync(introspectionUrl, requestData);
+            */
+            
+            var response = await _httpClient.SendAsync(request);
 
             // 请求失败则记录警告并返回 null
             if (!response.IsSuccessStatusCode)
