@@ -39,9 +39,9 @@ public class SPAuthenticationMiddleware
     {
         var path = context.Request.Path.Value ?? "";
         
-        var requiresAuthentication = await _configService.IsAuthenticationRequiredAsync(path);
+        var noAuth = await _configService.IsAuthenticationRequiredAsync(path);
         
-        if (!requiresAuthentication)
+        if (noAuth)
         {
             _logger.LogDebug("路径 {Path} 跳过认证", path);
             await _next(context);
@@ -50,8 +50,22 @@ public class SPAuthenticationMiddleware
 
         try
         {
-            var bestUrl = await _serviceDiscovery.GetBestIdentityServiceUrlAsync();
+            // 获取Authorization头
+            var authorizationHeader = context.Request.Headers["Authorization"].ToString();
+            if (string.IsNullOrEmpty(authorizationHeader) || !authorizationHeader.StartsWith("Bearer "))
+            {
+                context.Response.StatusCode = 401;
+                await context.Response.WriteAsJsonAsync(new { 
+                    error = "invalid_token", 
+                    error_description = "缺少有效的访问令牌" 
+                });
+                return;
+            }
+
+            var token = authorizationHeader.Substring("Bearer ".Length);
             
+            // 获取身份服务URL
+            var bestUrl = await _serviceDiscovery.GetBestIdentityServiceUrlAsync();
             if (string.IsNullOrEmpty(bestUrl))
             {
                 context.Response.StatusCode = 503;
@@ -62,47 +76,65 @@ public class SPAuthenticationMiddleware
                 return;
             }
 
-            context.Request.Headers["X-Identity-Service-Url"] = bestUrl;
-
-            var result = await context.AuthenticateAsync();
-            
-            if (result?.Succeeded == true && result.Principal != null)
-            {
-                var userId = result.Principal.FindFirstValue(OpenIddictConstants.Claims.Subject);
-                if (!string.IsNullOrEmpty(userId))
-                {
-                    var tokenExists = await ValidateTokenInRedis(userId, context.Request.Headers["Authorization"].ToString());
-                    if (!tokenExists)
-                    {
-                        context.Response.StatusCode = 401;
-                        await context.Response.WriteAsJsonAsync(new { 
-                            error = "invalid_token", 
-                            error_description = "令牌已被撤销" 
-                        });
-                        return;
-                    }
-                }
-
-                context.User = result.Principal;
-                
-                var userInfo = ExtractUserInfo(result.Principal);
-                foreach (var kvp in userInfo)
-                {
-                    context.Request.Headers[kvp.Key] = kvp.Value;
-                }
-                
-                context.Request.Headers["X-Used-Identity-Service"] = bestUrl;
-                
-                await _next(context);
-            }
-            else
+            // 使用令牌内省服务验证令牌
+            var introspectionResult = await _tokenIntrospectionService.IntrospectTokenAsync(token, bestUrl);
+            if (introspectionResult == null || !introspectionResult.IsActive)
             {
                 context.Response.StatusCode = 401;
                 await context.Response.WriteAsJsonAsync(new { 
                     error = "invalid_token", 
                     error_description = "无效的访问令牌" 
                 });
+                return;
             }
+
+            // 验证Redis中的令牌
+            if (!string.IsNullOrEmpty(introspectionResult.Subject))
+            {
+                var tokenExists = await ValidateTokenInRedis(introspectionResult.Subject, token);
+                if (!tokenExists)
+                {
+                    context.Response.StatusCode = 401;
+                    await context.Response.WriteAsJsonAsync(new { 
+                        error = "invalid_token", 
+                        error_description = "令牌已被撤销" 
+                    });
+                    return;
+                }
+            }
+
+            // 创建ClaimsPrincipal
+            var claims = new List<Claim>
+            {
+                new Claim(OpenIddictConstants.Claims.Subject, introspectionResult.Subject ?? ""),
+                new Claim(OpenIddictConstants.Claims.Name, introspectionResult.Username ?? ""),
+                new Claim(OpenIddictConstants.Claims.Email, introspectionResult.Email ?? "")
+            };
+
+            // 添加角色声明
+            if (introspectionResult.Roles != null && introspectionResult.Roles.Any())
+            {
+                foreach (var role in introspectionResult.Roles)
+                {
+                    claims.Add(new Claim(OpenIddictConstants.Claims.Role, role));
+                }
+            }
+
+            var identity = new ClaimsIdentity(claims, "Bearer");
+            var principal = new ClaimsPrincipal(identity);
+            
+            context.User = principal;
+            
+            // 添加用户信息到请求头
+            var userInfo = ExtractUserInfo(principal);
+            foreach (var kvp in userInfo)
+            {
+                context.Request.Headers[kvp.Key] = kvp.Value;
+            }
+            
+            context.Request.Headers["X-Used-Identity-Service"] = bestUrl;
+            
+            await _next(context);
         }
         catch (Exception ex)
         {
@@ -115,23 +147,16 @@ public class SPAuthenticationMiddleware
         }
     }
 
-    private async Task<bool> ValidateTokenInRedis(string userId, string authorizationHeader)
+    private async Task<bool> ValidateTokenInRedis(string userId, string token)
     {
         try
         {
-            if (string.IsNullOrEmpty(authorizationHeader) || !authorizationHeader.StartsWith("Bearer "))
-            {
-                return false;
-            }
-
-            var token = authorizationHeader.Substring("Bearer ".Length);
-            
             var tokenKey = $"Token:{userId}";
             var storedToken = await _redisService.GetAsync<string>(tokenKey);
             
             if (string.IsNullOrEmpty(storedToken))
             {
-                return true;
+                return true; // 如果Redis中没有存储令牌，认为有效
             }
             
             return storedToken == token;
