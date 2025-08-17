@@ -117,11 +117,6 @@ public class AuthorizationController : ControllerBase
                     request.GetScopes());
             // 确保 SignIn 方法只在授权端点调用
             SignInResult signInResult = SignIn(principal, OpenIddictServerAspNetCoreDefaults.AuthenticationScheme);
-
-            // 注意：在 OpenIddict 中，token 是在中间件处理过程中生成的
-            // SignInResult 的 Properties 可能不会立即包含 token 值
-            // 我们将在响应处理完成后存储 token
-
             return signInResult;
         }
 

@@ -57,7 +57,7 @@ public class SwaggerTokenRequestFilter : IOperationFilter
                                 ["client_id"] = new OpenApiSchema
                                 {
                                     Type = "string",
-                                    Description = "客户端ID",
+                                    Description = "客户端ID（密码模式下可选）",
                                     Example = new OpenApiString("")
                                 }
                             },

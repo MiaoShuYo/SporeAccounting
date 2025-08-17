@@ -14,12 +14,6 @@ public interface IGatewayConfigService
     Task<List<string>> GetSkipAuthenticationPathsAsync();
     
     /// <summary>
-    /// 获取需要认证的路径
-    /// </summary>
-    /// <returns>需要认证的路径列表</returns>
-    Task<List<string>> GetRequireAuthenticationPathsAsync();
-    
-    /// <summary>
     /// 检查路径是否需要认证
     /// </summary>
     /// <param name="path">请求路径</param>

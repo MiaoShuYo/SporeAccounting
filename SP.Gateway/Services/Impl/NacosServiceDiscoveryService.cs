@@ -29,7 +29,11 @@ public class NacosServiceDiscoveryService : INacosServiceDiscoveryService
     {
         try
         {
+            _logger.LogInformation("开始从Nacos获取身份服务实例，服务名: {ServiceName}", IdentityServiceName);
+            
             var instances = await _namingService.SelectInstances(IdentityServiceName, "DEFAULT_GROUP", new List<string> { "DEFAULT" }, true);
+            
+            _logger.LogInformation("从Nacos获取到 {Count} 个实例", instances?.Count ?? 0);
             
             if (instances == null || !instances.Any())
             {
@@ -40,15 +44,23 @@ public class NacosServiceDiscoveryService : INacosServiceDiscoveryService
             var urls = new List<string>();
             foreach (var instance in instances)
             {
+                _logger.LogDebug("检查实例: IP={Ip}, Port={Port}, Enabled={Enabled}, Healthy={Healthy}", 
+                    instance.Ip, instance.Port, instance.Enabled, instance.Healthy);
+                
                 if (instance.Enabled && instance.Healthy)
                 {
                     var scheme = instance.Metadata?.GetValueOrDefault("scheme", "http");
                     var url = $"{scheme}://{instance.Ip}:{instance.Port}";
                     urls.Add(url);
+                    _logger.LogDebug("添加健康实例: {Url}", url);
+                }
+                else
+                {
+                    _logger.LogDebug("跳过不健康实例: {Ip}:{Port}", instance.Ip, instance.Port);
                 }
             }
 
-            _logger.LogDebug("从Nacos获取到 {Count} 个身份服务实例", urls.Count);
+            _logger.LogInformation("从Nacos获取到 {Count} 个身份服务实例", urls.Count);
             return urls;
         }
         catch (Exception ex)
@@ -60,6 +72,8 @@ public class NacosServiceDiscoveryService : INacosServiceDiscoveryService
 
     public async Task<string?> GetBestIdentityServiceUrlAsync()
     {
+        _logger.LogInformation("开始获取最佳身份服务URL");
+        
         var urls = await GetIdentityServiceUrlsAsync();
         
         if (!urls.Any())
@@ -71,9 +85,15 @@ public class NacosServiceDiscoveryService : INacosServiceDiscoveryService
         var availableUrls = new List<string>();
         foreach (var url in urls)
         {
+            _logger.LogDebug("检查服务可用性: {Url}", url);
             if (await IsServiceAvailableAsync(url))
             {
                 availableUrls.Add(url);
+                _logger.LogDebug("服务可用: {Url}", url);
+            }
+            else
+            {
+                _logger.LogDebug("服务不可用: {Url}", url);
             }
         }
 
@@ -86,7 +106,7 @@ public class NacosServiceDiscoveryService : INacosServiceDiscoveryService
         var random = new Random();
         var selectedUrl = availableUrls[random.Next(availableUrls.Count)];
         
-        _logger.LogDebug("选择身份服务URL: {Url}", selectedUrl);
+        _logger.LogInformation("选择身份服务URL: {Url}", selectedUrl);
         return selectedUrl;
     }
 
@@ -99,7 +119,9 @@ public class NacosServiceDiscoveryService : INacosServiceDiscoveryService
                 var timeSinceLastCheck = DateTime.UtcNow - lastCheck;
                 if (timeSinceLastCheck.TotalSeconds < 5)
                 {
-                    return _healthStatus.GetValueOrDefault(url, false);
+                    var cachedStatus = _healthStatus.GetValueOrDefault(url, false);
+                    _logger.LogDebug("使用缓存的健康状态: {Url} = {Status}", url, cachedStatus);
+                    return cachedStatus;
                 }
             }
         }
@@ -107,6 +129,8 @@ public class NacosServiceDiscoveryService : INacosServiceDiscoveryService
         try
         {
             var discoveryUrl = $"{url.TrimEnd('/')}/.well-known/openid_configuration";
+            _logger.LogDebug("检查健康状态: {Url}", discoveryUrl);
+            
             var response = await _httpClient.GetAsync(discoveryUrl, CancellationToken.None);
             
             var isHealthy = response.IsSuccessStatusCode;

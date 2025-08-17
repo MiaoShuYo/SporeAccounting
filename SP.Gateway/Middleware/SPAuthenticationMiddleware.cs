@@ -1,5 +1,4 @@
 ﻿using System.Security.Claims;
-using Microsoft.AspNetCore.Authentication;
 using OpenIddict.Abstractions;
 using SP.Common.Redis;
 using SP.Gateway.Services;

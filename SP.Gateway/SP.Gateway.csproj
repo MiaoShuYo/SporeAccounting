@@ -28,4 +28,9 @@
       <ProjectReference Include="..\SP.Common\SP.Common.csproj" />
     </ItemGroup>
 
+    <ItemGroup>
+      <_ContentIncludedByDefault Remove="nacos\config\config_rpc_client_nacos\encrypted-data-key\snapshot-tenant\a8f01c53-b0b2-4046-b0f8-850e24738b23\DEFAULT_GROUP\ocelot.json" />
+      <_ContentIncludedByDefault Remove="nacos\config\config_rpc_client_nacos\snapshot-tenant\a8f01c53-b0b2-4046-b0f8-850e24738b23\DEFAULT_GROUP\ocelot.json" />
+    </ItemGroup>
+
 </Project>
