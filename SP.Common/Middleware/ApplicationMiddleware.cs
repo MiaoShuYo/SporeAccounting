@@ -16,91 +16,117 @@ public class ApplicationMiddleware
 {
     private readonly RequestDelegate _next;
     private readonly ILogger<ApplicationMiddleware> _logger;
+    private readonly IConfiguration _configuration;
 
     /// <summary>
     /// 应用程序中间件构造函数
     /// </summary>
     /// <param name="next">下一个中间件</param>
     /// <param name="logger">日志记录器</param>
-    public ApplicationMiddleware(RequestDelegate next,ILogger<ApplicationMiddleware> logger)
+    /// <param name="configuration">配置</param>
+    public ApplicationMiddleware(RequestDelegate next, ILogger<ApplicationMiddleware> logger, IConfiguration configuration)
     {
         _next = next;
         _logger = logger;
+        _configuration = configuration;
     }
 
     /// <summary>
     /// 中间件处理请求
     /// </summary>
     /// <param name="context">HTTP上下文</param>
-    /// <param name="redisService">Redis服务</param>
     /// <returns>异步任务</returns>
-    public async Task InvokeAsync(HttpContext context,IRedisService redisService)
+    public async Task InvokeAsync(HttpContext context)
     {
-        // 获取请求路径
-        var path = context.Request.Path.Value?.ToLowerInvariant() ?? string.Empty;
-        // 获取不需要身份验证的路径，从nacos配置里面拿。
-        List<string> noAuthPaths = new List<string>();
-        noAuthPaths= context.RequestServices.GetService<IConfiguration>()?
-            .GetSection("NoAuthPaths")?.Get<List<string>>() ?? new List<string>();
-        // 如果请求路径在不需要身份验证的列表中，直接调用下一个中间件
-        if (noAuthPaths.Any(p => path.StartsWith(p, StringComparison.OrdinalIgnoreCase)))
+        // 验证网关签名
+        if (!ValidateGatewaySignature(context))
         {
-            _logger.LogInformation("{Path}不需要进行身份验证", path);
+            _logger.LogWarning("检测到未授权的直接访问，IP: {IP}", context.Connection.RemoteIpAddress);
+            throw new UnauthorizedException("未授权的访问");
+        }
+
+        if (context.Request.Headers.ContainsKey("X-Anonymous"))
+        {
             await _next(context);
             return;
         }
-        // 获取Authorization头
-        var authHeader = context.Request.Headers["Authorization"].FirstOrDefault();
-        if (!string.IsNullOrEmpty(authHeader) && authHeader.StartsWith("Bearer ", StringComparison.OrdinalIgnoreCase))
+        // 从header中获取用户信息
+        var userId = context.Request.Headers["X-User-Id"].FirstOrDefault();
+        var username= context.Request.Headers["X-User-Name"].FirstOrDefault();
+        var email = context.Request.Headers["X-User-Email"].FirstOrDefault();
+        var roles = context.Request.Headers["X-User-Roles"].FirstOrDefault()?.Split(',');
+        if (string.IsNullOrEmpty(userId) || string.IsNullOrEmpty(username) || string.IsNullOrEmpty(email)|| roles == null || roles.Length == 0)
         {
-            var token = authHeader.Substring("Bearer ".Length).Trim();
-            try
+            _logger.LogError("请求头中缺少用户信息");
+            throw new UnauthorizedException("未登录");
+        }
+
+        // 创建 ClaimsIdentity 并添加 claims
+        var claims = new List<Claim>();
+        if (!string.IsNullOrEmpty(userId))
+            claims.Add(new Claim("UserId", userId));
+        if (!string.IsNullOrEmpty(username))
+            claims.Add(new Claim("UserName", username));
+        if (!string.IsNullOrEmpty(email))
+            claims.Add(new Claim("Email", email));
+        if (roles != null)
+        {
+            foreach (var role in roles)
             {
-                var handler = new JwtSecurityTokenHandler();
-                var jwtToken = handler.ReadJwtToken(token);
-                var claims = jwtToken.Claims.ToList();
-                // 查找UserId和UserName
-                var userId = claims.FirstOrDefault(c => c.Type == "sub")?.Value;
-                var userName = claims.FirstOrDefault(c => c.Type == "username")?.Value;
-
-                // 检查token是否存在于Redis中
-                string tokenKey = string.Format(SPRedisKey.Token, userId);
-                string? tokenRedis = await redisService.GetStringAsync(tokenKey);
-                if (tokenRedis == null || tokenRedis != token)
-                {
-                    _logger.LogWarning("Token验证失败，用户未登录或Token已失效");
-                    throw new UnauthorizedException("用户未登录或Token已失效");
-                }
-
-                // 如果HttpContext.User没有身份，则新建
-                if (context.User == null || !context.User.Identities.Any())
-                {
-                    var identity = new ClaimsIdentity(claims, "jwt");
-                    context.User = new ClaimsPrincipal(identity);
-                }
-                else
-                {
-                    // 合并claims到现有identity
-                    var identity = context.User.Identities.First();
-                    if (!string.IsNullOrEmpty(userId) && !identity.HasClaim(c => c.Type == "UserId"))
-                        identity.AddClaim(new Claim("sub", userId));
-                    if (!string.IsNullOrEmpty(userName) && !identity.HasClaim(c => c.Type == "UserName"))
-                        identity.AddClaim(new Claim("username", userName));
-                }
-
-                // 调用下一个中间件
-                await _next(context);
-            }
-            catch
-            {
-                _logger.LogWarning("用户未登录");
-                throw new UnauthorizedException("用户未登录");
+                claims.Add(new Claim(ClaimTypes.Role, role.Trim()));
             }
         }
-        else
+
+        var identity = new ClaimsIdentity(claims, "header");
+        context.User = new ClaimsPrincipal(identity);
+
+        await _next(context);
+    }
+
+    private bool ValidateGatewaySignature(HttpContext context)
+    {
+        try
         {
-            _logger.LogWarning("用户未登录");
-            throw new UnauthorizedException("用户未登录");
+            var signature = context.Request.Headers["X-Gateway-Signature"].FirstOrDefault();
+            if (string.IsNullOrEmpty(signature))
+            {
+                return false;
+            }
+
+            var signatureBytes = Convert.FromBase64String(signature);
+            var signatureText = System.Text.Encoding.UTF8.GetString(signatureBytes);
+            var parts = signatureText.Split('.');
+            
+            if (parts.Length != 2)
+            {
+                return false;
+            }
+
+            if (!long.TryParse(parts[0], out var timestamp))
+            {
+                return false;
+            }
+
+            var secret = _configuration["GatewaySecret"] ?? "SP_Gateway_Secret_2024";
+            if (parts[1] != secret)
+            {
+                return false;
+            }
+
+            // 验证时间戳（5分钟内的请求有效）
+            var currentTimestamp = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+            var timeDiff = Math.Abs(currentTimestamp - timestamp);
+            if (timeDiff > 300) // 5分钟
+            {
+                return false;
+            }
+
+            return true;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "验证网关签名时发生错误");
+            return false;
         }
     }
 }

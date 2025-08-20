@@ -42,7 +42,8 @@ builder.Services.AddScoped<ITokenIntrospectionService>(provider =>
     var httpClient = provider.GetRequiredService<IHttpClientFactory>().CreateClient("TokenIntrospection");
     var logger = provider.GetRequiredService<ILogger<TokenIntrospectionService>>();
     var configService = provider.GetRequiredService<IGatewayConfigService>();
-    return new TokenIntrospectionService(httpClient, logger, configService);
+    var configuration = provider.GetRequiredService<IConfiguration>();
+    return new TokenIntrospectionService(httpClient, logger, configService, configuration);
 });
 
 // Ocelot + Nacos 服务发现

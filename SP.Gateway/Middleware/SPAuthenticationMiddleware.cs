@@ -17,6 +17,7 @@ public class SPAuthenticationMiddleware
     private readonly IGatewayConfigService _configService;
     private readonly INacosServiceDiscoveryService _serviceDiscovery;
     private readonly ITokenIntrospectionService _tokenIntrospectionService;
+    private readonly IConfiguration _configuration;
 
     public SPAuthenticationMiddleware(
         RequestDelegate next,
@@ -24,7 +25,8 @@ public class SPAuthenticationMiddleware
         IRedisService redisService,
         IGatewayConfigService configService,
         INacosServiceDiscoveryService serviceDiscovery,
-        ITokenIntrospectionService tokenIntrospectionService)
+        ITokenIntrospectionService tokenIntrospectionService,
+        IConfiguration configuration)
     {
         _next = next;
         _logger = logger;
@@ -32,6 +34,7 @@ public class SPAuthenticationMiddleware
         _configService = configService;
         _serviceDiscovery = serviceDiscovery;
         _tokenIntrospectionService = tokenIntrospectionService;
+        _configuration = configuration;
     }
 
     public async Task InvokeAsync(HttpContext context)
@@ -43,6 +46,8 @@ public class SPAuthenticationMiddleware
         if (!isAuth)
         {
             _logger.LogDebug("路径 {Path} 跳过认证", path);
+            context.Request.Headers["X-Anonymous"] = "true";
+            context.Request.Headers["X-Gateway-Signature"] = GenerateGatewaySignature();
             await _next(context);
             return;
         }
@@ -132,6 +137,7 @@ public class SPAuthenticationMiddleware
             }
             
             context.Request.Headers["X-Used-Identity-Service"] = bestUrl;
+            context.Request.Headers["X-Gateway-Signature"] = GenerateGatewaySignature();
             
             await _next(context);
         }
@@ -167,12 +173,17 @@ public class SPAuthenticationMiddleware
         }
     }
 
+    /// <summary>
+    /// 从ClaimsPrincipal中提取用户信息并转换为请求头
+    /// </summary>
+    /// <param name="principal"></param>
+    /// <returns></returns>
     private Dictionary<string, string> ExtractUserInfo(ClaimsPrincipal principal)
     {
         var userInfo = new Dictionary<string, string>();
         
         var userId = principal.FindFirstValue(OpenIddictConstants.Claims.Subject);
-        var username = principal.FindFirstValue(OpenIddictConstants.Claims.Name);
+        var username = principal.FindFirstValue(OpenIddictConstants.Claims.Username);
         var email = principal.FindFirstValue(OpenIddictConstants.Claims.Email);
         var roles = principal.FindAll(OpenIddictConstants.Claims.Role).Select(c => c.Value);
         
@@ -186,5 +197,17 @@ public class SPAuthenticationMiddleware
             userInfo["X-User-Roles"] = string.Join(",", roles);
             
         return userInfo;
+    }
+    
+    /// <summary>
+    /// 生成网关签名
+    /// </summary>
+    /// <returns></returns>
+    private string GenerateGatewaySignature()
+    {
+        var timestamp = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+        var secret = _configuration["GatewaySecret"] ?? "SP_Gateway_Secret_2024";
+        var signature = $"{timestamp}.{secret}";
+        return Convert.ToBase64String(System.Text.Encoding.UTF8.GetBytes(signature));
     }
 }

@@ -48,7 +48,8 @@ public class NacosGatewayConfigService : IGatewayConfigService
     public async Task<bool> IsAuthenticationRequiredAsync(string path)
     {
         var skipPaths = await GetSkipAuthenticationPathsAsync();
-        if (skipPaths.Any(skipPath => path.StartsWith(skipPath, StringComparison.OrdinalIgnoreCase)))
+        if (skipPaths.Any(skipPath => path.StartsWith(skipPath, StringComparison.OrdinalIgnoreCase)) 
+            || skipPaths.Any(skipPath => path.Contains(skipPath, StringComparison.OrdinalIgnoreCase)))
         {
             return false; // 跳过认证的路径不需要认证
         }

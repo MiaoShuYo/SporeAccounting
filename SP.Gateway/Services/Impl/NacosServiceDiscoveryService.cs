@@ -10,6 +10,7 @@ public class NacosServiceDiscoveryService : INacosServiceDiscoveryService
     private readonly INacosNamingService _namingService;
     private readonly HttpClient _httpClient;
     private readonly ILogger<NacosServiceDiscoveryService> _logger;
+    private readonly IConfiguration _configuration;
     private readonly Dictionary<string, DateTime> _lastHealthCheck = new();
     private readonly Dictionary<string, bool> _healthStatus = new();
     private readonly object _lockObject = new();
@@ -18,11 +19,13 @@ public class NacosServiceDiscoveryService : INacosServiceDiscoveryService
     public NacosServiceDiscoveryService(
         INacosNamingService namingService,
         HttpClient httpClient,
-        ILogger<NacosServiceDiscoveryService> logger)
+        ILogger<NacosServiceDiscoveryService> logger,
+        IConfiguration configuration)
     {
         _namingService = namingService;
         _httpClient = httpClient;
         _logger = logger;
+        _configuration = configuration;
     }
 
     public async Task<List<string>> GetIdentityServiceUrlsAsync()
@@ -131,7 +134,12 @@ public class NacosServiceDiscoveryService : INacosServiceDiscoveryService
             var discoveryUrl = $"{url.TrimEnd('/')}/.well-known/openid_configuration";
             _logger.LogDebug("检查健康状态: {Url}", discoveryUrl);
             
-            var response = await _httpClient.GetAsync(discoveryUrl, CancellationToken.None);
+            // 创建请求并添加必要的头
+            var request = new HttpRequestMessage(HttpMethod.Get, discoveryUrl);
+            request.Headers.Add("X-Anonymous", "true");
+            request.Headers.Add("X-Gateway-Signature", GenerateGatewaySignature());
+            
+            var response = await _httpClient.SendAsync(request, CancellationToken.None);
             
             var isHealthy = response.IsSuccessStatusCode;
             
@@ -164,5 +172,17 @@ public class NacosServiceDiscoveryService : INacosServiceDiscoveryService
             
             return false;
         }
+    }
+    
+    /// <summary>
+    /// 生成网关签名
+    /// </summary>
+    /// <returns></returns>
+    private string GenerateGatewaySignature()
+    {
+        var timestamp = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+        var secret = _configuration["GatewaySecret"] ?? "SP_Gateway_Secret_2024";
+        var signature = $"{timestamp}.{secret}";
+        return Convert.ToBase64String(System.Text.Encoding.UTF8.GetBytes(signature));
     }
 }

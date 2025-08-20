@@ -17,6 +17,8 @@ public class TokenIntrospectionService : ITokenIntrospectionService
 
     // 网关配置服务
     private readonly IGatewayConfigService _configService;
+    // 配置服务
+    private readonly IConfiguration _configuration;
 
     /// <summary>
     /// 构造函数，注入依赖
@@ -24,14 +26,17 @@ public class TokenIntrospectionService : ITokenIntrospectionService
     /// <param name="httpClient">HTTP 客户端</param>
     /// <param name="logger">日志记录器</param>
     /// <param name="configService">网关配置服务</param>
+    /// <param name="configuration">配置服务</param>
     public TokenIntrospectionService(
         HttpClient httpClient,
         ILogger<TokenIntrospectionService> logger,
-        IGatewayConfigService configService)
+        IGatewayConfigService configService,
+        IConfiguration configuration)
     {
         _httpClient = httpClient;
         _logger = logger;
         _configService = configService;
+        _configuration = configuration;
     }
 
     /// <summary>
@@ -61,6 +66,10 @@ public class TokenIntrospectionService : ITokenIntrospectionService
                 Content = requestData
             };
             request.Content.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue("application/x-www-form-urlencoded");
+            
+            // 添加网关签名和匿名标识
+            request.Headers.Add("X-Anonymous", "true");
+            request.Headers.Add("X-Gateway-Signature", GenerateGatewaySignature());
             
             // 由于IdentityService配置了AcceptAnonymousClients()，我们不需要Basic认证
             // 注释掉Basic认证，让内省端点允许匿名访问
@@ -158,5 +167,17 @@ public class TokenIntrospectionService : ITokenIntrospectionService
     private static long? GetLongProperty(JsonElement element, string propertyName)
     {
         return element.TryGetProperty(propertyName, out var property) ? property.GetInt64() : null;
+    }
+    
+    /// <summary>
+    /// 生成网关签名
+    /// </summary>
+    /// <returns></returns>
+    private string GenerateGatewaySignature()
+    {
+        var timestamp = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+        var secret = _configuration["GatewaySecret"] ?? "SP_Gateway_Secret_2024";
+        var signature = $"{timestamp}.{secret}";
+        return Convert.ToBase64String(System.Text.Encoding.UTF8.GetBytes(signature));
     }
 }
