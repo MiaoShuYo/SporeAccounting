@@ -114,7 +114,7 @@ public class AuthorizationServiceImpl : IAuthorizationService
         // 创建用户身份并添加必要的声明
         var identity = new ClaimsIdentity(OpenIddictServerAspNetCoreDefaults.AuthenticationScheme);
         identity.AddClaim(OpenIddictConstants.Claims.Subject, await _userManager.GetUserIdAsync(user));
-        identity.AddClaim(OpenIddictConstants.Claims.Username, user.UserName);
+        identity.AddClaim(OpenIddictConstants.Claims.Name, user.UserName);
         identity.AddClaim(OpenIddictConstants.Claims.Email, user.Email);
         identity.AddClaim(OpenIddictConstants.Claims.Audience, "api"); // 添加 aud 声明
 
@@ -123,6 +123,24 @@ public class AuthorizationServiceImpl : IAuthorizationService
         {
             identity.AddClaim(ClaimTypes.Role, role);
         }
+
+        // 设置声明的目标 - 指定哪些claims应该包含在访问令牌中
+        identity.SetDestinations(static claim => claim.Type switch
+        {
+            // 当授予"profile"范围时，允许"name"声明同时存储在访问令牌和身份令牌中
+            OpenIddictConstants.Claims.Name when claim.Subject.HasScope(OpenIddictConstants.Permissions.Scopes.Profile)
+                => [OpenIddictConstants.Destinations.AccessToken, OpenIddictConstants.Destinations.IdentityToken],
+
+            // 当授予"email"范围时，允许"email"声明同时存储在访问令牌和身份令牌中
+            OpenIddictConstants.Claims.Email when claim.Subject.HasScope(OpenIddictConstants.Permissions.Scopes.Email)
+                => [OpenIddictConstants.Destinations.AccessToken, OpenIddictConstants.Destinations.IdentityToken],
+
+            // 角色声明总是包含在访问令牌中
+            ClaimTypes.Role => [OpenIddictConstants.Destinations.AccessToken],
+
+            // 其他声明仅存储在访问令牌中
+            _ => [OpenIddictConstants.Destinations.AccessToken]
+        });
 
         // 创建 ClaimsPrincipal，并设置请求的范围
         var principal = new ClaimsPrincipal(identity);
@@ -216,6 +234,24 @@ public class AuthorizationServiceImpl : IAuthorizationService
         {
             identity.AddClaim(ClaimTypes.Role, role);
         }
+
+        // 设置声明的目标 - 指定哪些claims应该包含在访问令牌中
+        identity.SetDestinations(static claim => claim.Type switch
+        {
+            // 当授予"profile"范围时，允许"name"声明同时存储在访问令牌和身份令牌中
+            OpenIddictConstants.Claims.Name when claim.Subject.HasScope(OpenIddictConstants.Permissions.Scopes.Profile)
+                => [OpenIddictConstants.Destinations.AccessToken, OpenIddictConstants.Destinations.IdentityToken],
+
+            // 当授予"email"范围时，允许"email"声明同时存储在访问令牌和身份令牌中
+            OpenIddictConstants.Claims.Email when claim.Subject.HasScope(OpenIddictConstants.Permissions.Scopes.Email)
+                => [OpenIddictConstants.Destinations.AccessToken, OpenIddictConstants.Destinations.IdentityToken],
+
+            // 角色声明总是包含在访问令牌中
+            ClaimTypes.Role => [OpenIddictConstants.Destinations.AccessToken],
+
+            // 其他声明仅存储在访问令牌中
+            _ => [OpenIddictConstants.Destinations.AccessToken]
+        });
 
         var newPrincipal = new ClaimsPrincipal(identity);
         // 在设置新范围之前，保存原始令牌的离线访问范围

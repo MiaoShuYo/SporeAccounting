@@ -17,6 +17,7 @@ public class TokenIntrospectionService : ITokenIntrospectionService
 
     // 网关配置服务
     private readonly IGatewayConfigService _configService;
+
     // 配置服务
     private readonly IConfiguration _configuration;
 
@@ -65,24 +66,13 @@ public class TokenIntrospectionService : ITokenIntrospectionService
             {
                 Content = requestData
             };
-            request.Content.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue("application/x-www-form-urlencoded");
-            
+            request.Content.Headers.ContentType =
+                new System.Net.Http.Headers.MediaTypeHeaderValue("application/x-www-form-urlencoded");
+
             // 添加网关签名和匿名标识
             request.Headers.Add("X-Anonymous", "true");
             request.Headers.Add("X-Gateway-Signature", GenerateGatewaySignature());
-            
-            // 由于IdentityService配置了AcceptAnonymousClients()，我们不需要Basic认证
-            // 注释掉Basic认证，让内省端点允许匿名访问
-            /*
-            if (!string.IsNullOrEmpty(config.ClientId) && !string.IsNullOrEmpty(config.ClientSecret))
-            {
-                var authHeader = Convert.ToBase64String(
-                    Encoding.UTF8.GetBytes($"{config.ClientId}:{config.ClientSecret}"));
-                request.Headers.Authorization =
-                    new System.Net.Http.Headers.AuthenticationHeaderValue("Basic", authHeader);
-            }
-            */
-            
+
             var response = await _httpClient.SendAsync(request);
 
             // 请求失败则记录警告并返回 null
@@ -168,7 +158,7 @@ public class TokenIntrospectionService : ITokenIntrospectionService
     {
         return element.TryGetProperty(propertyName, out var property) ? property.GetInt64() : null;
     }
-    
+
     /// <summary>
     /// 生成网关签名
     /// </summary>

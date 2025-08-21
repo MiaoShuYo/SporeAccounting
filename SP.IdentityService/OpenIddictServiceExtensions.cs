@@ -35,8 +35,8 @@ public static class OpenIddictServiceExtensions
                 // 设置撤销端点
                 options.SetRevocationEndpointUris("api/auth/revoke");
                 
-                // 设置内省端点
-                options.SetIntrospectionEndpointUris("api/auth/introspect");
+                // 注释掉内省端点，使用自定义控制器处理
+                // options.SetIntrospectionEndpointUris("api/auth/introspect");
 
                 // 启用密码模式
                 options.AllowPasswordFlow() // 开启密码模式

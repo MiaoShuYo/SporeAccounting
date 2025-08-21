@@ -183,7 +183,8 @@ public class SPAuthenticationMiddleware
         var userInfo = new Dictionary<string, string>();
         
         var userId = principal.FindFirstValue(OpenIddictConstants.Claims.Subject);
-        var username = principal.FindFirstValue(OpenIddictConstants.Claims.Username);
+        var username = principal.FindFirstValue(OpenIddictConstants.Claims.Name) 
+            ?? principal.FindFirstValue(OpenIddictConstants.Claims.Username);
         var email = principal.FindFirstValue(OpenIddictConstants.Claims.Email);
         var roles = principal.FindAll(OpenIddictConstants.Claims.Role).Select(c => c.Value);
         
@@ -193,8 +194,6 @@ public class SPAuthenticationMiddleware
             userInfo["X-User-Name"] = username;
         if (!string.IsNullOrEmpty(email))
             userInfo["X-User-Email"] = email;
-        if (roles.Any())
-            userInfo["X-User-Roles"] = string.Join(",", roles);
             
         return userInfo;
     }

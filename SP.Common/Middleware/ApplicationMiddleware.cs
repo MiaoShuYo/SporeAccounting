@@ -54,8 +54,7 @@ public class ApplicationMiddleware
         var userId = context.Request.Headers["X-User-Id"].FirstOrDefault();
         var username= context.Request.Headers["X-User-Name"].FirstOrDefault();
         var email = context.Request.Headers["X-User-Email"].FirstOrDefault();
-        var roles = context.Request.Headers["X-User-Roles"].FirstOrDefault()?.Split(',');
-        if (string.IsNullOrEmpty(userId) || string.IsNullOrEmpty(username) || string.IsNullOrEmpty(email)|| roles == null || roles.Length == 0)
+        if (string.IsNullOrEmpty(userId) || string.IsNullOrEmpty(username) || string.IsNullOrEmpty(email))
         {
             _logger.LogError("请求头中缺少用户信息");
             throw new UnauthorizedException("未登录");
@@ -69,13 +68,6 @@ public class ApplicationMiddleware
             claims.Add(new Claim("UserName", username));
         if (!string.IsNullOrEmpty(email))
             claims.Add(new Claim("Email", email));
-        if (roles != null)
-        {
-            foreach (var role in roles)
-            {
-                claims.Add(new Claim(ClaimTypes.Role, role.Trim()));
-            }
-        }
 
         var identity = new ClaimsIdentity(claims, "header");
         context.User = new ClaimsPrincipal(identity);

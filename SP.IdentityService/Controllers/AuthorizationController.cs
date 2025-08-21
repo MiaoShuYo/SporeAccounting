@@ -373,7 +373,7 @@ public class AuthorizationController : ControllerBase
         try
         {
             // 获取当前用户信息
-            var userId = User.FindFirstValue("sub");
+            var userId = User.FindFirstValue("userid");
             var username = User.FindFirstValue("username");
             var email = User.FindFirstValue("email");
 
@@ -420,17 +420,17 @@ public class AuthorizationController : ControllerBase
     {
         try
         {
-            var request = HttpContext.GetOpenIddictServerRequest();
-            if (request == null)
+            // 直接从表单数据中获取token
+            var token = Request.Form["token"].FirstOrDefault();
+            if (string.IsNullOrEmpty(token))
             {
                 return BadRequest(new
                 {
                     error = OpenIddictConstants.Errors.InvalidRequest,
-                    error_description = "无效的内省请求"
+                    error_description = "token参数不能为空"
                 });
             }
-
-            var token = request.Token;
+            _logger.LogError("token={Token}", token);
             if (string.IsNullOrEmpty(token))
             {
                 return BadRequest(new
@@ -533,11 +533,26 @@ public class AuthorizationController : ControllerBase
             }
             _logger.LogDebug("令牌时间验证通过，当前时间: {Now}, 过期时间: {ValidTo}", now, jwtToken.ValidTo);
 
+            // 调试：记录所有claims
+            _logger.LogDebug("JWT Token中的所有Claims:");
+            foreach (var claim in jwtToken.Claims)
+            {
+                _logger.LogDebug("Claim Type: {Type}, Value: {Value}", claim.Type, claim.Value);
+            }
+
+            // 调试：提取username
+            var nameClaim = jwtToken.Claims.FirstOrDefault(c => c.Type == "name")?.Value;
+            var usernameClaim = jwtToken.Claims.FirstOrDefault(c => c.Type == "username")?.Value;
+            var finalUsername = nameClaim ?? usernameClaim;
+            
+            _logger.LogDebug("Username提取结果 - name claim: {NameClaim}, username claim: {UsernameClaim}, final: {FinalUsername}", 
+                nameClaim, usernameClaim, finalUsername);
+
             var result = new TokenIntrospectionResponse
             {
                 IsValid = true,
                 Subject = jwtToken.Subject,
-                Username = jwtToken.Claims.FirstOrDefault(c => c.Type == "name")?.Value,
+                Username = finalUsername,
                 Email = jwtToken.Claims.FirstOrDefault(c => c.Type == "email")?.Value,
                 Scope = jwtToken.Claims.FirstOrDefault(c => c.Type == "scope")?.Value,
                 ClientId = jwtToken.Claims.FirstOrDefault(c => c.Type == "client_id")?.Value,
