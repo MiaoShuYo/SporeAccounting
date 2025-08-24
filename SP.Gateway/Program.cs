@@ -7,6 +7,8 @@ using SP.Gateway.Middleware;
 using SP.Common.Redis;
 using SP.Gateway.Services;
 using SP.Gateway.Services.Impl;
+using SP.Common.Logger;
+using SP.Common.ExceptionHandling;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -27,6 +29,12 @@ builder.Services.AddHttpClient();
 // 添加Redis服务
 builder.Services.AddRedisService(builder.Configuration);
 
+// 注入loki日志服务
+builder.Services.AddLoggerService(builder.Configuration);
+
+// HttpContext 访问器（用于下游日志处理器关联当前请求）
+builder.Services.AddHttpContextAccessor();
+
 // 注册服务发现和配置服务
 builder.Services.AddSingleton<INacosServiceDiscoveryService, NacosServiceDiscoveryService>();
 builder.Services.AddSingleton<IGatewayConfigService, NacosGatewayConfigService>();
@@ -46,9 +54,10 @@ builder.Services.AddScoped<ITokenIntrospectionService>(provider =>
     return new TokenIntrospectionService(httpClient, logger, configService, configuration);
 });
 
-// Ocelot + Nacos 服务发现
+// Ocelot + Nacos 服务发现，并添加下游响应日志处理器
 builder.Services.AddOcelot(builder.Configuration)
-    .AddNacosDiscovery();
+    .AddNacosDiscovery()
+    .AddDelegatingHandler<DownstreamLoggingHandler>(true);
 
 if (builder.Environment.IsDevelopment() || builder.Environment.EnvironmentName == "Local")
 {
@@ -69,10 +78,16 @@ if (app.Environment.IsDevelopment() || app.Environment.EnvironmentName == "Local
     });
 }
 
+// 全局异常处理（包含请求缓冲），优先放在最前面
+app.UseFullExceptionHandling();
+
 app.UseHttpsRedirection();
 
 // 添加完整认证中间件
 app.UseMiddleware<SPAuthenticationMiddleware>();
+
+// 上游请求/响应日志（放在认证之后，便于记录用户信息）
+app.UseMiddleware<RequestResponseLoggingMiddleware>();
 
 app.MapControllers();
 

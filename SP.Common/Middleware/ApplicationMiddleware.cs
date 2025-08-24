@@ -1,11 +1,8 @@
 ﻿using Microsoft.AspNetCore.Http;
-using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using SP.Common.ExceptionHandling.Exceptions;
-using SP.Common.Redis;
 
 namespace SP.Common.Middleware;
 
