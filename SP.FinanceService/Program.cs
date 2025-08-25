@@ -4,6 +4,8 @@ using Nacos.AspNetCore.V2;
 using Nacos.V2.DependencyInjection;
 using Nacos.V2;
 using Refit;
+using SP.Common.Refit;
+using SP.Common.ServiceDiscovery;
 using SP.Common;
 using SP.Common.ConfigService;
 using SP.Common.Logger;
@@ -65,30 +67,25 @@ builder.Services.AddNacosAspNet(builder.Configuration);
 builder.Configuration.AddNacosV2Configuration(builder.Configuration.GetSection("nacos"));
 builder.Services.AddNacosV2Naming(builder.Configuration);
 
-// 注册 Refit 客户端（基于 Nacos 的服务发现，不再硬编码 BaseUrl）
+// 注册通用服务发现
+builder.Services.AddSingleton<IServiceDiscovery, NacosServiceDiscovery>();
+
+// 注册 Refit 客户端（基于通用服务发现 + Nacos，无需硬编码 BaseUrl）
 var nacosSection = builder.Configuration.GetSection("nacos");
 var groupName = nacosSection.GetValue<string>("GroupName") ?? "DEFAULT_GROUP";
 var clusterName = nacosSection.GetValue<string>("ClusterName") ?? "DEFAULT";
 
-builder.Services.AddRefitClient<ICurrencyServiceApi>()
-    .ConfigureHttpClient(c => c.BaseAddress = new Uri("http://placeholder"))
-    .AddHttpMessageHandler(sp => new NacosDiscoveryHandler(
-        sp.GetRequiredService<INacosNamingService>(),
-        serviceName: "SPCurrencyService",
-        groupName: groupName,
-        clusterName: clusterName,
-        downstreamScheme: "http",
-        logger: sp.GetRequiredService<ILogger<NacosDiscoveryHandler>>()));
+builder.Services.AddNacosRefitClient<ICurrencyServiceApi>(
+    serviceName: "SPCurrencyService",
+    groupName: groupName,
+    clusterName: clusterName,
+    scheme: "http");
 
-builder.Services.AddRefitClient<IConfigServiceApi>()
-    .ConfigureHttpClient(c => c.BaseAddress = new Uri("http://placeholder"))
-    .AddHttpMessageHandler(sp => new NacosDiscoveryHandler(
-        sp.GetRequiredService<INacosNamingService>(),
-        serviceName: "SPConfigService",
-        groupName: groupName,
-        clusterName: clusterName,
-        downstreamScheme: "http",
-        logger: sp.GetRequiredService<ILogger<NacosDiscoveryHandler>>()));
+builder.Services.AddNacosRefitClient<IConfigServiceApi>(
+    serviceName: "SPConfigService",
+    groupName: groupName,
+    clusterName: clusterName,
+    scheme: "http");
 
 // 注册 DbContext
 builder.Services.AddDbContext<FinanceServiceDbContext>(ServiceLifetime.Scoped);
