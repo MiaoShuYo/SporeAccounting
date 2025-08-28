@@ -30,6 +30,8 @@ public static class RefitServiceCollectionExtensions
         RefitSettings? refitSettings = null)
         where TClient : class
     {
+        services.AddTransient<GatewaySignatureHandler>();
+
         return services.AddRefitClient<TClient>(refitSettings ?? new RefitSettings())
             .ConfigureHttpClient(c => c.BaseAddress = new Uri("http://placeholder"))
             .AddHttpMessageHandler(sp => new NacosDiscoveryHandler(
@@ -38,6 +40,7 @@ public static class RefitServiceCollectionExtensions
                 groupName ?? "DEFAULT_GROUP",
                 clusterName ?? "DEFAULT",
                 scheme,
-                sp.GetRequiredService<ILogger<NacosDiscoveryHandler>>()));
+                sp.GetRequiredService<ILogger<NacosDiscoveryHandler>>()))
+            .AddHttpMessageHandler<GatewaySignatureHandler>();
     }
 }

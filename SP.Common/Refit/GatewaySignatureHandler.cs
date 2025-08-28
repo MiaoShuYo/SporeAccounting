@@ -19,7 +19,8 @@ public class GatewaySignatureHandler : DelegatingHandler
         _configuration = configuration;
     }
 
-    protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+    protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request,
+        CancellationToken cancellationToken)
     {
         // 添加网关签名
         var timestamp = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
@@ -57,5 +58,3 @@ public class GatewaySignatureHandler : DelegatingHandler
         return await base.SendAsync(request, cancellationToken);
     }
 }
-
-

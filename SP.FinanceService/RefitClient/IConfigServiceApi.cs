@@ -15,5 +15,5 @@ public interface IConfigServiceApi
     /// <param name="type"></param>
     /// <returns></returns>
     [Get("/api/configs/by-type/{type}")]
-    ApiResponse<ConfigResponse> QueryByType(ConfigTypeEnum type);
+    Task<ApiResponse<ConfigResponse>> QueryByType(ConfigTypeEnum type);
 }

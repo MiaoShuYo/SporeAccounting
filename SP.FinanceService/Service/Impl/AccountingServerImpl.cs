@@ -319,11 +319,11 @@ public class AccountingServerImpl : IAccountingServer
     /// <returns>返回目标币种ID</returns>
     private long GetUserTargetCurrencyId()
     {
-        ApiResponse<ConfigResponse> apiResponse = _configService.QueryByType(ConfigTypeEnum.Currency);
+        ApiResponse<ConfigResponse> apiResponse = _configService.QueryByType(ConfigTypeEnum.Currency).Result;
         // 检查响应是否成功，并且内容不为空
         if (apiResponse.IsSuccessStatusCode && apiResponse.Content != null)
         {
-            return long.Parse(apiResponse.Content.ToString() ?? string.Empty);
+            return long.Parse(apiResponse.Content.Value ?? string.Empty);
         }
 
         throw new RefitException($"获取汇率失败: {apiResponse.StatusCode}");

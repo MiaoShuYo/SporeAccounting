@@ -35,24 +35,24 @@ builder.Services.AddSwaggerGen(c =>
     }
 
     // 添加JWT认证配置
-    c.AddSecurityDefinition("Bearer", new Microsoft.OpenApi.Models.OpenApiSecurityScheme
+    c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
     {
         Description = "JWT授权(数据将在请求头中进行传输) 参数结构: \"Authorization: Bearer {token}\"",
         Name = "Authorization",
-        In = Microsoft.OpenApi.Models.ParameterLocation.Header,
-        Type = Microsoft.OpenApi.Models.SecuritySchemeType.ApiKey,
+        In = ParameterLocation.Header,
+        Type = SecuritySchemeType.ApiKey,
         BearerFormat = "JWT",
         Scheme = "Bearer"
     });
 
-    c.AddSecurityRequirement(new Microsoft.OpenApi.Models.OpenApiSecurityRequirement
+    c.AddSecurityRequirement(new OpenApiSecurityRequirement
     {
         {
-            new Microsoft.OpenApi.Models.OpenApiSecurityScheme
+            new OpenApiSecurityScheme
             {
-                Reference = new Microsoft.OpenApi.Models.OpenApiReference
+                Reference = new OpenApiReference
                 {
-                    Type = Microsoft.OpenApi.Models.ReferenceType.SecurityScheme,
+                    Type = ReferenceType.SecurityScheme,
                     Id = "Bearer"
                 }
             },
@@ -129,11 +129,11 @@ if (app.Environment.IsDevelopment() || app.Environment.EnvironmentName == "Local
     app.UseSwaggerUI();
 }
 
-//app.UseMiddleware<ApplicationMiddleware>();
+app.UseMiddleware<ApplicationMiddleware>();
 
 app.UseHttpsRedirection();
 
-// app.UseAuthorization();
+app.UseAuthorization();
 
 app.MapControllers();
 
