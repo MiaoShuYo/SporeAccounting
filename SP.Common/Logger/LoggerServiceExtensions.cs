@@ -48,9 +48,9 @@ namespace SP.Common.Logger
             });
 
             // 注册日志服务
-            services.AddScoped<ILoggerService, LoggerService>();
+            services.AddSingleton<ILoggerService, LoggerService>();
 
             return services;
         }
     }
-} 
+}

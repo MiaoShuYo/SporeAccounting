@@ -38,14 +38,8 @@ builder.Services.AddHttpContextAccessor();
 // 注册服务发现和配置服务
 builder.Services.AddSingleton<INacosServiceDiscoveryService, NacosServiceDiscoveryService>();
 builder.Services.AddSingleton<IGatewayConfigService, NacosGatewayConfigService>();
-builder.Services.AddScoped<ITokenIntrospectionService, TokenIntrospectionService>();
-
-// 添加HTTP客户端
-builder.Services.AddHttpClient("IdentityServiceHealthCheck", client => { client.Timeout = TimeSpan.FromSeconds(10); });
-builder.Services.AddHttpClient("TokenIntrospection", client => { client.Timeout = TimeSpan.FromSeconds(30); });
-
-// 注册TokenIntrospectionService，使用专门的HttpClient
-builder.Services.AddScoped<ITokenIntrospectionService>(provider =>
+// 移除 Scoped 注册，改为单例注册，避免在中间件中从根提供程序解析 Scoped 服务
+builder.Services.AddSingleton<ITokenIntrospectionService>(provider =>
 {
     var httpClient = provider.GetRequiredService<IHttpClientFactory>().CreateClient("TokenIntrospection");
     var logger = provider.GetRequiredService<ILogger<TokenIntrospectionService>>();
@@ -53,6 +47,13 @@ builder.Services.AddScoped<ITokenIntrospectionService>(provider =>
     var configuration = provider.GetRequiredService<IConfiguration>();
     return new TokenIntrospectionService(httpClient, logger, configService, configuration);
 });
+
+// 添加HTTP客户端
+builder.Services.AddHttpClient("IdentityServiceHealthCheck", client => { client.Timeout = TimeSpan.FromSeconds(10); });
+builder.Services.AddHttpClient("TokenIntrospection", client => { client.Timeout = TimeSpan.FromSeconds(30); });
+
+// 注册TokenIntrospectionService，使用专门的HttpClient
+// 已通过单例方式在上方统一注册
 
 // Ocelot + Nacos 服务发现，并添加下游响应日志处理器
 builder.Services.AddOcelot(builder.Configuration)
