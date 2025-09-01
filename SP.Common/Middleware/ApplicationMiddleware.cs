@@ -35,17 +35,6 @@ public class ApplicationMiddleware
     /// <returns>异步任务</returns>
     public async Task InvokeAsync(HttpContext context)
     {
-        // 放行无需鉴权与签名的公共路径（用于健康检查与 Swagger 文档等）
-        var pathValue = context.Request.Path.Value ?? string.Empty;
-        if (pathValue.StartsWith("/swagger", StringComparison.OrdinalIgnoreCase)
-            || pathValue.StartsWith("/health", StringComparison.OrdinalIgnoreCase)
-            || pathValue.StartsWith("/.well-known", StringComparison.OrdinalIgnoreCase)
-            || pathValue.StartsWith("/favicon.ico", StringComparison.OrdinalIgnoreCase))
-        {
-            await _next(context);
-            return;
-        }
-
         // 验证网关签名
         if (!ValidateGatewaySignature(context))
         {
