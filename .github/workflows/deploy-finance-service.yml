@@ -39,7 +39,7 @@ jobs:
       - name: Build and push Docker image
         uses: docker/build-push-action@v4
         with:
-          context: .
+          context: ./SP.FinanceService
           file: ./SP.FinanceService/Dockerfile
           push: true
           tags: ${{ secrets.DOCKER_USERNAME }}/sp-finance-service:${{ github.event.inputs.tag || 'latest' }}
