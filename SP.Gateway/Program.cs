@@ -82,7 +82,7 @@ if (app.Environment.IsDevelopment() || app.Environment.EnvironmentName == "Local
 // 全局异常处理（包含请求缓冲），优先放在最前面
 app.UseFullExceptionHandling();
 
-app.UseHttpsRedirection();
+// app.UseHttpsRedirection();
 
 // 添加完整认证中间件
 app.UseMiddleware<SPAuthenticationMiddleware>();
