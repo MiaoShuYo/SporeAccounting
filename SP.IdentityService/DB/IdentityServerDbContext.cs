@@ -34,6 +34,14 @@ public class IdentityServerDbContext : IdentityDbContext<SpUser, SpRole, long>
         base.OnModelCreating(modelBuilder);
         // 配置 OpenIddict
         modelBuilder.UseOpenIddict();
+
+        // 为 OpenIddictTokens 的复合索引添加 MySQL 前缀长度，防止在 utf8mb4 下超过 3072 字节
+        modelBuilder.Entity<OpenIddict.EntityFrameworkCore.Models.OpenIddictEntityFrameworkCoreToken>(b =>
+        {
+            b.HasIndex("ApplicationId", "Status", "Subject", "Type")
+                .HasDatabaseName("IX_OpenIddictTokens_ApplicationId_Status_Subject_Type")
+                .HasPrefixLength(191, 50, 191, 150);
+        });
         // 修改Users表
         modelBuilder.Entity<SpUser>(b =>
         {
@@ -46,7 +54,6 @@ public class IdentityServerDbContext : IdentityDbContext<SpUser, SpRole, long>
             b.Ignore(x => x.SecurityStamp);
             b.Ignore(x => x.ConcurrencyStamp);
             b.Ignore(x => x.TwoFactorEnabled);
-            b.Ignore(x => x.PhoneNumberConfirmed);
             b.Ignore(x => x.AccessFailedCount);
         });
         SeedData(modelBuilder);
