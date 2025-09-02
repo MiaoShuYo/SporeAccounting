@@ -59,7 +59,13 @@ jobs:
           username: ${{ secrets.SERVER_USERNAME }}
           key: ${{ secrets.SERVER_SSH_KEY }}
           script: |
+            HOST_IP=$(ip -o route get 1.1.1.1 2>/dev/null | awk '{print $7; exit}')
+            if [ -z "$HOST_IP" ]; then HOST_IP=$(hostname -I | awk '{print $1}'); fi
             docker pull ${{ secrets.DOCKER_USERNAME }}/sp-finance-service:${{ github.event.inputs.tag || 'latest' }}
             docker stop sp-finance-service || true
             docker rm sp-finance-service || true
-            docker run -d --name sp-finance-service -p 8399:80 -e ASPNETCORE_ENVIRONMENT=${{ env.ENVIRONMENT }} ${{ secrets.DOCKER_USERNAME }}/sp-finance-service:${{ github.event.inputs.tag || 'latest' }} 
+            docker run -d --name sp-finance-service -p 8399:80 \
+              -e ASPNETCORE_ENVIRONMENT=${{ env.ENVIRONMENT }} \
+              -e HOST_IP=$HOST_IP \
+              -e EXPOSE_PORT=8399 \
+              ${{ secrets.DOCKER_USERNAME }}/sp-finance-service:${{ github.event.inputs.tag || 'latest' }}
