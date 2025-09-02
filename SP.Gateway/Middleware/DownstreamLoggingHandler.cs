@@ -1,3 +1,5 @@
+using System.Net;
+using System.Text;
 using System.Text.Json;
 using SP.Common.Logger;
 
@@ -79,6 +81,11 @@ public class DownstreamLoggingHandler : DelegatingHandler
                 });
 
                 _loggerService.LogError("下游服务返回错误: {Details}", json);
+
+                // 统一包装下游错误响应
+                var errorMessage = await ExtractErrorMessageAsync(response).ConfigureAwait(false);
+                var unified = SerializeUnifiedError(response.StatusCode, errorMessage);
+                response.Content = new StringContent(unified, Encoding.UTF8, "application/json");
             }
 
             return response;
@@ -86,7 +93,131 @@ public class DownstreamLoggingHandler : DelegatingHandler
         catch (Exception ex)
         {
             _loggerService.LogError(ex, "调用下游服务发生异常: {Method} {Url}", request.Method.Method, request.RequestUri?.ToString());
-            throw;
+
+            // 根据异常类型构造统一错误响应
+            var (statusCode, message) = MapExceptionToStatusAndMessage(ex, request);
+
+            var unified = SerializeUnifiedError(statusCode, message, ex);
+            var errorResponse = new HttpResponseMessage(statusCode)
+            {
+                Content = new StringContent(unified, Encoding.UTF8, "application/json"),
+                RequestMessage = request
+            };
+            return errorResponse;
         }
+    }
+
+    private static (HttpStatusCode Status, string Message) MapExceptionToStatusAndMessage(Exception exception, HttpRequestMessage request)
+    {
+        if (exception is TaskCanceledException)
+        {
+            return (HttpStatusCode.GatewayTimeout, "下游服务请求超时");
+        }
+
+        if (exception is HttpRequestException httpEx)
+        {
+            if (httpEx.StatusCode.HasValue)
+            {
+                return (httpEx.StatusCode.Value, MapDefaultMessage(httpEx.StatusCode.Value));
+            }
+
+            return (HttpStatusCode.BadGateway, "下游服务不可用");
+        }
+
+        return (HttpStatusCode.BadGateway, "网关调用下游服务发生错误");
+    }
+
+    private static string MapDefaultMessage(HttpStatusCode statusCode)
+    {
+        return statusCode switch
+        {
+            HttpStatusCode.NotFound => "下游服务未找到",
+            HttpStatusCode.Unauthorized => "未授权访问下游服务",
+            HttpStatusCode.Forbidden => "禁止访问下游服务",
+            HttpStatusCode.RequestTimeout => "下游服务请求超时",
+            HttpStatusCode.GatewayTimeout => "下游服务请求超时",
+            HttpStatusCode.ServiceUnavailable => "下游服务不可用",
+            HttpStatusCode.BadGateway => "下游服务不可用",
+            _ => "下游服务返回错误"
+        };
+    }
+
+    private static async Task<string> ExtractErrorMessageAsync(HttpResponseMessage response)
+    {
+        try
+        {
+            if (response.Content == null)
+            {
+                return MapDefaultMessage(response.StatusCode);
+            }
+
+            var content = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
+            if (string.IsNullOrWhiteSpace(content))
+            {
+                return MapDefaultMessage(response.StatusCode);
+            }
+
+            // 如果是 JSON，尝试从常见字段提取错误信息
+            if (IsLikelyJson(content))
+            {
+                using var doc = JsonDocument.Parse(content);
+                var root = doc.RootElement;
+                if (TryGetString(root, "errorMessage", out var msg) ||
+                    TryGetString(root, "message", out msg) ||
+                    TryGetString(root, "error_description", out msg) ||
+                    TryGetString(root, "error", out msg) ||
+                    TryGetString(root, "title", out msg))
+                {
+                    return string.IsNullOrWhiteSpace(msg) ? MapDefaultMessage(response.StatusCode) : msg!;
+                }
+            }
+
+            // 否则返回裁剪后的原始文本
+            return content.Length > 512 ? content.Substring(0, 512) : content;
+        }
+        catch
+        {
+            return MapDefaultMessage(response.StatusCode);
+        }
+    }
+
+    private static bool TryGetString(JsonElement root, string propertyName, out string? value)
+    {
+        if (root.ValueKind == JsonValueKind.Object && root.TryGetProperty(propertyName, out var prop))
+        {
+            if (prop.ValueKind == JsonValueKind.String)
+            {
+                value = prop.GetString();
+                return true;
+            }
+            value = prop.ToString();
+            return true;
+        }
+
+        value = null;
+        return false;
+    }
+
+    private static bool IsLikelyJson(string content)
+    {
+        var trimmed = content.TrimStart();
+        return trimmed.StartsWith("{") || trimmed.StartsWith("[");
+    }
+
+    private static string SerializeUnifiedError(HttpStatusCode statusCode, string message, Exception? ex = null)
+    {
+        var payload = new
+        {
+            statusCode,
+            errorMessage = message,
+#if DEBUG
+            stackTrace = ex?.ToString()
+#endif
+        };
+
+        return JsonSerializer.Serialize(payload, new JsonSerializerOptions
+        {
+            PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+        });
     }
 }
