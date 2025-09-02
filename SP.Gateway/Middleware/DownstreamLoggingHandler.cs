@@ -1,6 +1,7 @@
 using System.Net;
 using System.Text;
 using System.Text.Json;
+using System.Text.RegularExpressions;
 using SP.Common.Logger;
 
 namespace SP.Gateway.Middleware;
@@ -183,7 +184,14 @@ public class DownstreamLoggingHandler : DelegatingHandler
                 }
             }
 
-            // 否则返回原始文本
+            // 否则从纯文本堆栈中提取首行错误消息（如：BusinessException: 用户名或密码错误。）
+            var plain = ExtractPlainTextErrorMessage(content);
+            if (!string.IsNullOrWhiteSpace(plain))
+            {
+                return plain;
+            }
+
+            // 退化为原始文本
             return content;
         }
         catch
@@ -214,6 +222,46 @@ public class DownstreamLoggingHandler : DelegatingHandler
     {
         var trimmed = content.TrimStart();
         return trimmed.StartsWith("{") || trimmed.StartsWith("[");
+    }
+
+    private static string ExtractPlainTextErrorMessage(string content)
+    {
+        if (string.IsNullOrWhiteSpace(content)) return string.Empty;
+
+        var normalized = content.Replace("\r\n", "\n");
+
+        // 1) 优先匹配 “...Exception: 消息” 的首行
+        var match = Regex.Match(normalized, @"^.+Exception\s*:\s*(.+)$", RegexOptions.Multiline);
+        if (match.Success)
+        {
+            var msg = match.Groups[1].Value;
+            return TrimEndPunctuation(msg.Trim());
+        }
+
+        // 2) 取首个非空且不是堆栈/头部标记的行
+        foreach (var line in normalized.Split('\n'))
+        {
+            var l = line.Trim();
+            if (string.IsNullOrWhiteSpace(l)) continue;
+            if (l.StartsWith("at ", StringComparison.OrdinalIgnoreCase)) continue;
+            if (l.StartsWith("HEADERS", StringComparison.OrdinalIgnoreCase)) break;
+
+            var idx = l.IndexOf(':');
+            var candidate = idx >= 0 ? l[(idx + 1)..] : l;
+            candidate = candidate.Trim();
+            if (!string.IsNullOrWhiteSpace(candidate))
+            {
+                return TrimEndPunctuation(candidate);
+            }
+        }
+
+        return string.Empty;
+    }
+
+    private static string TrimEndPunctuation(string text)
+    {
+        if (string.IsNullOrEmpty(text)) return text;
+        return text.Trim().TrimEnd('.', '。');
     }
 
     private static string SerializeUnifiedError(HttpStatusCode statusCode, string message, Exception? ex = null)
