@@ -29,7 +29,8 @@ public class DownstreamLoggingHandler : DelegatingHandler
         _httpContextAccessor = httpContextAccessor;
     }
 
-    protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+    protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request,
+        CancellationToken cancellationToken)
     {
         try
         {
@@ -42,15 +43,17 @@ public class DownstreamLoggingHandler : DelegatingHandler
 
                 var log = new
                 {
-                    Upstream = upstream == null ? null : new
-                    {
-                        Method = upstream.Method,
-                        Path = upstream.Path.ToString(),
-                        QueryString = upstream.QueryString.ToString(),
-                        Headers = upstream.Headers
-                            .Where(h => !SensitiveHeaders.Contains(h.Key))
-                            .ToDictionary(h => h.Key, h => string.Join(",", h.Value))
-                    },
+                    Upstream = upstream == null
+                        ? null
+                        : new
+                        {
+                            Method = upstream.Method,
+                            Path = upstream.Path.ToString(),
+                            QueryString = upstream.QueryString.ToString(),
+                            Headers = upstream.Headers
+                                .Where(h => !SensitiveHeaders.Contains(h.Key))
+                                .ToDictionary(h => h.Key, h => string.Join(",", h.Value.ToArray()))
+                        },
                     Downstream = new
                     {
                         Method = request.Method.Method,
@@ -59,18 +62,20 @@ public class DownstreamLoggingHandler : DelegatingHandler
                         Reason = response.ReasonPhrase,
                         ResponseHeaders = response.Headers
                             .Where(h => !SensitiveHeaders.Contains(h.Key))
-                            .ToDictionary(h => h.Key, h => string.Join(",", h.Value)),
+                            .ToDictionary(h => h.Key, h => string.Join(",", h.Value.ToArray())),
                         ContentHeaders = response.Content?.Headers?
                             .Where(h => !SensitiveHeaders.Contains(h.Key))
-                            .ToDictionary(h => h.Key, h => string.Join(",", h.Value))
+                            .ToDictionary(h => h.Key, h => string.Join(",", h.Value.ToArray()))
                     },
-                    User = httpContext == null ? null : new
-                    {
-                        UserId = httpContext.User?.FindFirst("UserId")?.Value,
-                        UserName = httpContext.User?.FindFirst("UserName")?.Value,
-                        Email = httpContext.User?.FindFirst("Email")?.Value,
-                        IsAuthenticated = httpContext.User?.Identity?.IsAuthenticated
-                    },
+                    User = httpContext == null
+                        ? null
+                        : new
+                        {
+                            UserId = httpContext.User?.FindFirst("UserId")?.Value,
+                            UserName = httpContext.User?.FindFirst("UserName")?.Value,
+                            Email = httpContext.User?.FindFirst("Email")?.Value,
+                            IsAuthenticated = httpContext.User?.Identity?.IsAuthenticated
+                        },
                     Timestamp = DateTime.UtcNow
                 };
 
@@ -84,6 +89,10 @@ public class DownstreamLoggingHandler : DelegatingHandler
 
                 // 统一包装下游错误响应
                 var errorMessage = await ExtractErrorMessageAsync(response).ConfigureAwait(false);
+                if (string.IsNullOrWhiteSpace(errorMessage))
+                {
+                    errorMessage = MapDefaultMessage(response.StatusCode);
+                }
                 var unified = SerializeUnifiedError(response.StatusCode, errorMessage);
                 response.Content = new StringContent(unified, Encoding.UTF8, "application/json");
             }
@@ -92,7 +101,8 @@ public class DownstreamLoggingHandler : DelegatingHandler
         }
         catch (Exception ex)
         {
-            _loggerService.LogError(ex, "调用下游服务发生异常: {Method} {Url}", request.Method.Method, request.RequestUri?.ToString());
+            var safeUrl = request.RequestUri?.ToString() ?? string.Empty;
+            _loggerService.LogError(ex, "调用下游服务发生异常: {Method} {Url}", request.Method.Method, safeUrl);
 
             // 根据异常类型构造统一错误响应
             var (statusCode, message) = MapExceptionToStatusAndMessage(ex, request);
@@ -107,24 +117,25 @@ public class DownstreamLoggingHandler : DelegatingHandler
         }
     }
 
-    private static (HttpStatusCode Status, string Message) MapExceptionToStatusAndMessage(Exception exception, HttpRequestMessage request)
+    private static (HttpStatusCode Status, string Message) MapExceptionToStatusAndMessage(Exception exception,
+        HttpRequestMessage request)
     {
         if (exception is TaskCanceledException)
         {
-            return (HttpStatusCode.GatewayTimeout, "下游服务请求超时");
+            return (HttpStatusCode.GatewayTimeout, exception.Message);
         }
 
         if (exception is HttpRequestException httpEx)
         {
             if (httpEx.StatusCode.HasValue)
             {
-                return (httpEx.StatusCode.Value, MapDefaultMessage(httpEx.StatusCode.Value));
+                return (httpEx.StatusCode.Value, httpEx.Message);
             }
 
-            return (HttpStatusCode.BadGateway, "下游服务不可用");
+            return (HttpStatusCode.BadGateway, httpEx.Message);
         }
 
-        return (HttpStatusCode.BadGateway, "网关调用下游服务发生错误");
+        return (HttpStatusCode.BadGateway, exception.Message);
     }
 
     private static string MapDefaultMessage(HttpStatusCode statusCode)
@@ -148,13 +159,13 @@ public class DownstreamLoggingHandler : DelegatingHandler
         {
             if (response.Content == null)
             {
-                return MapDefaultMessage(response.StatusCode);
+                return string.Empty;
             }
 
             var content = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
             if (string.IsNullOrWhiteSpace(content))
             {
-                return MapDefaultMessage(response.StatusCode);
+                return string.Empty;
             }
 
             // 如果是 JSON，尝试从常见字段提取错误信息
@@ -168,16 +179,16 @@ public class DownstreamLoggingHandler : DelegatingHandler
                     TryGetString(root, "error", out msg) ||
                     TryGetString(root, "title", out msg))
                 {
-                    return string.IsNullOrWhiteSpace(msg) ? MapDefaultMessage(response.StatusCode) : msg!;
+                    return string.IsNullOrWhiteSpace(msg) ? content : msg!;
                 }
             }
 
-            // 否则返回裁剪后的原始文本
-            return content.Length > 512 ? content.Substring(0, 512) : content;
+            // 否则返回原始文本
+            return content;
         }
         catch
         {
-            return MapDefaultMessage(response.StatusCode);
+            return string.Empty;
         }
     }
 
@@ -190,6 +201,7 @@ public class DownstreamLoggingHandler : DelegatingHandler
                 value = prop.GetString();
                 return true;
             }
+
             value = prop.ToString();
             return true;
         }
