@@ -49,12 +49,10 @@ public class IdentityServerDbContext : IdentityDbContext<SpUser, SpRole, long>
             b.Property(x => x.Email).HasMaxLength(100);
             b.Property(x => x.LockoutEnd);
             b.Property(x => x.PasswordHash).IsRequired();
-            b.Ignore(x => x.NormalizedUserName);
-            b.Ignore(x => x.NormalizedEmail);
-            b.Ignore(x => x.SecurityStamp);
-            b.Ignore(x => x.ConcurrencyStamp);
-            b.Ignore(x => x.TwoFactorEnabled);
-            b.Ignore(x => x.AccessFailedCount);
+            // b.Ignore(x => x.NormalizedUserName);
+            // b.Ignore(x => x.NormalizedEmail);
+            // b.Ignore(x => x.TwoFactorEnabled);
+            // b.Ignore(x => x.AccessFailedCount);
         });
         SeedData(modelBuilder);
     }
@@ -84,7 +82,9 @@ public class IdentityServerDbContext : IdentityDbContext<SpUser, SpRole, long>
             UserName = "admin",
             Email = "494324190@qq.com",
             EmailConfirmed = true,
-            PasswordHash = hasher.HashPassword(null, "123*asdasd")
+            PasswordHash = hasher.HashPassword(null, "123*asdasd"),
+            SecurityStamp = Guid.NewGuid().ToString("N"),
+            ConcurrencyStamp = Guid.NewGuid().ToString("N")
         };
         builder.Entity<SpUser>().HasData(adminUser);
         // 添加用户角色

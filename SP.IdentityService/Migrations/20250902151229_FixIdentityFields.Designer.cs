@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using SP.IdentityService.DB;
 
@@ -11,9 +12,11 @@ using SP.IdentityService.DB;
 namespace SP.IdentityService.Migrations
 {
     [DbContext(typeof(IdentityServerDbContext))]
-    partial class IdentityServerDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250902151229_FixIdentityFields")]
+    partial class FixIdentityFields
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -108,8 +111,8 @@ namespace SP.IdentityService.Migrations
                     b.HasData(
                         new
                         {
-                            UserId = 7368663449099988992L,
-                            RoleId = 7368663448772833280L
+                            UserId = 7368662095732363264L,
+                            RoleId = 7368662095510065152L
                         });
                 });
 
@@ -373,13 +376,13 @@ namespace SP.IdentityService.Migrations
                     b.HasData(
                         new
                         {
-                            Id = 7368663448772833280L,
+                            Id = 7368662095510065152L,
                             Name = "Admin",
                             NormalizedName = "ADMIN"
                         },
                         new
                         {
-                            Id = 7368663448953188352L,
+                            Id = 7368662095606534144L,
                             Name = "User",
                             NormalizedName = "USER"
                         });
@@ -392,9 +395,6 @@ namespace SP.IdentityService.Migrations
                         .HasColumnType("bigint");
 
                     MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<long>("Id"));
-
-                    b.Property<int>("AccessFailedCount")
-                        .HasColumnType("int");
 
                     b.Property<string>("ConcurrencyStamp")
                         .IsConcurrencyToken()
@@ -416,14 +416,6 @@ namespace SP.IdentityService.Migrations
                     b.Property<DateTimeOffset?>("LockoutEnd")
                         .HasColumnType("datetime(6)");
 
-                    b.Property<string>("NormalizedEmail")
-                        .HasMaxLength(256)
-                        .HasColumnType("varchar(256)");
-
-                    b.Property<string>("NormalizedUserName")
-                        .HasMaxLength(256)
-                        .HasColumnType("varchar(256)");
-
                     b.Property<string>("PasswordHash")
                         .IsRequired()
                         .HasColumnType("longtext");
@@ -437,9 +429,6 @@ namespace SP.IdentityService.Migrations
                     b.Property<string>("SecurityStamp")
                         .HasColumnType("longtext");
 
-                    b.Property<bool>("TwoFactorEnabled")
-                        .HasColumnType("tinyint(1)");
-
                     b.Property<string>("UserName")
                         .IsRequired()
                         .HasMaxLength(50)
@@ -447,29 +436,20 @@ namespace SP.IdentityService.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("NormalizedEmail")
-                        .HasDatabaseName("EmailIndex");
-
-                    b.HasIndex("NormalizedUserName")
-                        .IsUnique()
-                        .HasDatabaseName("UserNameIndex");
-
                     b.ToTable("AspNetUsers", (string)null);
 
                     b.HasData(
                         new
                         {
-                            Id = 7368663449099988992L,
-                            AccessFailedCount = 0,
-                            ConcurrencyStamp = "7395c6535b1b4e4484be33f42650702f",
+                            Id = 7368662095732363264L,
+                            ConcurrencyStamp = "50fce7edfee548228e30a9c1002ee09e",
                             Email = "494324190@qq.com",
                             EmailConfirmed = true,
                             IsDeleted = false,
                             LockoutEnabled = false,
-                            PasswordHash = "AQAAAAIAAYagAAAAEC4Qpy1nqpWzNSec9nBc3sv391FQKmMOxyf4lYxLjPHb3XdedUptOJWLAIf/cd5pVg==",
+                            PasswordHash = "AQAAAAIAAYagAAAAEJ6QOlIcFAKyfC3j14+WY9Fv/jskPCfRwm+eQV2GRZs546vLITKtkn9MSS/SEOBTUQ==",
                             PhoneNumberConfirmed = false,
-                            SecurityStamp = "e945dfe2be09499793a61b51e3689971",
-                            TwoFactorEnabled = false,
+                            SecurityStamp = "5f2c64d4ecb24f0d85c6dc5034fb4813",
                             UserName = "admin"
                         });
                 });
