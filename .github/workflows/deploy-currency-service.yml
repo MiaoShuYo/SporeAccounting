@@ -59,7 +59,8 @@ jobs:
           username: ${{ secrets.SERVER_USERNAME }}
           key: ${{ secrets.SERVER_SSH_KEY }}
           script: |
-            HOST_IP=$(ip -o route get 1.1.1.1 2>/dev/null | awk '{print $7; exit}')
+            HOST_IP=$(curl -fsS https://api.ipify.org || curl -fsS https://ifconfig.me || curl -fsS https://ipinfo.io/ip)
+            if [ -z "$HOST_IP" ]; then HOST_IP=$(ip -o route get 1.1.1.1 2>/dev/null | awk '{print $7; exit}'); fi
             if [ -z "$HOST_IP" ]; then HOST_IP=$(hostname -I | awk '{print $1}'); fi
             docker pull ${{ secrets.DOCKER_USERNAME }}/sp-currency-service:${{ github.event.inputs.tag || 'latest' }}
             docker stop sp-currency-service || true
