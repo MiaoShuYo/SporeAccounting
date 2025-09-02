@@ -186,6 +186,7 @@ public class UserServiceImpl : IUserService
 
         spUser.UserName = user.UserName;
         spUser.Email = user.Email;
+        spUser.PhoneNumber = user.PhoneNumber;
 
         var result = await _userManager.UpdateAsync(spUser);
         if (!result.Succeeded)

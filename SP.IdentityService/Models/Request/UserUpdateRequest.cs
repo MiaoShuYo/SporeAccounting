@@ -20,4 +20,11 @@ public class UserUpdateRequest
     /// </summary>
     [MaxLength(100, ErrorMessage = "电子邮件不能超过100字")]
     public string Email { get; set; } = string.Empty;
+
+    /// <summary>
+    /// 手机
+    /// </summary>
+    [Phone(ErrorMessage = "手机号格式不正确")]
+    [StringLength(20, ErrorMessage = "手机号长度不能超过20个字符")]
+    public string? PhoneNumber { get; set; }
 }

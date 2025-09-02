@@ -2,7 +2,6 @@
 using System.Security.Claims;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.Data;
-using Microsoft.Build.Exceptions;
 using Microsoft.IdentityModel.Tokens;
 using OpenIddict.Abstractions;
 using OpenIddict.Server.AspNetCore;
@@ -15,6 +14,7 @@ using SP.Common.Redis;
 using SP.IdentityService.DB;
 using SP.IdentityService.Models.Entity;
 using SP.IdentityService.Models.Request;
+using Microsoft.EntityFrameworkCore;
 
 namespace SP.IdentityService.Service.Impl;
 
@@ -51,7 +51,7 @@ public class AuthorizationServiceImpl : IAuthorizationService
     /// HTTP上下文访问器
     /// </summary>
     private readonly IHttpContextAccessor _httpContextAccessor;
-    
+
     private readonly ILogger<AuthorizationServiceImpl> _log;
 
 
@@ -93,7 +93,9 @@ public class AuthorizationServiceImpl : IAuthorizationService
         ImmutableArray<string> scopes)
     {
         // 使用ASP.NET Core Identity验证用户
-        SpUser? user = await _userManager.FindByNameAsync(userName);
+        SpUser? user =
+            await _userManager.Users.FirstOrDefaultAsync(u =>
+                u.PhoneNumber == userName || u.Email == userName || u.UserName == userName);
         if (user == null)
         {
             throw new BusinessException("用户不存在");
@@ -188,7 +190,7 @@ public class AuthorizationServiceImpl : IAuthorizationService
             principal.SetAccessTokenLifetime(TimeSpan.FromMinutes(30));
             principal.SetRefreshTokenLifetime(TimeSpan.FromDays(14));
         }
-        
+
         return principal;
     }
 
@@ -309,7 +311,8 @@ public class AuthorizationServiceImpl : IAuthorizationService
     /// <param name="clientSecret">客户端密钥</param>
     /// <param name="scopes">授权范围</param>
     /// <returns>ClaimsPrincipal</returns>
-    public async Task<ClaimsPrincipal> HandleClientCredentialsAsync(string clientId, string? clientSecret, ImmutableArray<string> scopes)
+    public async Task<ClaimsPrincipal> HandleClientCredentialsAsync(string clientId, string? clientSecret,
+        ImmutableArray<string> scopes)
     {
         try
         {
@@ -356,7 +359,7 @@ public class AuthorizationServiceImpl : IAuthorizationService
 
             // 添加受众声明
             identity.SetClaim(OpenIddictConstants.Claims.Audience, "api");
-            
+
             // 添加客户端ID声明
             identity.SetClaim("client_id", clientId);
 
@@ -433,11 +436,35 @@ public class AuthorizationServiceImpl : IAuthorizationService
             throw new BusinessException("用户名已存在");
         }
 
+        // 验证email
+        if (!string.IsNullOrEmpty(user.Email))
+        {
+            var emailUser = await _userManager.FindByEmailAsync(user.Email);
+            if (emailUser != null)
+            {
+                throw new BusinessException("邮箱已存在");
+            }
+        }
+
+        // 验证手机号
+        if (!string.IsNullOrEmpty(user.PhoneNumber))
+        {
+            var phoneUser = await _userManager.Users.FirstOrDefaultAsync(u => u.PhoneNumber == user.PhoneNumber);
+            if (phoneUser != null)
+            {
+                throw new BusinessException("手机号已存在");
+            }
+        }
+
         // 创建用户
         var newUser = new SpUser
         {
             Id = Snow.GetId(),
             UserName = user.UserName,
+            Email = user.Email,
+            PhoneNumber = user.PhoneNumber,
+            EmailConfirmed = false,
+            PhoneNumberConfirmed = false
         };
         using var transaction = _dbContext.Database.BeginTransaction();
         try
@@ -544,6 +571,7 @@ public class AuthorizationServiceImpl : IAuthorizationService
         {
             throw new BadRequestException("请求参数不完整");
         }
+
         // 从Redis中获取验证码
         var code = await _redis.GetStringAsync(resetPasswordRequest.Email);
         if (string.IsNullOrEmpty(code))

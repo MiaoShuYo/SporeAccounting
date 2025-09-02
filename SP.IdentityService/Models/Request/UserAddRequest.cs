@@ -21,4 +21,18 @@ public class UserAddRequest
     [Required(ErrorMessage = "密码不能为空")]
     [StringLength(100, MinimumLength = 6, ErrorMessage = "密码长度必须在6-100个字符之间")]
     public string Password { get; set; }
+    
+    /// <summary>
+    /// 邮箱
+    /// </summary>
+    [EmailAddress(ErrorMessage = "邮箱格式不正确")]
+    [StringLength(100, ErrorMessage = "邮箱长度不能超过100个字符")]
+    public string? Email { get; set; }
+    
+    /// <summary>
+    /// 手机号
+    /// </summary>
+    [Phone(ErrorMessage = "手机号格式不正确")]
+    [StringLength(20, ErrorMessage = "手机号长度不能超过20个字符")]
+    public string? PhoneNumber { get; set; }
 }
