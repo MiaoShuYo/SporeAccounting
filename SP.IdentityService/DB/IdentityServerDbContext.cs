@@ -49,10 +49,6 @@ public class IdentityServerDbContext : IdentityDbContext<SpUser, SpRole, long>
             b.Property(x => x.Email).HasMaxLength(100);
             b.Property(x => x.LockoutEnd);
             b.Property(x => x.PasswordHash).IsRequired();
-            // b.Ignore(x => x.NormalizedUserName);
-            // b.Ignore(x => x.NormalizedEmail);
-            // b.Ignore(x => x.TwoFactorEnabled);
-            // b.Ignore(x => x.AccessFailedCount);
         });
         SeedData(modelBuilder);
     }
