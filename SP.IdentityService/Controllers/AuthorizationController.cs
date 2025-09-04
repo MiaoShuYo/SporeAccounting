@@ -9,6 +9,7 @@ using OpenIddict.Abstractions;
 using OpenIddict.Server.AspNetCore;
 using SP.Common;
 using SP.Common.ExceptionHandling.Exceptions;
+using SP.Common.Message.SmS.Services;
 using SP.Common.Redis;
 using SP.IdentityService.Models.Request;
 using SP.IdentityService.Models.Response;
@@ -27,6 +28,7 @@ public class AuthorizationController : ControllerBase
     private readonly ILogger<AuthorizationController> _logger;
     private readonly IRedisService _redisService;
     private readonly ContextSession _contextSession;
+    private readonly ISmSService _smSService;
 
     /// <summary>
     /// 授权控制器构造函数
@@ -35,13 +37,16 @@ public class AuthorizationController : ControllerBase
     /// <param name="logger"></param>
     /// <param name="redisService"></param>
     /// <param name="contextSession"></param>
+    /// <param name="smSService"></param>
     public AuthorizationController(IAuthorizationService authorizationService,
-        ILogger<AuthorizationController> logger, IRedisService redisService, ContextSession contextSession)
+        ILogger<AuthorizationController> logger, IRedisService redisService, ContextSession contextSession,
+        ISmSService smSService)
     {
         _logger = logger;
         _authorizationService = authorizationService;
         _redisService = redisService;
         _contextSession = contextSession;
+        _smSService = smSService;
     }
 
     /// <summary>
@@ -142,13 +147,14 @@ public class AuthorizationController : ControllerBase
         {
             var clientId = request.ClientId;
             var clientSecret = request.ClientSecret;
-            
+
             if (string.IsNullOrEmpty(clientId))
             {
                 throw new BusinessException("client_id不能为空");
             }
 
-            var principal = await _authorizationService.HandleClientCredentialsAsync(clientId, clientSecret, request.GetScopes());
+            var principal =
+                await _authorizationService.HandleClientCredentialsAsync(clientId, clientSecret, request.GetScopes());
             var signInResult = SignIn(principal, OpenIddictServerAspNetCoreDefaults.AuthenticationScheme);
 
             // 注意：token 将在 OpenIddict 中间件处理过程中生成
@@ -430,6 +436,7 @@ public class AuthorizationController : ControllerBase
                     error_description = "token参数不能为空"
                 });
             }
+
             _logger.LogError("token={Token}", token);
             if (string.IsNullOrEmpty(token))
             {
@@ -500,6 +507,7 @@ public class AuthorizationController : ControllerBase
                 _logger.LogWarning("令牌已被撤销: {TokenPrefix}", token.Substring(0, Math.Min(10, token.Length)));
                 return null;
             }
+
             _logger.LogDebug("令牌撤销检查通过");
 
             var tokenHandler = new JwtSecurityTokenHandler();
@@ -508,6 +516,7 @@ public class AuthorizationController : ControllerBase
                 _logger.LogWarning("无法解析JWT令牌");
                 return null;
             }
+
             _logger.LogDebug("JWT令牌解析成功");
 
             var jwtToken = tokenHandler.ReadJwtToken(token);
@@ -517,6 +526,7 @@ public class AuthorizationController : ControllerBase
                 _logger.LogWarning("令牌签名验证失败");
                 return null;
             }
+
             _logger.LogDebug("令牌签名验证通过");
 
             var now = DateTime.UtcNow;
@@ -531,6 +541,7 @@ public class AuthorizationController : ControllerBase
                 _logger.LogWarning("令牌已过期，过期时间: {ValidTo}", jwtToken.ValidTo);
                 return null;
             }
+
             _logger.LogDebug("令牌时间验证通过，当前时间: {Now}, 过期时间: {ValidTo}", now, jwtToken.ValidTo);
 
             // 调试：记录所有claims
@@ -544,8 +555,9 @@ public class AuthorizationController : ControllerBase
             var nameClaim = jwtToken.Claims.FirstOrDefault(c => c.Type == "name")?.Value;
             var usernameClaim = jwtToken.Claims.FirstOrDefault(c => c.Type == "username")?.Value;
             var finalUsername = nameClaim ?? usernameClaim;
-            
-            _logger.LogDebug("Username提取结果 - name claim: {NameClaim}, username claim: {UsernameClaim}, final: {FinalUsername}", 
+
+            _logger.LogDebug(
+                "Username提取结果 - name claim: {NameClaim}, username claim: {UsernameClaim}, final: {FinalUsername}",
                 nameClaim, usernameClaim, finalUsername);
 
             var result = new TokenIntrospectionResponse

@@ -12,6 +12,7 @@ using SP.IdentityService.Service;
 using SP.IdentityService.Service.Impl;
 using SP.Common;
 using SP.Common.Logger;
+using SP.Common.Message.SmS;
 using SP.Common.Middleware;
 using SP.IdentityService;
 using SP.IdentityService.Middleware;
@@ -45,6 +46,8 @@ builder.Services.AddRedisService(builder.Configuration);
 
 // 注册DbContext，使用MySQL
 builder.Services.AddDbContext<IdentityServerDbContext>(ServiceLifetime.Scoped);
+// 注册短信服务
+builder.Services.AddTwilioSmSService(builder.Configuration);
 
 // 添加ASP.NET Core Identity服务
 builder.Services.AddIdentity<SpUser, SpRole>(options =>
