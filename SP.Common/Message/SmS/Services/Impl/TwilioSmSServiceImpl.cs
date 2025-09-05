@@ -1,5 +1,6 @@
 ﻿using System.Security.Cryptography;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using SP.Common.ExceptionHandling.Exceptions;
 using SP.Common.Message.SmS.Model;
 using SP.Common.Redis;
@@ -24,11 +25,11 @@ public class TwilioSmSServiceImpl : ISmSService
     /// <param name="logger"></param>
     /// <param name="redis"></param>
     /// <param name="options"></param>
-    public TwilioSmSServiceImpl(ILogger<TwilioSmSServiceImpl> logger, IRedisService redis, TwilioSmsOptions options)
+    public TwilioSmSServiceImpl(ILogger<TwilioSmSServiceImpl> logger, IRedisService redis,  IOptions<TwilioSmsOptions> options)
     {
         _logger = logger;
         _redis = redis;
-        _options = options;
+        _options = options.Value;
         if (string.IsNullOrWhiteSpace(_options.AccountSid) || string.IsNullOrWhiteSpace(_options.AuthToken)
                                                            || (string.IsNullOrWhiteSpace(_options.FromNumber) &&
                                                                string.IsNullOrWhiteSpace(_options.MessagingServiceSid)))

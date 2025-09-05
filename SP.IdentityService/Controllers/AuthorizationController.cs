@@ -9,6 +9,7 @@ using OpenIddict.Abstractions;
 using OpenIddict.Server.AspNetCore;
 using SP.Common;
 using SP.Common.ExceptionHandling.Exceptions;
+using SP.Common.Message.SmS.Model;
 using SP.Common.Message.SmS.Services;
 using SP.Common.Redis;
 using SP.IdentityService.Models.Request;
@@ -188,6 +189,17 @@ public class AuthorizationController : ControllerBase
     public async Task<ActionResult> SendEmail([FromBody] SendEmailRequest email)
     {
         await _authorizationService.SendEmailAsync(email);
+        return Ok();
+    }
+
+    /// <summary>
+    /// 发送手机验证码
+    /// </summary>
+    /// <param name="smSRequest"></param>
+    [HttpPost("smsVerificationCode")]
+    public async Task<ActionResult> SmsVerificationCode([FromBody] SmSRequest smSRequest)
+    {
+        await _smSService.SendVerificationCodeAsync(smSRequest.PhoneNumbers[0], smSRequest.Purpose);
         return Ok();
     }
 

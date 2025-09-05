@@ -1,7 +1,7 @@
 ﻿namespace SP.Common.Message.SmS.Model;
 
 /// <summary>
-/// 短信验证码用途枚举
+/// 短信用途枚举
 /// </summary>
 public enum SmSPurposeEnum
 {
