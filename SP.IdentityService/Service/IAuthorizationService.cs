@@ -73,4 +73,22 @@ public interface IAuthorizationService
     /// <param name="verifyCode">验证码</param>
     /// <returns></returns>
     Task AddPhoneNumberAsync(VerifyCodeRequest verifyCode);
+
+    /// <summary>
+    /// 短信验证登录
+    /// </summary>
+    /// <param name="phoneNumber"></param>
+    /// <param name="code"></param>
+    /// <param name="scopes"></param>
+    /// <returns>ClaimsPrincipal</returns>
+    Task<ClaimsPrincipal> LoginBySmSCodeAsync(string phoneNumber, string code, ImmutableArray<string> scopes);
+    
+    /// <summary>
+    /// 邮箱验证码登录
+    /// </summary>
+    /// <param name="email"></param>
+    /// <param name="code"></param>
+    /// <param name="scopes"></param>
+    /// <returns>ClaimsPrincipal</returns>
+    Task<ClaimsPrincipal> LoginByEmailCodeAsync(string email, string code, ImmutableArray<string> scopes);
 }

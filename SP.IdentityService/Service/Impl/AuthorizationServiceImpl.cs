@@ -603,6 +603,72 @@ public class AuthorizationServiceImpl : IAuthorizationService
     }
 
     /// <summary>
+    /// 短信验证登录
+    /// </summary>
+    /// <param name="phoneNumber"></param>
+    /// <param name="code"></param>
+    /// <param name="scopes"></param>
+    /// <returns>ClaimsPrincipal</returns>
+    public async Task<ClaimsPrincipal> LoginBySmSCodeAsync(string phoneNumber, string code,
+        ImmutableArray<string> scopes)
+    {
+        if (string.IsNullOrEmpty(phoneNumber) || string.IsNullOrEmpty(code))
+        {
+            throw new BusinessException("手机号或验证码不能为空");
+        }
+
+        // 验证短信验证码
+        bool isOk = await _smsService.VerifyCodeAsync(phoneNumber, SmSPurposeEnum.Login, code);
+        if (!isOk)
+        {
+            throw new BusinessException("验证码错误");
+        }
+
+        // 查找用户
+        var user = await _userManager.Users.FirstOrDefaultAsync(u => u.PhoneNumber == phoneNumber);
+        if (user == null)
+        {
+            throw new BusinessException("用户不存在");
+        }
+
+        return await BuildPrincipalAsync(user, scopes);
+    }
+
+    /// <summary>
+    /// 邮箱验证码登录
+    /// </summary>
+    /// <param name="email"></param>
+    /// <param name="code"></param>
+    /// <param name="scopes"></param>
+    /// <returns>ClaimsPrincipal</returns>
+    public async Task<ClaimsPrincipal> LoginByEmailCodeAsync(string email, string code, ImmutableArray<string> scopes)
+    {
+        if (string.IsNullOrEmpty(email) || string.IsNullOrEmpty(code))
+        {
+            throw new BusinessException("邮箱或验证码不能为空");
+        }
+
+        var redisCode = await _redis.GetStringAsync(email);
+        if (string.IsNullOrEmpty(redisCode))
+        {
+            throw new BusinessException("验证码已过期或不存在");
+        }
+        if (redisCode != code.Trim())
+        {
+            throw new BusinessException("验证码错误");
+        }
+        // 查找用户
+        var user = await _userManager.FindByEmailAsync(email);
+        if (user == null)
+        {
+            throw new BusinessException("用户不存在");
+        }
+
+        await _redis.RemoveAsync(email);
+        return await BuildPrincipalAsync(user, scopes);
+    }
+
+    /// <summary>
     /// 创建用户并分配默认角色，带事务
     /// </summary>
     /// <param name="newUser">即将创建的用户</param>
@@ -744,5 +810,51 @@ public class AuthorizationServiceImpl : IAuthorizationService
             PhoneNumberConfirmed = true
         };
         return await CreateUserWithDefaultRoleAsync(newUser);
+    }
+
+    /// <summary>
+    /// 通用生成ClaimsPrincipal方法
+    /// </summary>
+    /// <param name="user"></param>
+    /// <param name="scopes"></param>
+    /// <returns>ClaimsPrincipal</returns>
+    private async Task<ClaimsPrincipal> BuildPrincipalAsync(SpUser user, ImmutableArray<string> scopes)
+    {
+        var identity = new ClaimsIdentity(OpenIddictServerAspNetCoreDefaults.AuthenticationScheme);
+        identity.AddClaim(OpenIddictConstants.Claims.Subject, await _userManager.GetUserIdAsync(user));
+        identity.AddClaim(OpenIddictConstants.Claims.Name, user.UserName ?? string.Empty);
+        if (!string.IsNullOrWhiteSpace(user.Email))
+        {
+            identity.AddClaim(OpenIddictConstants.Claims.Email, user.Email);
+        }
+
+        identity.AddClaim(OpenIddictConstants.Claims.Audience, "api");
+
+        foreach (var role in await _userManager.GetRolesAsync(user))
+        {
+            identity.AddClaim(ClaimTypes.Role, role);
+        }
+
+        identity.SetDestinations(static claim => claim.Type switch
+        {
+            OpenIddictConstants.Claims.Name when claim.Subject.HasScope(OpenIddictConstants.Permissions.Scopes.Profile)
+                => [OpenIddictConstants.Destinations.AccessToken, OpenIddictConstants.Destinations.IdentityToken],
+            OpenIddictConstants.Claims.Email when claim.Subject.HasScope(OpenIddictConstants.Permissions.Scopes.Email)
+                => [OpenIddictConstants.Destinations.AccessToken, OpenIddictConstants.Destinations.IdentityToken],
+            ClaimTypes.Role => [OpenIddictConstants.Destinations.AccessToken],
+            _ => [OpenIddictConstants.Destinations.AccessToken]
+        });
+
+        var principal = new ClaimsPrincipal(identity);
+
+        var validScopes = new[] { "api", OpenIddictConstants.Scopes.OfflineAccess };
+        var filtered = scopes.Intersect(validScopes).ToList();
+        principal.SetScopes(filtered.Any() ? filtered : new[] { "api" });
+
+        // 可根据角色/设备等动态设置生命周期（此处使用默认）
+        principal.SetAccessTokenLifetime(TimeSpan.FromMinutes(30));
+        principal.SetRefreshTokenLifetime(TimeSpan.FromDays(14));
+
+        return principal;
     }
 }

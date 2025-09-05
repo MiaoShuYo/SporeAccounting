@@ -69,11 +69,21 @@ public class AuthorizationController : ControllerBase
     ///     
     ///     grant_type=client_credentials&amp;client_id=YOUR_CLIENT_ID&amp;client_secret=YOUR_CLIENT_SECRET&amp;scope=api
     ///
+    ///     或者短信验证码登录:
+    ///     
+    ///     grant_type=sms_otp&amp;phone_number=13800000000&amp;code=123456&amp;scope=api
+    ///     
+    ///     或者邮箱验证码登录:
+    ///     
+    ///     grant_type=email_code&amp;email=user@example.com&amp;code=123456&amp;scope=api
+    ///
     /// 注意：
     /// 1. 必须使用表单（form-data）方式提交，Content-Type为application/x-www-form-urlencoded
     /// 2. 不要将参数放在URL查询字符串中
     /// 3. 在刷新令牌模式下，refresh_token必须放在请求体中，不能放在URL中
     /// 4. 客户端凭证模式适用于服务器到服务器的API调用，不关联特定用户
+    /// 5. 短信验证码登录需要先发送短信验证码，验证码有效期为5-10分钟
+    /// 6. 邮箱验证码登录需要先发送邮箱验证码，验证码有效期为5-10分钟
     /// </remarks>
     /// <returns>返回访问令牌信息</returns>
     /// <response code="200">返回访问令牌</response>
@@ -123,6 +133,40 @@ public class AuthorizationController : ControllerBase
                     request.GetScopes());
             // 确保 SignIn 方法只在授权端点调用
             SignInResult signInResult = SignIn(principal, OpenIddictServerAspNetCoreDefaults.AuthenticationScheme);
+            return signInResult;
+        }
+
+        // 短信验证码登录
+        if (string.Equals(request.GrantType, "sms_otp", StringComparison.Ordinal))
+        {
+            var phoneNumber = (string?)request.GetParameter("phone_number");
+            var code = (string?)request.GetParameter("code");
+            if (string.IsNullOrEmpty(phoneNumber) || string.IsNullOrEmpty(code))
+            {
+                throw new BusinessException("手机号或验证码不能为空");
+            }
+
+            var principal =
+                await _authorizationService.LoginByPasswordAsync(phoneNumber, code,
+                    request.GetScopes());
+            var signInResult = SignIn(principal, OpenIddictServerAspNetCoreDefaults.AuthenticationScheme);
+            return signInResult;
+        }
+        
+        // 邮箱验证码登录
+        if (string.Equals(request.GrantType, "email_code", StringComparison.Ordinal))
+        {
+            var email = (string?)request.GetParameter("email");
+            var code = (string?)request.GetParameter("code");
+            if (string.IsNullOrEmpty(email) || string.IsNullOrEmpty(code))
+            {
+                throw new BusinessException("邮箱或验证码不能为空");
+            }
+
+            var principal =
+                await _authorizationService.LoginByPasswordAsync(email, code,
+                    request.GetScopes());
+            var signInResult = SignIn(principal, OpenIddictServerAspNetCoreDefaults.AuthenticationScheme);
             return signInResult;
         }
 

@@ -31,17 +31,17 @@ public static class OpenIddictServiceExtensions
             {
                 // 设置令牌端点
                 options.SetTokenEndpointUris("api/auth/token");
-                
+
                 // 设置撤销端点
                 options.SetRevocationEndpointUris("api/auth/revoke");
-                
-                // 注释掉内省端点，使用自定义控制器处理
-                // options.SetIntrospectionEndpointUris("api/auth/introspect");
 
                 // 启用密码模式
                 options.AllowPasswordFlow() // 开启密码模式
                     .AllowClientCredentialsFlow() // 开启客户端令牌模式
                     .AllowRefreshTokenFlow(); // 开启刷新令牌
+                
+                // 自定义授权模式
+                options.AllowCustomFlow("sms_otp").AllowCustomFlow("email_code");
 
                 // 注册授权范围
                 options.RegisterScopes("api", OpenIddictConstants.Scopes.OfflineAccess);
