@@ -175,7 +175,7 @@ public class AuthorizationController : ControllerBase
     /// </summary>
     /// <param name="user"></param>
     [HttpPost("register")]
-    public async Task<ActionResult<long>> Register([FromBody] UserAddRequest user)
+    public async Task<ActionResult<long>> Register([FromBody] UserRegisterRequest user)
     {
         var result = await _authorizationService.AddUserAsync(user);
         return Ok(result);
@@ -206,11 +206,22 @@ public class AuthorizationController : ControllerBase
     /// <summary>
     /// 绑定邮箱
     /// </summary>
-    /// <param name="verifyCode"></param>
+    /// <param name="verifyCode">验证码</param>
     [HttpPost("email/bind")]
     public async Task<ActionResult> BindEmail([FromBody] VerifyCodeRequest verifyCode)
     {
         await _authorizationService.AddEmailAsync(verifyCode);
+        return Ok();
+    }
+
+    /// <summary>
+    /// 绑定手机号
+    /// </summary>
+    /// <param name="verifyCode">验证码</param>
+    [HttpPost("phone/bind")]
+    public async Task<ActionResult> BindPhoneNumber([FromBody] VerifyCodeRequest verifyCode)
+    {
+        await _authorizationService.AddPhoneNumberAsync(verifyCode);
         return Ok();
     }
 

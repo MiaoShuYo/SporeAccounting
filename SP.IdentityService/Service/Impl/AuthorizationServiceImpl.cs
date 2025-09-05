@@ -15,6 +15,9 @@ using SP.IdentityService.DB;
 using SP.IdentityService.Models.Entity;
 using SP.IdentityService.Models.Request;
 using Microsoft.EntityFrameworkCore;
+using SP.Common.Message.SmS.Model;
+using SP.Common.Message.SmS.Services;
+using SP.IdentityService.Models.Enumeration;
 
 namespace SP.IdentityService.Service.Impl;
 
@@ -52,6 +55,11 @@ public class AuthorizationServiceImpl : IAuthorizationService
     /// </summary>
     private readonly IHttpContextAccessor _httpContextAccessor;
 
+    /// <summary>
+    /// 短信服务
+    /// </summary>
+    private readonly ISmSService _smsService;
+
     private readonly ILogger<AuthorizationServiceImpl> _log;
 
 
@@ -64,12 +72,14 @@ public class AuthorizationServiceImpl : IAuthorizationService
     /// <param name="rabbitMqMessage"></param>
     /// <param name="redis"></param>
     /// <param name="dbContext"></param>
+    /// <param name="smsService"></param>
     /// <param name="httpContextAccessor"></param>
     public AuthorizationServiceImpl(UserManager<SpUser> userManager,
         SignInManager<SpUser> signInManager,
         IOpenIddictApplicationManager applicationManager, RabbitMqMessage rabbitMqMessage,
         IRedisService redis, IdentityServerDbContext dbContext,
         IHttpContextAccessor httpContextAccessor,
+        ISmSService smsService,
         ILogger<AuthorizationServiceImpl> log)
     {
         _userManager = userManager;
@@ -80,6 +90,7 @@ public class AuthorizationServiceImpl : IAuthorizationService
         _dbContext = dbContext;
         _httpContextAccessor = httpContextAccessor;
         _log = log;
+        _smsService = smsService;
     }
 
     /// <summary>
@@ -427,78 +438,31 @@ public class AuthorizationServiceImpl : IAuthorizationService
     /// </summary>
     /// <param name="user"></param>
     /// <returns>用户id</returns>
-    public async Task<long> AddUserAsync(UserAddRequest user)
+    public async Task<long> AddUserAsync(UserRegisterRequest user)
     {
-        // 检查userName是否存在
-        var existingUser = await _userManager.FindByNameAsync(user.UserName);
-        if (existingUser != null)
+        long userId = 0;
+        switch (user.RegisterType)
         {
-            throw new BusinessException("用户名已存在");
+            case RegisterTypeEnum.UserName:
+                userId = await RegisterByUserNameAsync(user.UserName, user.Password);
+                break;
+            case RegisterTypeEnum.Email:
+                userId = await RegisterByEmailAsync(user.Email, user.Code);
+                break;
+            case RegisterTypeEnum.PhoneNumber:
+                userId = await RegisterByPhoneNumberAsync(user.PhoneNumber, user.Code);
+                break;
         }
 
-        // 验证email
-        if (!string.IsNullOrEmpty(user.Email))
-        {
-            var emailUser = await _userManager.FindByEmailAsync(user.Email);
-            if (emailUser != null)
-            {
-                throw new BusinessException("邮箱已存在");
-            }
-        }
-
-        // 验证手机号
-        if (!string.IsNullOrEmpty(user.PhoneNumber))
-        {
-            var phoneUser = await _userManager.Users.FirstOrDefaultAsync(u => u.PhoneNumber == user.PhoneNumber);
-            if (phoneUser != null)
-            {
-                throw new BusinessException("手机号已存在");
-            }
-        }
-
-        // 创建用户
-        var newUser = new SpUser
-        {
-            Id = Snow.GetId(),
-            UserName = user.UserName,
-            Email = user.Email,
-            PhoneNumber = user.PhoneNumber,
-            EmailConfirmed = false,
-            PhoneNumberConfirmed = false
-        };
-        using var transaction = _dbContext.Database.BeginTransaction();
-        try
-        {
-            IdentityResult result = await _userManager.CreateAsync(newUser, user.Password);
-            if (result.Succeeded)
-            {
-                var roleResult = await _userManager.AddToRoleAsync(newUser, "User");
-                if (!roleResult.Succeeded)
-                {
-                    await _userManager.DeleteAsync(newUser);
-                    throw new Exception("用户创建成功，但分配角色失败：" +
-                                        string.Join(",", roleResult.Errors.Select(e => e.Description)));
-                }
-
-                transaction.Commit();
-                // 发送mq，设配默认币种
-                MqPublisher publisher = new MqPublisher(newUser.Id.ToString(),
-                    MqExchange.UserConfigExchange,
-                    MqRoutingKey.UserConfigDefaultCurrencyRoutingKey,
-                    MqQueue.UserConfigQueue,
-                    MessageType.UserConfigDefaultCurrency,
-                    ExchangeType.Direct);
-                await _rabbitMqMessage.SendAsync(publisher);
-                return newUser.Id;
-            }
-
-            throw new Exception(string.Join(",", result.Errors.Select(e => e.Description)));
-        }
-        catch
-        {
-            transaction.Rollback();
-            throw;
-        }
+        // 发送mq，设配默认币种
+        MqPublisher publisher = new MqPublisher(userId.ToString(),
+            MqExchange.UserConfigExchange,
+            MqRoutingKey.UserConfigDefaultCurrencyRoutingKey,
+            MqQueue.UserConfigQueue,
+            MessageType.UserConfigDefaultCurrency,
+            ExchangeType.Direct);
+        await _rabbitMqMessage.SendAsync(publisher);
+        return userId;
     }
 
     /// <summary>
@@ -603,5 +567,182 @@ public class AuthorizationServiceImpl : IAuthorizationService
 
         // 删除Redis中的验证码
         await _redis.RemoveAsync(resetPasswordRequest.Email);
+    }
+
+    /// <summary>
+    /// 添加手机号
+    /// </summary>
+    /// <param name="verifyCode">验证码</param>
+    /// <returns></returns>
+    public async Task AddPhoneNumberAsync(VerifyCodeRequest verifyCode)
+    {
+        // 验证验证码
+        bool isOk = await _smsService.VerifyCodeAsync(verifyCode.PhoneNumber, SmSPurposeEnum.ChangePhoneNumber,
+            verifyCode.Code);
+        if (isOk)
+        {
+            // 验证通过后，更新用户的手机号验证状态
+            var user = await _userManager.Users.FirstOrDefaultAsync(u => u.PhoneNumber == verifyCode.PhoneNumber);
+            if (user == null)
+            {
+                throw new BusinessException("用户不存在");
+            }
+
+            user.PhoneNumberConfirmed = true;
+            user.PhoneNumber = verifyCode.PhoneNumber;
+            var result = await _userManager.UpdateAsync(user);
+            if (!result.Succeeded)
+            {
+                throw new Exception(string.Join(",", result.Errors.Select(e => e.Description)));
+            }
+        }
+        else
+        {
+            throw new BusinessException("验证码错误");
+        }
+    }
+
+    /// <summary>
+    /// 创建用户并分配默认角色，带事务
+    /// </summary>
+    /// <param name="newUser">即将创建的用户</param>
+    /// <param name="password">可选密码（为空则不设置密码）</param>
+    /// <param name="afterCommit">事务提交后的可选回调</param>
+    /// <returns>用户ID</returns>
+    private async Task<long> CreateUserWithDefaultRoleAsync(SpUser newUser, string? password = null,
+        Func<Task>? afterCommit = null)
+    {
+        using var transaction = _dbContext.Database.BeginTransaction();
+        try
+        {
+            IdentityResult result = password == null
+                ? await _userManager.CreateAsync(newUser)
+                : await _userManager.CreateAsync(newUser, password);
+            if (result.Succeeded)
+            {
+                var roleResult = await _userManager.AddToRoleAsync(newUser, "User");
+                if (!roleResult.Succeeded)
+                {
+                    await _userManager.DeleteAsync(newUser);
+                    throw new Exception("用户创建成功，但分配角色失败：" +
+                                        string.Join(",", roleResult.Errors.Select(e => e.Description)));
+                }
+
+                await transaction.CommitAsync();
+
+                if (afterCommit != null)
+                {
+                    await afterCommit();
+                }
+
+                return newUser.Id;
+            }
+
+            throw new Exception(string.Join(",", result.Errors.Select(e => e.Description)));
+        }
+        catch
+        {
+            await transaction.RollbackAsync();
+            throw;
+        }
+    }
+
+    /// <summary>
+    /// 使用用户名注册
+    /// </summary>
+    /// <param name="userName">用户名</param>
+    /// <param name="password">密码</param>
+    /// <returns>用户ID</returns>
+    private async Task<long> RegisterByUserNameAsync(string userName, string password)
+    {
+        // 检查userName是否存在
+        var existingUser = await _userManager.FindByNameAsync(userName);
+        if (existingUser != null)
+        {
+            throw new BusinessException("用户名已存在");
+        }
+
+        // 创建用户
+        var newUser = new SpUser
+        {
+            Id = Snow.GetId(),
+            UserName = userName,
+        };
+        return await CreateUserWithDefaultRoleAsync(newUser, password);
+    }
+
+    /// <summary>
+    /// 使用邮箱注册
+    /// </summary>
+    /// <param name="email">邮箱</param>
+    /// <param name="code">验证码</param>
+    /// <returns>用户ID</returns>
+    private async Task<long> RegisterByEmailAsync(string email, string code)
+    {
+        // 验证邮箱
+        var emailUser = await _userManager.FindByEmailAsync(email);
+        if (emailUser != null)
+        {
+            throw new BusinessException("邮箱已存在");
+        }
+
+        // 验证验证码
+        var redisCode = await _redis.GetStringAsync(email);
+        if (string.IsNullOrEmpty(redisCode))
+        {
+            throw new BusinessException("验证码已过期或不存在");
+        }
+
+        if (redisCode != code.Trim())
+        {
+            throw new BusinessException("验证码错误");
+        }
+
+        // 创建用户
+        var newUser = new SpUser
+        {
+            Id = Snow.GetId(),
+            UserName = email,
+            Email = email,
+            EmailConfirmed = true
+        };
+        return await CreateUserWithDefaultRoleAsync(newUser, null, async () =>
+        {
+            // 删除Redis中的验证码
+            await _redis.RemoveAsync(email);
+        });
+    }
+
+    /// <summary>
+    /// 使用手机号注册
+    /// </summary>
+    /// <param name="phoneNumber">手机号</param>
+    /// <param name="code">验证码</param>
+    /// <returns>用户ID</returns>
+    private async Task<long> RegisterByPhoneNumberAsync(string phoneNumber, string code)
+    {
+        // 验证手机号
+        var phoneUser = await _userManager.Users.FirstOrDefaultAsync(u => u.PhoneNumber == phoneNumber);
+        if (phoneUser != null)
+        {
+            throw new BusinessException("手机号已存在");
+        }
+
+        // 验证验证码
+        bool isOk = await _smsService.VerifyCodeAsync(phoneNumber, SmSPurposeEnum.Register, code);
+        if (!isOk)
+        {
+            throw new BusinessException("验证码错误");
+        }
+
+        // 创建用户
+        var newUser = new SpUser
+        {
+            Id = Snow.GetId(),
+            UserName = phoneNumber,
+            PhoneNumber = phoneNumber,
+            PhoneNumberConfirmed = true
+        };
+        return await CreateUserWithDefaultRoleAsync(newUser);
     }
 }

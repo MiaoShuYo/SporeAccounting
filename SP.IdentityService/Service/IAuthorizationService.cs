@@ -36,14 +36,15 @@ public interface IAuthorizationService
     /// <param name="clientSecret">客户端密钥</param>
     /// <param name="scopes">授权范围</param>
     /// <returns>ClaimsPrincipal</returns>
-    Task<ClaimsPrincipal> HandleClientCredentialsAsync(string clientId, string? clientSecret, ImmutableArray<string> scopes);
+    Task<ClaimsPrincipal> HandleClientCredentialsAsync(string clientId, string? clientSecret,
+        ImmutableArray<string> scopes);
 
     /// <summary>
     /// 添加用户
     /// </summary>
     /// <param name="user">用户添加请求</param>
     /// <returns>用户id</returns>
-    Task<long> AddUserAsync(UserAddRequest user);
+    Task<long> AddUserAsync(UserRegisterRequest user);
 
     /// <summary>
     /// 发送邮件
@@ -65,4 +66,11 @@ public interface IAuthorizationService
     /// <param name="resetPasswordRequest"></param>
     /// <returns></returns>
     Task ResetPasswordAsync(ResetPasswordRequest resetPasswordRequest);
+
+    /// <summary>
+    /// 添加手机号
+    /// </summary>
+    /// <param name="verifyCode">验证码</param>
+    /// <returns></returns>
+    Task AddPhoneNumberAsync(VerifyCodeRequest verifyCode);
 }
