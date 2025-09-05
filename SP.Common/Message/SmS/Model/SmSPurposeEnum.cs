@@ -24,5 +24,15 @@ public enum SmSPurposeEnum
     /// <summary>
     /// 更换手机号
     /// </summary>
-    ChangePhoneNumber = 4
+    ChangePhoneNumber = 4,
+    
+    /// <summary>
+    /// 营销推广
+    /// </summary>
+    Marketing = 5,
+    
+    /// <summary>
+    /// 提醒
+    /// </summary>
+    Reminder = 6
 }
