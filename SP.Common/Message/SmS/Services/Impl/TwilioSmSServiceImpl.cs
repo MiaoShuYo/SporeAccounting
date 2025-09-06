@@ -47,7 +47,7 @@ public class TwilioSmSServiceImpl : ISmSService
     /// 发送短信验证码
     /// </summary>
     /// <param name="toPhoneNumber">接收短信的电话号码</param>
-    /// <param name="purpose">验证码用途</param>
+    /// <param name="purpose">短信用途</param>
     /// <returns>任务</returns>
     public async Task SendVerificationCodeAsync(string toPhoneNumber, SmSPurposeEnum purpose)
     {
@@ -88,8 +88,9 @@ public class TwilioSmSServiceImpl : ISmSService
     /// </summary>
     /// <param name="toPhoneNumber">接收短信的电话号码</param>
     /// <param name="message">短信内容</param>
+    /// <param name="purpose">短信用途</param>
     /// <returns>任务</returns>
-    public async Task SendMessageAsync(string toPhoneNumber, string message)
+    public async Task SendMessageAsync(string toPhoneNumber, string message,SmSPurposeEnum purpose)
     {
         if (string.IsNullOrEmpty(toPhoneNumber))
         {
@@ -121,9 +122,9 @@ public class TwilioSmSServiceImpl : ISmSService
     /// <summary>
     /// 验证短信验证码
     /// </summary>
-    /// <param name="toPhoneNumber"></param>
-    /// <param name="purpose"></param>
-    /// <param name="code"></param>
+    /// <param name="toPhoneNumber">接收手机号</param>
+    /// <param name="purpose">短信用途</param>
+    /// <param name="code">验证码</param>
     /// <returns></returns>
     public async Task<bool> VerifyCodeAsync(string toPhoneNumber, SmSPurposeEnum purpose, string code)
     {
