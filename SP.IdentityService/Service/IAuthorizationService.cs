@@ -1,6 +1,7 @@
 ﻿using System.Collections.Immutable;
 using System.Security.Claims;
 using Microsoft.AspNetCore.Identity.Data;
+using SP.Common.Message.SmS.Model;
 using SP.IdentityService.Models.Request;
 
 namespace SP.IdentityService.Service;
@@ -82,7 +83,7 @@ public interface IAuthorizationService
     /// <param name="scopes"></param>
     /// <returns>ClaimsPrincipal</returns>
     Task<ClaimsPrincipal> LoginBySmSCodeAsync(string phoneNumber, string code, ImmutableArray<string> scopes);
-    
+
     /// <summary>
     /// 邮箱验证码登录
     /// </summary>
@@ -91,4 +92,12 @@ public interface IAuthorizationService
     /// <param name="scopes"></param>
     /// <returns>ClaimsPrincipal</returns>
     Task<ClaimsPrincipal> LoginByEmailCodeAsync(string email, string code, ImmutableArray<string> scopes);
+
+    /// <summary>
+    /// 发送短信验证码
+    /// </summary>
+    /// <param name="phoneNumber">手机号</param>
+    /// <param name="purpose">用途</param>
+    /// <returns></returns>
+    Task SendVerificationCodeAsync(string phoneNumber, SmSPurposeEnum purpose);
 }

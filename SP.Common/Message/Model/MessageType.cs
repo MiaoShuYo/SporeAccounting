@@ -34,4 +34,14 @@ public static class MessageType
     /// 用户配置默认币种
     /// </summary>
     public const string UserConfigDefaultCurrency = "UserConfigDefaultCurrency";
+    
+    /// <summary>
+    /// 短信验证码
+    /// </summary>
+    public const string SmSVerificationCode = "SmSVerificationCode";
+    
+    /// <summary>
+    /// 普通短信
+    /// </summary>
+    public const string SmSGeneral = "SmSGeneral";
 }

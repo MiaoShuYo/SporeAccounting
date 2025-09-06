@@ -19,4 +19,9 @@ public static class MqRoutingKey
     /// 用户配置默认币种消息路由键
     /// </summary>
     public const string UserConfigDefaultCurrencyRoutingKey = "user_config_default_currency_routing_key";
+    
+    /// <summary>
+    /// 发送短信消息路由键
+    /// </summary>
+    public const string SmSRoutingKey = "sms_routing_key";
 }

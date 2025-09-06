@@ -5,7 +5,7 @@ using SP.IdentityService.Models.Enumeration;
 namespace SP.IdentityService.Models.Request;
 
 /// <summary>
-/// 用户添加请求模型
+/// 用户注册请求模型
 /// </summary>
 [ObjectRules(AnyOf = new[] { "UserName", "Email", "PhoneNumber" },
     RequireIfPresent = new[] { "UserName=>Password", "Email=>Code", "PhoneNumber=>Code" })]

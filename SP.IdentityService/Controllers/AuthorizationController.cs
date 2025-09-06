@@ -29,7 +29,6 @@ public class AuthorizationController : ControllerBase
     private readonly ILogger<AuthorizationController> _logger;
     private readonly IRedisService _redisService;
     private readonly ContextSession _contextSession;
-    private readonly ISmSService _smSService;
 
     /// <summary>
     /// 授权控制器构造函数
@@ -47,7 +46,6 @@ public class AuthorizationController : ControllerBase
         _authorizationService = authorizationService;
         _redisService = redisService;
         _contextSession = contextSession;
-        _smSService = smSService;
     }
 
     /// <summary>
@@ -243,7 +241,7 @@ public class AuthorizationController : ControllerBase
     [HttpPost("smsVerificationCode")]
     public async Task<ActionResult> SmsVerificationCode([FromBody] SmSRequest smSRequest)
     {
-        await _smSService.SendVerificationCodeAsync(smSRequest.PhoneNumbers[0], smSRequest.Purpose);
+        await _authorizationService.SendVerificationCodeAsync(smSRequest.PhoneNumbers[0], smSRequest.Purpose);
         return Ok();
     }
 

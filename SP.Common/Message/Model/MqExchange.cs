@@ -13,7 +13,7 @@ public class MqExchange
     /// <summary>
     /// 发送邮件/短信消息交换机
     /// </summary>
-    public const string EmailExchange = "message_exchange";
+    public const string MessageExchange = "message_exchange";
     
     /// <summary>
     /// 用户配置交换机

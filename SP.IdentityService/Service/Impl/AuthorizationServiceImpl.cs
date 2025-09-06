@@ -1,5 +1,6 @@
 ﻿using System.Collections.Immutable;
 using System.Security.Claims;
+using System.Text.Json;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.Data;
 using Microsoft.IdentityModel.Tokens;
@@ -473,9 +474,9 @@ public class AuthorizationServiceImpl : IAuthorizationService
     public async Task SendEmailAsync(SendEmailRequest email)
     {
         MqPublisher publisher = new MqPublisher(email.Email,
-            MqExchange.EmailExchange,
+            MqExchange.MessageExchange,
             MqRoutingKey.EmailRoutingKey,
-            MqQueue.EmailQueue,
+            MqQueue.MessageQueue,
             email.MessageType,
             ExchangeType.Direct);
         await _rabbitMqMessage.SendAsync(publisher);
@@ -653,10 +654,12 @@ public class AuthorizationServiceImpl : IAuthorizationService
         {
             throw new BusinessException("验证码已过期或不存在");
         }
+
         if (redisCode != code.Trim())
         {
             throw new BusinessException("验证码错误");
         }
+
         // 查找用户
         var user = await _userManager.FindByEmailAsync(email);
         if (user == null)
@@ -666,6 +669,28 @@ public class AuthorizationServiceImpl : IAuthorizationService
 
         await _redis.RemoveAsync(email);
         return await BuildPrincipalAsync(user, scopes);
+    }
+
+    /// <summary>
+    /// 发送短信验证码
+    /// </summary>
+    /// <param name="phoneNumber">手机号</param>
+    /// <param name="purpose">用途</param>
+    /// <returns></returns>
+    public async Task SendVerificationCodeAsync(string phoneNumber, SmSPurposeEnum purpose)
+    {
+        SmSMessage smsMessage = new SmSMessage();
+        smsMessage.PhoneNumber = phoneNumber;
+        smsMessage.Purpose = purpose;
+        string body = JsonSerializer.Serialize(smsMessage);
+        // 发送短信验证码MQ
+        MqPublisher publisher = new MqPublisher(body,
+            MqExchange.MessageExchange,
+            MqRoutingKey.SmSRoutingKey,
+            MqQueue.MessageQueue,
+            MessageType.SmSVerificationCode,
+            ExchangeType.Direct);
+        await _rabbitMqMessage.SendAsync(publisher);
     }
 
     /// <summary>

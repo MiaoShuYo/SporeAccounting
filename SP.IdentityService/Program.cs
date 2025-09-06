@@ -12,10 +12,12 @@ using SP.IdentityService.Service;
 using SP.IdentityService.Service.Impl;
 using SP.Common;
 using SP.Common.Logger;
+using SP.Common.Message.Mq.Consumer;
 using SP.Common.Message.SmS;
 using SP.Common.Middleware;
 using SP.IdentityService;
 using SP.IdentityService.Middleware;
+using SP.IdentityService.Mq;
 using SP.IdentityService.Services;
 
 
@@ -77,6 +79,11 @@ builder.Services.AddIdentity<SpUser, SpRole>(options =>
 builder.Services.AddScoped<IUserStore<SpUser>, SPUserStore>();
 // 添加OpenIddict
 builder.Services.AddOpenIddict(builder.Configuration);
+
+// 注册短信mq
+builder.Services.AddHostedService<SmSConsumerService>();
+// 注册邮箱mq
+builder.Services.AddHostedService<EmailConsumerService>();
 
 builder.Services.AddSwaggerGen();
 builder.Services.AddSwaggerGen(c =>
