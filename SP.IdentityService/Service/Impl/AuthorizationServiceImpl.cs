@@ -129,7 +129,8 @@ public class AuthorizationServiceImpl : IAuthorizationService
         var identity = new ClaimsIdentity(OpenIddictServerAspNetCoreDefaults.AuthenticationScheme);
         identity.AddClaim(OpenIddictConstants.Claims.Subject, await _userManager.GetUserIdAsync(user));
         identity.AddClaim(OpenIddictConstants.Claims.Name, user.UserName);
-        identity.AddClaim(OpenIddictConstants.Claims.Email, user.Email);
+        string email = user.Email ?? "";
+        identity.AddClaim(OpenIddictConstants.Claims.Email, email);
         identity.AddClaim(OpenIddictConstants.Claims.Audience, "api"); // 添加 aud 声明
 
         // 添加用户角色

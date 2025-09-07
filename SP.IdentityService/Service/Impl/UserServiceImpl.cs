@@ -1,7 +1,9 @@
 ﻿using System.Text.Json;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using SP.Common;
 using SP.Common.ExceptionHandling.Exceptions;
+using SP.Common.Model;
 using SP.Common.Redis;
 using SP.IdentityService.Models.Entity;
 using SP.IdentityService.Models.Request;
@@ -22,14 +24,21 @@ public class UserServiceImpl : IUserService
     private readonly IRedisService _redis;
 
     /// <summary>
+    /// 上下文会话
+    /// </summary>
+    private readonly ContextSession _contextSession;
+
+    /// <summary>
     /// 用户服务构造函数
     /// </summary>
     /// <param name="userManager"></param>
     /// <param name="redis"></param>
-    public UserServiceImpl(UserManager<SpUser> userManager, IRedisService redis)
+    /// <param name="contextSession"></param>
+    public UserServiceImpl(UserManager<SpUser> userManager, IRedisService redis, ContextSession contextSession)
     {
         _redis = redis;
         _userManager = userManager;
+        _contextSession = contextSession;
     }
 
     /// <summary>
@@ -193,5 +202,21 @@ public class UserServiceImpl : IUserService
         {
             throw new BadRequestException($"更新用户失败");
         }
+    }
+
+    /// <summary>
+    /// 查询用户手机或者邮箱是否已验证
+    /// </summary>
+    /// <returns></returns>
+    public async Task<bool> IsUserVerified()
+    {
+        var userId = _contextSession.UserId;
+        var user = _userManager.Users.FirstOrDefault(u => u.Id == userId);
+        if (user == null)
+        {
+            throw new NotFoundException("用户不存在");
+        }
+
+        return user.EmailConfirmed && user.PhoneNumberConfirmed;
     }
 }

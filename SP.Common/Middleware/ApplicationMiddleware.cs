@@ -51,7 +51,7 @@ public class ApplicationMiddleware
         var userId = context.Request.Headers["X-User-Id"].FirstOrDefault();
         var username= context.Request.Headers["X-User-Name"].FirstOrDefault();
         var email = context.Request.Headers["X-User-Email"].FirstOrDefault();
-        if (string.IsNullOrEmpty(userId) || string.IsNullOrEmpty(username) || string.IsNullOrEmpty(email))
+        if (string.IsNullOrEmpty(userId) || string.IsNullOrEmpty(username))
         {
             _logger.LogError("请求头中缺少用户信息");
             throw new UnauthorizedException("未登录");

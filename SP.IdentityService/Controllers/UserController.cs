@@ -84,4 +84,15 @@ public class UserController : ControllerBase
         await _userService.UpdateUser(id, user);
         return Ok();
     }
+
+    ///<summary>
+    /// 查询用户手机或者邮箱是否已验证
+    /// </summary>
+    /// <returns>是否开启手机/邮箱验证</returns>
+    [HttpGet("verify")]
+    public async Task<ActionResult<bool>> IsUserVerified()
+    {
+        bool result = await _userService.IsUserVerified();
+        return Ok(result);
+    }
 }
