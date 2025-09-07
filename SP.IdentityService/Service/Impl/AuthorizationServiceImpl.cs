@@ -820,11 +820,11 @@ public class AuthorizationServiceImpl : IAuthorizationService
         }
 
         // 验证验证码
-        // bool isOk = await _smsService.VerifyCodeAsync(phoneNumber, SmSPurposeEnum.Register, code);
-        // if (!isOk)
-        // {
-        //     throw new BusinessException("验证码错误");
-        // }
+        bool isOk = await _smsService.VerifyCodeAsync(phoneNumber, SmSPurposeEnum.Register, code);
+        if (!isOk)
+        {
+            throw new BusinessException("验证码错误");
+        }
 
         // 创建用户
         var newUser = new SpUser

@@ -145,7 +145,7 @@ public class AuthorizationController : ControllerBase
             }
 
             var principal =
-                await _authorizationService.LoginByPasswordAsync(phoneNumber, code,
+                await _authorizationService.LoginBySmSCodeAsync(phoneNumber, code,
                     request.GetScopes());
             var signInResult = SignIn(principal, OpenIddictServerAspNetCoreDefaults.AuthenticationScheme);
             return signInResult;
@@ -162,7 +162,7 @@ public class AuthorizationController : ControllerBase
             }
 
             var principal =
-                await _authorizationService.LoginByPasswordAsync(email, code,
+                await _authorizationService.LoginByEmailCodeAsync(email, code,
                     request.GetScopes());
             var signInResult = SignIn(principal, OpenIddictServerAspNetCoreDefaults.AuthenticationScheme);
             return signInResult;
