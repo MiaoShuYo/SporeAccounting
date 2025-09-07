@@ -14,6 +14,7 @@ public class MqMessage
     public MqMessage(long id, string type, string body)
     {
         Id = id;
+        Type = type;
         Body = body;
     }
 

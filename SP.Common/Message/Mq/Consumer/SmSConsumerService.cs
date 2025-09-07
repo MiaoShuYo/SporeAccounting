@@ -63,7 +63,7 @@ public class SmSConsumerService : BackgroundService
             {
                 await _smSService.SendVerificationCodeAsync(smSMessage.PhoneNumber, smSMessage.Purpose);
             }
-            else if (message.Type == MessageType.SmSGeneral)
+            else if (mqMessage.Type == MessageType.SmSGeneral)
             {
                 await _smSService.SendMessageAsync(smSMessage.PhoneNumber, smSMessage.Message, smSMessage.Purpose);
             }
