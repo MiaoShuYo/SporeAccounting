@@ -108,8 +108,8 @@ namespace SP.IdentityService.Migrations
                     b.HasData(
                         new
                         {
-                            UserId = 7368663449099988992L,
-                            RoleId = 7368663448772833280L
+                            UserId = 7370365106015916032L,
+                            RoleId = 7370365105583902720L
                         });
                 });
 
@@ -373,13 +373,13 @@ namespace SP.IdentityService.Migrations
                     b.HasData(
                         new
                         {
-                            Id = 7368663448772833280L,
+                            Id = 7370365105583902720L,
                             Name = "Admin",
                             NormalizedName = "ADMIN"
                         },
                         new
                         {
-                            Id = 7368663448953188352L,
+                            Id = 7370365105797812224L,
                             Name = "User",
                             NormalizedName = "USER"
                         });
@@ -425,7 +425,6 @@ namespace SP.IdentityService.Migrations
                         .HasColumnType("varchar(256)");
 
                     b.Property<string>("PasswordHash")
-                        .IsRequired()
                         .HasColumnType("longtext");
 
                     b.Property<string>("PhoneNumber")
@@ -459,16 +458,16 @@ namespace SP.IdentityService.Migrations
                     b.HasData(
                         new
                         {
-                            Id = 7368663449099988992L,
+                            Id = 7370365106015916032L,
                             AccessFailedCount = 0,
-                            ConcurrencyStamp = "7395c6535b1b4e4484be33f42650702f",
+                            ConcurrencyStamp = "447f6c0cea8b4ddebf3dae81a7ff8b06",
                             Email = "494324190@qq.com",
                             EmailConfirmed = true,
                             IsDeleted = false,
                             LockoutEnabled = false,
-                            PasswordHash = "AQAAAAIAAYagAAAAEC4Qpy1nqpWzNSec9nBc3sv391FQKmMOxyf4lYxLjPHb3XdedUptOJWLAIf/cd5pVg==",
+                            PasswordHash = "AQAAAAIAAYagAAAAEJbRTAIwWo2mogv+Y1u1hjCCi3aQHGG58NcQWoX92wztdXyw5HTfCrKF8ZV3stjDAw==",
                             PhoneNumberConfirmed = false,
-                            SecurityStamp = "e945dfe2be09499793a61b51e3689971",
+                            SecurityStamp = "9edeff3467ad4623a66995ec71d57813",
                             TwoFactorEnabled = false,
                             UserName = "admin"
                         });

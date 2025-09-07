@@ -57,14 +57,14 @@ public class EmailConsumerService : BackgroundService
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
         MqSubscriber subscriber = new MqSubscriber(MqExchange.MessageExchange,
-            MqRoutingKey.EmailRoutingKey, MqQueue.MessageQueue);
+            MqRoutingKey.MessageRoutingKey, MqQueue.EmailQueue);
         await _rabbitMqMessage.ReceiveAsync(subscriber, async message =>
         {
             MqMessage mqMessage = message as MqMessage;
             if (mqMessage == null)
             {
                 _logger.LogError("消息转换失败");
-                throw new ArgumentNullException(nameof(mqMessage));
+                return;
             }
 
             string email = mqMessage.Body;
@@ -80,7 +80,7 @@ public class EmailConsumerService : BackgroundService
             else
             {
                 _logger.LogError("消息类型错误");
-                throw new ArgumentException("消息类型错误", nameof(mqMessage.Type));
+                return;
             }
 
             string code = CodeGeneratorCommon.GenerateVerificationCode(6);

@@ -8,9 +8,14 @@ public static class MqQueue
     public const string BudgetQueue = "budget_queue";
 
     /// <summary>
-    /// 发送邮件/短信消息队列
+    /// 发送邮件消息队列
     /// </summary>
-    public const string MessageQueue = "message_queue";
+    public const string EmailQueue = "email_queue";
+    
+    /// <summary>
+    /// 发送短信消息队列
+    /// </summary>
+    public const string SmSQueue = "sms_queue";
     
     /// <summary>
     /// 用户配置消息队列

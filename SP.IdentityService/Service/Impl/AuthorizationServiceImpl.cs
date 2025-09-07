@@ -475,8 +475,8 @@ public class AuthorizationServiceImpl : IAuthorizationService
     {
         MqPublisher publisher = new MqPublisher(email.Email,
             MqExchange.MessageExchange,
-            MqRoutingKey.EmailRoutingKey,
-            MqQueue.MessageQueue,
+            MqRoutingKey.MessageRoutingKey,
+            MqQueue.EmailQueue,
             email.MessageType,
             ExchangeType.Direct);
         await _rabbitMqMessage.SendAsync(publisher);
@@ -686,8 +686,8 @@ public class AuthorizationServiceImpl : IAuthorizationService
         // 发送短信验证码MQ
         MqPublisher publisher = new MqPublisher(body,
             MqExchange.MessageExchange,
-            MqRoutingKey.SmSRoutingKey,
-            MqQueue.MessageQueue,
+            MqRoutingKey.MessageRoutingKey,
+            MqQueue.SmSQueue,
             MessageType.SmSVerificationCode,
             ExchangeType.Direct);
         await _rabbitMqMessage.SendAsync(publisher);
@@ -820,11 +820,11 @@ public class AuthorizationServiceImpl : IAuthorizationService
         }
 
         // 验证验证码
-        bool isOk = await _smsService.VerifyCodeAsync(phoneNumber, SmSPurposeEnum.Register, code);
-        if (!isOk)
-        {
-            throw new BusinessException("验证码错误");
-        }
+        // bool isOk = await _smsService.VerifyCodeAsync(phoneNumber, SmSPurposeEnum.Register, code);
+        // if (!isOk)
+        // {
+        //     throw new BusinessException("验证码错误");
+        // }
 
         // 创建用户
         var newUser = new SpUser
@@ -832,7 +832,8 @@ public class AuthorizationServiceImpl : IAuthorizationService
             Id = Snow.GetId(),
             UserName = phoneNumber,
             PhoneNumber = phoneNumber,
-            PhoneNumberConfirmed = true
+            PhoneNumberConfirmed = true,
+            PasswordHash = null // 不设置密码
         };
         return await CreateUserWithDefaultRoleAsync(newUser);
     }

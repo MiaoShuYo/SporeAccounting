@@ -46,7 +46,7 @@ public class SmSConsumerService : BackgroundService
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
         MqSubscriber subscriber = new MqSubscriber(MqExchange.MessageExchange,
-            MqRoutingKey.SmSRoutingKey, MqQueue.MessageQueue);
+            MqRoutingKey.MessageRoutingKey, MqQueue.SmSQueue);
         await _rabbitMqMessage.ReceiveAsync(subscriber, async message =>
         {
             MqMessage mqMessage = message as MqMessage;
@@ -55,21 +55,33 @@ public class SmSConsumerService : BackgroundService
             if (smSMessage == null)
             {
                 _logger.LogError("消息体解析失败");
+                await Task.CompletedTask;
                 return;
             }
 
-            // 发送验证码
-            if (mqMessage.Type == MessageType.SmSVerificationCode)
+            try
             {
-                await _smSService.SendVerificationCodeAsync(smSMessage.PhoneNumber, smSMessage.Purpose);
+                // 发送验证码
+                if (mqMessage.Type == MessageType.SmSVerificationCode)
+                {
+                    await _smSService.SendVerificationCodeAsync(smSMessage.PhoneNumber, smSMessage.Purpose);
+                }
+                else if (mqMessage.Type == MessageType.SmSGeneral)
+                {
+                    await _smSService.SendMessageAsync(smSMessage.PhoneNumber, smSMessage.Message, smSMessage.Purpose);
+                }
+                else
+                {
+                    _logger.LogError("消息类型错误");
+                    await Task.CompletedTask;
+                    return;
+                }
             }
-            else if (mqMessage.Type == MessageType.SmSGeneral)
+            catch (Exception ex)
             {
-                await _smSService.SendMessageAsync(smSMessage.PhoneNumber, smSMessage.Message, smSMessage.Purpose);
-            }
-            else
-            {
-                _logger.LogError("消息类型错误");
+                _logger.LogError(ex, "短信发送失败，消息将被确认以避免无限重试。MessageId={MessageId}, Phone={Phone}", mqMessage.Id, smSMessage.PhoneNumber);
+                await Task.CompletedTask;
+                return;
             }
 
             await Task.CompletedTask;
