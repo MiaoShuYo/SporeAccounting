@@ -272,7 +272,7 @@ public class AuthorizationController : ControllerBase
     /// </summary>
     /// <param name="resetPasswordRequest"></param>
     [HttpPut("password/reset")]
-    public async Task<ActionResult> ResetPassword([FromBody] ResetPasswordRequest resetPasswordRequest)
+    public async Task<ActionResult> ResetPassword([FromBody] PasswordResetRequest resetPasswordRequest)
     {
         await _authorizationService.ResetPasswordAsync(resetPasswordRequest);
         return Ok();

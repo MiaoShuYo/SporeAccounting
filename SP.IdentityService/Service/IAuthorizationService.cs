@@ -66,7 +66,7 @@ public interface IAuthorizationService
     /// </summary>
     /// <param name="resetPasswordRequest"></param>
     /// <returns></returns>
-    Task ResetPasswordAsync(ResetPasswordRequest resetPasswordRequest);
+    Task ResetPasswordAsync(PasswordResetRequest resetPasswordRequest);
 
     /// <summary>
     /// 添加手机号

@@ -527,31 +527,51 @@ public class AuthorizationServiceImpl : IAuthorizationService
     /// </summary>
     /// <param name="resetPasswordRequest"></param>
     /// <returns></returns>
-    public async Task ResetPasswordAsync(ResetPasswordRequest resetPasswordRequest)
+    public async Task ResetPasswordAsync(PasswordResetRequest resetPasswordRequest)
     {
-        // 基本验证
-        if (resetPasswordRequest == null || string.IsNullOrEmpty(resetPasswordRequest.Email) ||
-            string.IsNullOrEmpty(resetPasswordRequest.ResetCode) ||
-            string.IsNullOrEmpty(resetPasswordRequest.NewPassword))
+        if ((string.IsNullOrEmpty(resetPasswordRequest.Email) ||
+             string.IsNullOrEmpty(resetPasswordRequest.PhoneNumber)) &&
+            string.IsNullOrEmpty(resetPasswordRequest.ResetCode))
         {
-            throw new BadRequestException("请求参数不完整");
+            throw new BusinessException("参数错误");
         }
 
-        // 从Redis中获取验证码
-        var code = await _redis.GetStringAsync(resetPasswordRequest.Email);
-        if (string.IsNullOrEmpty(code))
+        SpUser? user = null;
+        if (resetPasswordRequest.ResetBy == ResetEnum.Phone)
         {
-            throw new BusinessException("验证码已过期或不存在");
+            // 验证验证码
+            bool isOk = await _smsService.VerifyCodeAsync(resetPasswordRequest.PhoneNumber,
+                SmSPurposeEnum.ChangePassword,
+                resetPasswordRequest.ResetCode);
+            if (!isOk)
+            {
+                throw new BusinessException("验证码错误");
+            }
+
+            user = await _userManager.Users.FirstOrDefaultAsync(u => 
+                u.PhoneNumber == resetPasswordRequest.PhoneNumber);
+        }
+        else
+        {
+            // 验证验证码
+            var code = await _redis.GetStringAsync(resetPasswordRequest.Email);
+            if (string.IsNullOrEmpty(code))
+            {
+                throw new BusinessException("验证码已过期或不存在");
+            }
+
+            // 验证验证码
+            if (code != resetPasswordRequest.ResetCode.Trim())
+            {
+                throw new BusinessException("验证码错误");
+            }
+
+            // 删除Redis中的验证码
+            await _redis.RemoveAsync(resetPasswordRequest.Email);
+
+            user = await _userManager.FindByEmailAsync(resetPasswordRequest.Email);
         }
 
-        // 验证验证码
-        if (code != resetPasswordRequest.ResetCode.Trim())
-        {
-            throw new BusinessException("验证码错误");
-        }
-
-        // 验证通过后，重置用户密码
-        var user = await _userManager.FindByEmailAsync(resetPasswordRequest.Email);
         if (user == null)
         {
             throw new BusinessException("用户不存在");
@@ -563,11 +583,8 @@ public class AuthorizationServiceImpl : IAuthorizationService
 
         if (!result.Succeeded)
         {
-            throw new Exception(string.Join(",", result.Errors.Select(e => e.Description)));
+            throw new BusinessException(string.Join(",", result.Errors.Select(e => e.Description)));
         }
-
-        // 删除Redis中的验证码
-        await _redis.RemoveAsync(resetPasswordRequest.Email);
     }
 
     /// <summary>
