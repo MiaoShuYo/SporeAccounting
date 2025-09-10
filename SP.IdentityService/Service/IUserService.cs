@@ -46,8 +46,14 @@ public interface IUserService
     Task UpdateUser(long id, UserUpdateRequest user);
     
     /// <summary>
-    /// 查询用户手机或者邮箱是否已验证
+    /// 查询用户手机是否已验证
     /// </summary>
     /// <returns></returns>
-    Task<bool> IsUserVerified();
+    Task<bool> IsUserPhoneVerified();
+    
+    /// <summary>
+    /// 查询用户邮箱是否已验证
+    /// </summary>
+    /// <returns></returns>
+    Task<bool> IsUserEmailVerified();
 }

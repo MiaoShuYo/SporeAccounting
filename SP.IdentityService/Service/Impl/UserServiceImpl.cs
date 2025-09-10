@@ -205,10 +205,10 @@ public class UserServiceImpl : IUserService
     }
 
     /// <summary>
-    /// 查询用户手机或者邮箱是否已验证
+    /// 查询用户手机是否已验证
     /// </summary>
     /// <returns></returns>
-    public async Task<bool> IsUserVerified()
+    public async Task<bool> IsUserPhoneVerified()
     {
         var userId = _contextSession.UserId;
         var user = _userManager.Users.FirstOrDefault(u => u.Id == userId);
@@ -217,6 +217,22 @@ public class UserServiceImpl : IUserService
             throw new NotFoundException("用户不存在");
         }
 
-        return user.EmailConfirmed && user.PhoneNumberConfirmed;
+        return user.PhoneNumberConfirmed;
+    }
+    
+    /// <summary>
+    /// 查询用户邮箱是否已验证
+    /// </summary>
+    /// <returns></returns>
+    public async Task<bool> IsUserEmailVerified()
+    {
+        var userId = _contextSession.UserId;
+        var user = _userManager.Users.FirstOrDefault(u => u.Id == userId);
+        if (user == null)
+        {
+            throw new NotFoundException("用户不存在");
+        }
+
+        return user.EmailConfirmed;
     }
 }

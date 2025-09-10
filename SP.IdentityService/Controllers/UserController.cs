@@ -86,13 +86,25 @@ public class UserController : ControllerBase
     }
 
     ///<summary>
-    /// 查询用户手机或者邮箱是否已验证
+    /// 查询用户手机是否已验证
     /// </summary>
-    /// <returns>是否开启手机/邮箱验证</returns>
-    [HttpGet("verify")]
-    public async Task<ActionResult<bool>> IsUserVerified()
+    /// <returns></returns>
+    [HttpGet("phone/verify")]
+    public async Task<ActionResult<bool>> IsUserPhoneVerified()
     {
-        bool result = await _userService.IsUserVerified();
+        bool result = await _userService.IsUserPhoneVerified();
         return Ok(result);
     }
+    
+    ///<summary>
+    /// 查询用户邮箱是否已验证
+    /// </summary>
+    /// <returns></returns>
+    [HttpGet("email/verify")]
+    public async Task<ActionResult<bool>> IsUserEmailVerified()
+    {
+        bool result = await _userService.IsUserEmailVerified();
+        return Ok(result);
+    }
+    
 }
