@@ -1,0 +1,6 @@
+@SP.ResourceService_HostAddress = http://localhost:5216
+
+GET {{SP.ResourceService_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
