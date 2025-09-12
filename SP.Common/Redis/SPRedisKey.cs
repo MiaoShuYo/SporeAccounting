@@ -19,6 +19,14 @@ public class SPRedisKey
     /// 短信发送限流键
     /// </summary>
     public const string SmsLimit = "SMS:OTP:LIMIT:{0}";
-    
-    public const string SmSLimitDay ="SMS:OTP:LIMIT:DAY:{0}";
+
+    /// <summary>
+    /// 短信发送天限流
+    /// </summary>
+    public const string SmSLimitDay = "SMS:OTP:LIMIT:DAY:{0}";
+
+    ///<summary>
+    /// 图形验证码限流
+    /// </summary>
+    public const string CaptchaRateLimit = "CAPTCHA:RATE:{0}";
 }

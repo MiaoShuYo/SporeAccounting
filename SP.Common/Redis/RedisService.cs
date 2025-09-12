@@ -158,6 +158,7 @@ namespace SP.Common.Redis
                 {
                     return true;
                 }
+
                 var deletedCount = await Database.KeyDeleteAsync(keys);
                 return deletedCount == keys.Length;
             }
@@ -357,6 +358,36 @@ namespace SP.Common.Redis
             {
                 _logger.LogError(ex, "Redis释放分布式锁失败，Key: {Key}", key);
                 return false;
+            }
+        }
+
+        /// <summary>
+        /// 自增计数（若键不存在则设置为1并附带过期时间）
+        /// </summary>
+        /// <param name="key">键</param>
+        /// <param name="expirySeconds">过期时间(秒)</param>
+        /// <returns>自增后的值</returns>
+        public async Task<long> IncrementAsync(string key, int expirySeconds)
+        {
+            try
+            {
+                // 使用 Lua 脚本保证原子性：不存在则设置为1并设置过期；存在则INCR
+                const string script = @"local exists = redis.call('EXISTS', KEYS[1])
+                                        if exists == 1 then
+                                          return redis.call('INCR', KEYS[1])
+                                        else
+                                          redis.call('SET', KEYS[1], 1, 'EX', ARGV[1])
+                                          return 1
+                                        end";
+
+                var result = (long)await Database.ScriptEvaluateAsync(script, new RedisKey[] { key },
+                    new RedisValue[] { expirySeconds });
+                return result;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Redis自增失败，Key: {Key}", key);
+                return -1;
             }
         }
     }

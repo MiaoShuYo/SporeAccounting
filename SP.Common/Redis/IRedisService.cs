@@ -128,5 +128,13 @@ namespace SP.Common.Redis
         /// <param name="key">锁键</param>
         /// <returns>是否成功释放锁</returns>
         Task<bool> UnlockAsync(string key);
+
+        /// <summary>
+        /// 计数自增（不存在则创建并设置过期时间）
+        /// </summary>
+        /// <param name="key">键</param>
+        /// <param name="expirySeconds">过期时间(秒)</param>
+        /// <returns>自增后的值</returns>
+        Task<long> IncrementAsync(string key, int expirySeconds);
     }
 } 

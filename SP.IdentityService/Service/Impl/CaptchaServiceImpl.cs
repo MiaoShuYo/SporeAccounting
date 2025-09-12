@@ -7,6 +7,8 @@ using SixLabors.ImageSharp.Formats.Png;
 using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Processing;
 using SP.Common;
+using SP.Common.ConfigService;
+using SP.Common.ExceptionHandling.Exceptions;
 using SP.Common.Redis;
 using SP.IdentityService.Models.Response;
 using SP.IdentityService.Services;
@@ -22,7 +24,15 @@ public class CaptchaServiceImpl : ICaptchaService
     private readonly ILogger<CaptchaServiceImpl> _logger;
     private readonly IConfiguration _configuration;
 
-    private static readonly char[] CaptchaChars = "23456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz".ToCharArray();
+    private static readonly char[] CaptchaChars =
+        "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz".ToCharArray();
+
+    /// <summary>
+    /// 构建key
+    /// </summary>
+    /// <param name="token"></param>
+    /// <returns></returns>
+    private static string BuildKey(string token) => $"captcha:{token}";
 
     public CaptchaServiceImpl(IRedisService redis, ILogger<CaptchaServiceImpl> logger, IConfiguration configuration)
     {
@@ -31,12 +41,33 @@ public class CaptchaServiceImpl : ICaptchaService
         _configuration = configuration;
     }
 
+    /// <summary>
+    /// 生成图形验证码（字母数字）并缓存到 Redis
+    /// </summary>
+    /// <param name="ip">请求方IP（可选用于限流）</param>
+    /// <returns>验证码图片与令牌</returns>
     public async Task<CaptchaCreateResponse> CreateAsync(string? ip = null)
     {
-        int width = _configuration.GetValue("Captcha:Width", 120);
-        int height = _configuration.GetValue("Captcha:Height", 40);
-        int length = _configuration.GetValue("Captcha:Length", 4);
-        int expiresSeconds = _configuration.GetValue("Captcha:ExpiresSeconds", 120);
+        // 按 IP 限流（基于配置开关）
+        bool rateLimitEnabled = _configuration.GetValue(SPConfigKey.CaptchaRateLimitEnabled, true);
+        if (rateLimitEnabled && !string.IsNullOrWhiteSpace(ip))
+        {
+            int windowSeconds = _configuration.GetValue(SPConfigKey.CaptchaRateLimitWindowSeconds, 60);
+            int maxRequests = _configuration.GetValue(SPConfigKey.CaptchaRateLimitMaxRequests, 10);
+            string rateKey = string.Format(SPRedisKey.CaptchaRateLimit, ip);
+            long count = await _redis.IncrementAsync(rateKey, windowSeconds);
+            if (count > 0 && count > maxRequests)
+            {
+                throw new BusinessException(
+                    $"请求过于频繁，请在{windowSeconds}秒后再试",
+                    System.Net.HttpStatusCode.TooManyRequests);
+            }
+        }
+
+        int width = _configuration.GetValue(SPConfigKey.CaptchaWidth, 120);
+        int height = _configuration.GetValue(SPConfigKey.CaptchaHeight, 40);
+        int length = _configuration.GetValue(SPConfigKey.CaptchaLength, 4);
+        int expiresSeconds = _configuration.GetValue(SPConfigKey.CaptchaExpirySeconds, 60);
 
         string code = GenerateCode(length);
         string token = Snow.GetId().ToString();
@@ -93,6 +124,13 @@ public class CaptchaServiceImpl : ICaptchaService
         };
     }
 
+    /// <summary>
+    /// 校验图形验证码
+    /// </summary>
+    /// <param name="token">验证码令牌</param>
+    /// <param name="code">用户输入验证码</param>
+    /// <param name="removeOnSuccess">成功后是否删除</param>
+    /// <returns>是否通过</returns>
     public async Task<bool> VerifyAsync(string token, string code, bool removeOnSuccess = true)
     {
         if (string.IsNullOrWhiteSpace(token) || string.IsNullOrWhiteSpace(code)) return false;
@@ -103,11 +141,16 @@ public class CaptchaServiceImpl : ICaptchaService
         {
             await _redis.RemoveAsync(BuildKey(token));
         }
+
         return ok;
     }
 
-    private static string BuildKey(string token) => $"captcha:{token}";
 
+    /// <summary>
+    /// 生成验证码
+    /// </summary>
+    /// <param name="length"></param>
+    /// <returns></returns>
     private static string GenerateCode(int length)
     {
         var sb = new StringBuilder(length);
@@ -115,8 +158,7 @@ public class CaptchaServiceImpl : ICaptchaService
         {
             sb.Append(CaptchaChars[Random.Shared.Next(CaptchaChars.Length)]);
         }
+
         return sb.ToString();
     }
 }
-
-
