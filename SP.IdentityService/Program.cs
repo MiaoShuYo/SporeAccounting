@@ -19,6 +19,7 @@ using SP.IdentityService;
 using SP.IdentityService.Middleware;
 using SP.IdentityService.Mq;
 using SP.IdentityService.Services;
+using SP.IdentityService.Service.Impl;
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -136,6 +137,7 @@ builder.Services.AddScoped<IRoleService, RoleServiceImpl>();
 
 // 注册客户端注册服务
 builder.Services.AddScoped<IClientRegistrationService, ClientRegistrationService>();
+builder.Services.AddScoped<ICaptchaService, CaptchaServiceImpl>();
 
 builder.Services.AddSingleton<EmailConfigService>();
 builder.Services.AddSingleton<RabbitMqConfigService>();
