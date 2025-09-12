@@ -121,7 +121,7 @@ builder.Services.AddSingleton<JwtConfigService>();
 // 注册MQ配置服务
 builder.Services.AddSingleton<RabbitMqConfigService>();
 // 注册RabbitMqMessage服务
-builder.Services.AddScoped<RabbitMqMessage>(provider =>
+builder.Services.AddSingleton<RabbitMqMessage>(provider =>
 {
     var configService = provider.GetRequiredService<RabbitMqConfigService>();
     var logger = provider.GetRequiredService<ILogger<RabbitMqMessage>>();

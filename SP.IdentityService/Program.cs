@@ -139,12 +139,12 @@ builder.Services.AddScoped<IClientRegistrationService, ClientRegistrationService
 
 builder.Services.AddSingleton<EmailConfigService>();
 builder.Services.AddSingleton<RabbitMqConfigService>();
-builder.Services.AddScoped(provider =>
+builder.Services.AddSingleton(provider =>
 {
     var configService = provider.GetRequiredService<EmailConfigService>();
     return new EmailMessage(configService.GetEmailConfig());
 });
-builder.Services.AddScoped<RabbitMqMessage>(provider =>
+builder.Services.AddSingleton<RabbitMqMessage>(provider =>
 {
     var configService = provider.GetRequiredService<RabbitMqConfigService>();
     var logger = provider.GetRequiredService<ILogger<RabbitMqMessage>>();

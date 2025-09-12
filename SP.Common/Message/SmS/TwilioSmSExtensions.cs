@@ -20,7 +20,7 @@ public static class TwilioSmSExtensions
     public static IServiceCollection AddTwilioSmSService(this IServiceCollection services, IConfiguration configuration)
     {
         services.Configure<TwilioSmsOptions>(configuration.GetSection("Twilio"));
-        services.AddScoped<ISmSService, TwilioSmSServiceImpl>();
+        services.AddSingleton<ISmSService, TwilioSmSServiceImpl>();
         return services;
     }
 }
