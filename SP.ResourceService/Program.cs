@@ -1,6 +1,7 @@
 using System.Reflection;
 using Nacos.AspNetCore.V2;
 using Nacos.V2.DependencyInjection;
+using SP.Common.Logger;
 using SP.ResourceService;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -64,7 +65,8 @@ builder.Services.AddNacosAspNet(builder.Configuration);
 // 添加Nacos配置中心
 builder.Configuration.AddNacosV2Configuration(builder.Configuration.GetSection("nacos"));
 builder.Services.AddNacosV2Naming(builder.Configuration);
-
+// 注入loki日志服务
+builder.Services.AddLoggerService(builder.Configuration);
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.

@@ -20,4 +20,8 @@
       <Folder Include="Controllers\" />
     </ItemGroup>
 
+    <ItemGroup>
+      <ProjectReference Include="..\SP.Common\SP.Common.csproj" />
+    </ItemGroup>
+
 </Project>
