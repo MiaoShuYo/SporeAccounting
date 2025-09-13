@@ -13,7 +13,8 @@ public interface IOssService
     /// <param name="isPublic">是否公开</param>
     /// <param name="contentType">内容类型</param>
     /// <param name="ct">取消令牌</param>
-    Task<string> UploadAsync(Stream stream, string objectName, bool isPublic, string? contentType = null, CancellationToken ct = default);
+    Task<string> UploadAsync(Stream stream, string objectName, bool isPublic, string? contentType = null,
+        CancellationToken ct = default);
 
     /// <summary>
     /// 下载文件
@@ -29,7 +30,8 @@ public interface IOssService
     /// <param name="objectName">对象名称</param>
     /// <param name="isPublic">是否公开</param>
     /// <param name="expires">过期时间</param>
-    Task<string> GetUrlAsync(string objectName, bool isPublic, TimeSpan? expires = null, CancellationToken ct = default);
+    Task<string> GetUrlAsync(string objectName, bool isPublic, TimeSpan? expires = null,
+        CancellationToken ct = default);
 
     /// <summary>
     /// 删除文件
@@ -46,5 +48,6 @@ public interface IOssService
     /// <param name="isPublic">是否公开桶</param>
     /// <param name="expires">过期时间</param>
     /// <param name="ct">取消令牌</param>
-    Task<string> GetPresignedPutUrlAsync(string objectName, bool isPublic, TimeSpan? expires = null, CancellationToken ct = default);
+    Task<string> GetPresignedPutUrlAsync(string objectName, bool isPublic, TimeSpan? expires = null,
+        CancellationToken ct = default);
 }

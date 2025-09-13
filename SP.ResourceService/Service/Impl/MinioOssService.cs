@@ -19,16 +19,90 @@ public class MinioOssService : IOssService
         _options = options;
         _logger = logger;
 
-        var clientBuilder = new MinioClient()
-            .WithEndpoint(options.Value.Endpoint)
-            .WithCredentials(options.Value.AccessKey, options.Value.SecretKey);
-
-        if (options.Value.WithSSL)
+        try
         {
-            clientBuilder = clientBuilder.WithSSL();
+            // 验证配置
+            ValidateConfiguration(options.Value);
+
+            // 处理端点URL格式 - MinIO客户端期望的是主机名和端口，而不是完整的URL
+            var endpoint = ProcessEndpoint(options.Value.Endpoint);
+
+            _logger.LogInformation("Initializing MinIO client with endpoint: {Endpoint}", endpoint);
+
+            var clientBuilder = new MinioClient()
+                .WithEndpoint(endpoint)
+                .WithCredentials(options.Value.AccessKey, options.Value.SecretKey);
+
+            if (options.Value.WithSSL)
+            {
+                clientBuilder = clientBuilder.WithSSL();
+            }
+
+            _client = clientBuilder.Build();
+
+            _logger.LogInformation("MinIO client initialized successfully");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to initialize MinIO client");
+            throw;
+        }
+    }
+
+    /// <summary>
+    /// 验证MinIO配置
+    /// </summary>
+    /// <param name="options">MinIO配置选项</param>
+    /// <exception cref="ArgumentException">配置无效时抛出异常</exception>
+    private void ValidateConfiguration(MinioOptions options)
+    {
+        if (string.IsNullOrWhiteSpace(options.Endpoint))
+        {
+            throw new ArgumentException("MinIO endpoint cannot be null or empty");
         }
 
-        _client = clientBuilder.Build();
+        if (string.IsNullOrWhiteSpace(options.AccessKey))
+        {
+            throw new ArgumentException("MinIO AccessKey cannot be null or empty");
+        }
+
+        if (string.IsNullOrWhiteSpace(options.SecretKey))
+        {
+            throw new ArgumentException("MinIO SecretKey cannot be null or empty");
+        }
+
+        if (string.IsNullOrWhiteSpace(options.PublicBucket))
+        {
+            throw new ArgumentException("MinIO PublicBucket cannot be null or empty");
+        }
+
+        if (string.IsNullOrWhiteSpace(options.PrivateBucket))
+        {
+            throw new ArgumentException("MinIO PrivateBucket cannot be null or empty");
+        }
+    }
+
+    /// <summary>
+    /// 处理端点URL格式
+    /// </summary>
+    /// <param name="endpoint">原始端点</param>
+    /// <returns>处理后的端点</returns>
+    private string ProcessEndpoint(string endpoint)
+    {
+        // 如果端点包含协议前缀，需要移除
+        if (endpoint.StartsWith("http://", StringComparison.OrdinalIgnoreCase))
+        {
+            endpoint = endpoint.Substring("http://".Length);
+        }
+        else if (endpoint.StartsWith("https://", StringComparison.OrdinalIgnoreCase))
+        {
+            endpoint = endpoint.Substring("https://".Length);
+        }
+
+        // 移除末尾的斜杠
+        endpoint = endpoint.TrimEnd('/');
+
+        return endpoint;
     }
 
     /// <summary>
