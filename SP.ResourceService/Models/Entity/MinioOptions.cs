@@ -44,4 +44,9 @@ public class MinioOptions
     /// 私有桶预签名URL默认过期秒数
     /// </summary>
     public int PresignedExpireSeconds { get; set; } = 3600;
+    
+    /// <summary>
+    /// 上传令牌过期秒数
+    /// </summary>
+    public int UploadTokenExpireSeconds {get; set;} = 300;
 }

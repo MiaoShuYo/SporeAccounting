@@ -71,6 +71,9 @@ builder.Services.AddScoped<IReportServer,ReportServerImpl>();
 builder.Services.AddLoggerService(builder.Configuration);
 var app = builder.Build();
 
+// 设置静态服务提供者
+SP.Common.Model.SettingCommProperty.ServiceProvider = app.Services;
+
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment() || app.Environment.EnvironmentName == "Local")
 {

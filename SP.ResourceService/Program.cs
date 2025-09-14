@@ -1,8 +1,11 @@
 using System.Reflection;
 using Nacos.AspNetCore.V2;
 using Nacos.V2.DependencyInjection;
+using SP.Common;
 using SP.Common.Logger;
+using SP.Common.Middleware;
 using SP.ResourceService;
+using SP.ResourceService.DB;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -58,16 +61,26 @@ if (!string.IsNullOrWhiteSpace(hostIp) || !string.IsNullOrWhiteSpace(exposePort)
     if (!string.IsNullOrWhiteSpace(exposePort)) overrides["nacos:Port"] = exposePort;
     builder.Configuration.AddInMemoryCollection(overrides);
 }
-// 注入MinIO
-builder.Services.AddOssService(builder.Configuration);
 // 添加Nacos服务注册
 builder.Services.AddNacosAspNet(builder.Configuration);
 // 添加Nacos配置中心
 builder.Configuration.AddNacosV2Configuration(builder.Configuration.GetSection("nacos"));
 builder.Services.AddNacosV2Naming(builder.Configuration);
+// 注册 IHttpContextAccessor
+builder.Services.AddHttpContextAccessor(); 
+// 注册 ContextSession
+builder.Services.AddScoped<ContextSession>(); 
+
+// 注册 DbContext
+builder.Services.AddDbContext<ResourceServiceDbContext>(ServiceLifetime.Scoped);
+// 注入MinIO
+builder.Services.AddOssService(builder.Configuration);
 // 注入loki日志服务
 builder.Services.AddLoggerService(builder.Configuration);
 var app = builder.Build();
+
+// 设置静态服务提供者
+SP.Common.Model.SettingCommProperty.ServiceProvider = app.Services;
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment() || app.Environment.EnvironmentName == "Local")
@@ -79,6 +92,7 @@ if (app.Environment.IsDevelopment() || app.Environment.EnvironmentName == "Local
 app.UseHttpsRedirection();
 
 app.UseAuthorization();
+app.UseMiddleware<ApplicationMiddleware>();
 
 app.MapControllers();
 
