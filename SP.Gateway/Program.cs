@@ -15,6 +15,7 @@ var builder = WebApplication.CreateBuilder(args);
 
 // 基础服务
 builder.Services.AddControllers();
+builder.Services.ConfigureDetailedModelValidation();
 builder.Services.AddEndpointsApiExplorer();
 
 // 覆盖 Nacos 注册的 IP/Port 为宿主机IP + 对外端口（通过环境变量或配置传入）

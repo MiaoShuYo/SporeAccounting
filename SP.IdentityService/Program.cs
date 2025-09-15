@@ -20,6 +20,7 @@ using SP.IdentityService.Middleware;
 using SP.IdentityService.Mq;
 using SP.IdentityService.Services;
 using SP.IdentityService.Service.Impl;
+using SP.Common.ExceptionHandling;
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -36,6 +37,7 @@ if (!string.IsNullOrWhiteSpace(hostIp) || !string.IsNullOrWhiteSpace(exposePort)
 }
 // Add services to the container.
 builder.Services.AddControllers();
+builder.Services.ConfigureDetailedModelValidation();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 

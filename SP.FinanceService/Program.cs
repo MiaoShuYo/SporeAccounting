@@ -16,12 +16,14 @@ using SP.FinanceService.DB;
 using SP.FinanceService.RefitClient;
 using SP.FinanceService.Service;
 using SP.FinanceService.Service.Impl;
+using SP.Common.ExceptionHandling;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 
 builder.Services.AddControllers();
+builder.Services.ConfigureDetailedModelValidation();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>

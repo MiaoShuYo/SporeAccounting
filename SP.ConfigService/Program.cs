@@ -10,12 +10,14 @@ using Nacos.AspNetCore.V2;
 using SP.Common.ConfigService;
 using SP.Common.Logger;
 using SP.Common.Redis;
+using SP.Common.ExceptionHandling;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 
 builder.Services.AddControllers();
+builder.Services.ConfigureDetailedModelValidation();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>

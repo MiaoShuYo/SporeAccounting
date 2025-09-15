@@ -6,12 +6,14 @@ using SP.Common.Logger;
 using SP.Common.Middleware;
 using SP.ResourceService;
 using SP.ResourceService.DB;
+using SP.Common.ExceptionHandling;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 
 builder.Services.AddControllers();
+builder.Services.ConfigureDetailedModelValidation();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
