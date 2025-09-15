@@ -1,13 +1,19 @@
 ﻿using SP.Common.ExceptionHandling.Exceptions;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace SP.Common.Model;
 
 /// <summary>
 /// 通用设置属性类
 /// </summary>
-public class SettingCommProperty
+public static class SettingCommProperty
 {
+    /// <summary>
+    /// 静态服务提供者
+    /// </summary>
+    public static IServiceProvider? ServiceProvider { get; set; }
+
     /// <summary>
     /// 删除
     /// </summary>
@@ -60,11 +66,23 @@ public class SettingCommProperty
     /// <returns></returns>
     private static long GetCurrentUserId()
     {
-        var httpContextAccessor = (IHttpContextAccessor)AppDomain.CurrentDomain.GetData("HttpContextAccessor");
-        var userIdClaim = httpContextAccessor?.HttpContext?.User?.FindFirst("UserId");
-        if (userIdClaim != null && long.TryParse(userIdClaim.Value, out var userId))
+        if (ServiceProvider == null)
         {
-            return userId;
+            return 0;
+        }
+
+        try
+        {
+            var httpContextAccessor = ServiceProvider.GetService<IHttpContextAccessor>();
+            var userIdClaim = httpContextAccessor?.HttpContext?.User?.FindFirst("UserId");
+            if (userIdClaim != null && long.TryParse(userIdClaim.Value, out var userId))
+            {
+                return userId;
+            }
+        }
+        catch
+        {
+            // 如果获取失败，返回0
         }
 
         return 0;

@@ -1,4 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
+using SP.ResourceService.Models.Request;
+using SP.ResourceService.Models.Response;
 using SP.ResourceService.Service;
 
 namespace SP.ResourceService.Controllers;
@@ -29,82 +31,59 @@ public class FilesController : ControllerBase
     /// </summary>
     /// <param name="file"></param>
     /// <param name="isPublic"></param>
-    /// <param name="ct"></param>
     /// <returns></returns>
     [HttpPost("upload")]
     [Consumes("multipart/form-data")]
-    public async Task<string> Upload(IFormFile file, [FromQuery] bool isPublic = true,
-        CancellationToken ct = default)
+    public async Task<ActionResult> Upload(IFormFile file, [FromQuery] bool isPublic = true)
     {
-        using var s = file.OpenReadStream();
-        var objectName = $"{DateTime.UtcNow:yyyy/MM/dd}/{Guid.NewGuid():N}{Path.GetExtension(file.FileName)}";
-        return await _oss.UploadAsync(s, objectName, isPublic, file.ContentType, ct);
+        await _oss.UploadAsync(file,isPublic);
+        return Ok();
     }
 
     /// <summary>
     /// 获取文件URL
     /// </summary>
-    /// <param name="objectName"></param>
-    /// <param name="isPublic"></param>
-    /// <param name="expireSeconds"></param>
-    /// <param name="ct"></param>
+    /// <param name="fileId">文件id</param>
     /// <returns></returns>
     [HttpGet("url")]
-    public async Task<string> GetUrl([FromQuery] string objectName, [FromQuery] bool isPublic = true,
-        [FromQuery] int? expireSeconds = null, CancellationToken ct = default)
+    public async Task<string> GetUrl([FromQuery] long fileId)
     {
-        TimeSpan? exp = expireSeconds is > 0 ? TimeSpan.FromSeconds(expireSeconds.Value) : null;
-        return await _oss.GetUrlAsync(objectName, isPublic, exp, ct);
-    }
-
-    /// <summary>
-    /// 下载文件
-    /// </summary>
-    /// <param name="objectName"></param>
-    /// <param name="isPublic"></param>
-    /// <param name="ct"></param>
-    /// <returns></returns>
-    [HttpGet("download")]
-    public async Task<IActionResult> Download([FromQuery] string objectName, [FromQuery] bool isPublic = false,
-        CancellationToken ct = default)
-    {
-        if (isPublic)
-        {
-            var url = await _oss.GetUrlAsync(objectName, true, null, ct);
-            return Redirect(url);
-        }
-
-        var stream = await _oss.DownloadAsync(objectName, false, ct);
-        return File(stream, "application/octet-stream", Path.GetFileName(objectName));
+        return await _oss.GetUrlAsync(fileId);
     }
 
     /// <summary>
     /// 删除文件
     /// </summary>
-    /// <param name="objectName"></param>
-    /// <param name="isPublic"></param>
-    /// <param name="ct"></param>
+    /// <param name="fileId">文件id</param>
     /// <returns></returns>
     [HttpDelete]
-    public async Task Delete([FromQuery] string objectName, [FromQuery] bool isPublic = false,
-        CancellationToken ct = default)
+    public async Task Delete([FromQuery] long fileId)
     {
-        await _oss.DeleteAsync(objectName, isPublic, ct);
+        await _oss.DeleteAsync(fileId);
     }
 
     /// <summary>
     /// 获取用于前端直传的上传凭证（预签名 PUT URL）
     /// </summary>
-    /// <param name="objectName">对象名称（前端准备好完整路径，如 yyyy/MM/dd/xxx.ext）</param>
+    /// <param name="fileName">文件名（包含扩展名，如 avatar.jpg）</param>
     /// <param name="isPublic">是否上传到公开桶（默认公开）</param>
-    /// <param name="expireSeconds">URL 过期秒数（默认配置值）</param>
-    /// <param name="ct"></param>
-    /// <returns>预签名上传 URL</returns>
+    /// <returns>包含预签名上传 URL 和对象名的响应</returns>
     [HttpGet("upload-token")]
-    public async Task<string> GetUploadToken([FromQuery] string objectName, [FromQuery] bool isPublic = true,
-        [FromQuery] int? expireSeconds = null, CancellationToken ct = default)
+    public async Task<PresignedURLResponse> GetUploadToken([FromQuery] string fileName, [FromQuery] bool isPublic = true)
     {
-        TimeSpan? exp = expireSeconds is > 0 ? TimeSpan.FromSeconds(expireSeconds.Value) : null;
-        return await _oss.GetPresignedPutUrlAsync(objectName, isPublic, exp, ct);
+        PresignedURLResponse presignedPutUrl = await _oss.GetPresignedPutUrlAsync(fileName, isPublic);
+        return presignedPutUrl;
+    }
+    
+    /// <summary>
+    /// 确认文件上传成功
+    /// </summary>
+    /// <param name="request">文件确认请求</param>
+    /// <returns></returns>
+    [HttpPost("confirm-upload")]
+    public async Task<ActionResult> ConfirmUpload([FromBody] ConfirmUploadRequest request)
+    {
+        await _oss.ConfirmUploadAsync(request);
+        return Ok();
     }
 }
