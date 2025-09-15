@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using Nacos.AspNetCore.V2;
 using Nacos.V2.DependencyInjection;
 using SP.Common.Redis;
@@ -160,6 +161,60 @@ builder.Services.AddSingleton<JwtConfigService>();
 builder.Services.AddLoggerService(builder.Configuration);
 
 var app = builder.Build();
+
+// 启动时迁移数据库并进行幂等初始化（角色与管理员用户）
+using (var scope = app.Services.CreateScope())
+{
+    var services = scope.ServiceProvider;
+    var logger = services.GetRequiredService<ILogger<Program>>();
+    try
+    {
+        var db = services.GetRequiredService<IdentityServerDbContext>();
+        db.Database.Migrate();
+
+        var roleManager = services.GetRequiredService<RoleManager<SpRole>>();
+        string[] roleNames = new[] { "Admin", "User" };
+        foreach (var roleName in roleNames)
+        {
+            var exists = roleManager.RoleExistsAsync(roleName).GetAwaiter().GetResult();
+            if (!exists)
+            {
+                var createResult = roleManager.CreateAsync(new SpRole { Name = roleName, NormalizedName = roleName.ToUpperInvariant() }).GetAwaiter().GetResult();
+                if (!createResult.Succeeded)
+                {
+                    logger.LogWarning("创建角色 {Role} 失败：{Errors}", roleName, string.Join(",", createResult.Errors.Select(e => e.Description)));
+                }
+            }
+        }
+
+        var userManager = services.GetRequiredService<UserManager<SpUser>>();
+        var adminUser = userManager.FindByNameAsync("admin").GetAwaiter().GetResult();
+        if (adminUser == null)
+        {
+            adminUser = new SpUser { UserName = "admin", Email = "494324190@qq.com", EmailConfirmed = true };
+            var createAdmin = userManager.CreateAsync(adminUser, "123*asdasd").GetAwaiter().GetResult();
+            if (!createAdmin.Succeeded)
+            {
+                logger.LogWarning("创建管理员用户失败：{Errors}", string.Join(",", createAdmin.Errors.Select(e => e.Description)));
+            }
+        }
+
+        // 确保管理员在 Admin 角色中
+        var inRole = userManager.IsInRoleAsync(adminUser, "Admin").GetAwaiter().GetResult();
+        if (!inRole)
+        {
+            var addToRole = userManager.AddToRoleAsync(adminUser, "Admin").GetAwaiter().GetResult();
+            if (!addToRole.Succeeded)
+            {
+                logger.LogWarning("将管理员加入 Admin 角色失败：{Errors}", string.Join(",", addToRole.Errors.Select(e => e.Description)));
+            }
+        }
+    }
+    catch (Exception ex)
+    {
+        logger.LogError(ex, "启动初始化失败");
+    }
+}
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment() || app.Environment.EnvironmentName == "Local")

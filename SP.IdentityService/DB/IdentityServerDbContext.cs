@@ -49,7 +49,6 @@ public class IdentityServerDbContext : IdentityDbContext<SpUser, SpRole, long>
             b.Property(x => x.Email).HasMaxLength(100);
             b.Property(x => x.LockoutEnd);
         });
-        SeedData(modelBuilder);
     }
 
     /// <summary>
@@ -60,35 +59,10 @@ public class IdentityServerDbContext : IdentityDbContext<SpUser, SpRole, long>
     {
         var serverVersion = ServerVersion.AutoDetect(_dbConfig.GetConnectionString("MySQLConnection"));
         optionsBuilder.UseMySql(_dbConfig.GetConnectionString("MySQLConnection"), serverVersion);
-    }
-
-    private void SeedData(ModelBuilder builder)
-    {
-        // 添加默认角色
-        SpRole adminRole = new SpRole { Id = Snow.GetId(), Name = "Admin", NormalizedName = "ADMIN" };
-        SpRole userRole = new SpRole { Id = Snow.GetId(), Name = "User", NormalizedName = "USER" };
-        builder.Entity<SpRole>().HasData(adminRole, userRole);
-
-        // 添加默认用户
-        var hasher = new PasswordHasher<SpUser>();
-        SpUser adminUser = new SpUser
+        var env = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
+        if (env == "Development" || env == "Local")
         {
-            Id = Snow.GetId(),
-            UserName = "admin",
-            Email = "494324190@qq.com",
-            EmailConfirmed = true,
-            PasswordHash = hasher.HashPassword(null, "123*asdasd"),
-            SecurityStamp = Guid.NewGuid().ToString("N"),
-            ConcurrencyStamp = Guid.NewGuid().ToString("N")
-        };
-        builder.Entity<SpUser>().HasData(adminUser);
-        // 添加用户角色
-        builder.Entity<IdentityUserRole<long>>().HasData(
-            new IdentityUserRole<long>
-            {
-                UserId = adminUser.Id,
-                RoleId = adminRole.Id
-            }
-        );
+            optionsBuilder.EnableSensitiveDataLogging();
+        }
     }
 }
