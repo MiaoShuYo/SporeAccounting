@@ -116,7 +116,8 @@ public class TwilioSmSServiceImpl : ISmSService
             $"【{_options.Signature}】{message}";
         // 发送短信
         await SendSmsAsync(toPhoneNumber, messageBody);
-        _logger.LogInformation("发送短信成功，电话号码：{PhoneNumber}，内容：{messageBody}", toPhoneNumber, messageBody);
+        var sanitizedPhoneNumber = toPhoneNumber.Replace("\r", "").Replace("\n", "");
+        _logger.LogInformation("发送短信成功，电话号码：{PhoneNumber}，内容：{messageBody}", sanitizedPhoneNumber, messageBody);
     }
 
     /// <summary>
@@ -139,12 +140,14 @@ public class TwilioSmSServiceImpl : ISmSService
         {
             // 验证成功，删除验证码
             await _redis.RemoveAsync(codeKey);
-            _logger.LogInformation("验证短信验证码成功，电话号码：{PhoneNumber}, 用途：{Purpose}", toPhoneNumber, purpose);
+            var sanitizedPhoneNumber = toPhoneNumber.Replace("\r", "").Replace("\n", "");
+            _logger.LogInformation("验证短信验证码成功，电话号码：{PhoneNumber}, 用途：{Purpose}", sanitizedPhoneNumber, purpose);
             return true;
         }
         else
         {
-            _logger.LogWarning("验证短信验证码失败，电话号码：{PhoneNumber}, 用途：{Purpose}", toPhoneNumber, purpose);
+            var sanitizedPhoneNumber = toPhoneNumber.Replace("\r", "").Replace("\n", "");
+            _logger.LogWarning("验证短信验证码失败，电话号码：{PhoneNumber}, 用途：{Purpose}", sanitizedPhoneNumber, purpose);
             return false;
         }
     }

@@ -178,7 +178,7 @@ public class ClientRegistrationService : IClientRegistrationService
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "验证客户端是否存在时发生错误: {ClientId}", clientId);
+            _logger.LogError(ex, "验证客户端是否存在时发生错误: {ClientId}", SanitizeForLog(clientId));
             return false;
         }
     }
@@ -240,5 +240,15 @@ public class ClientRegistrationService : IClientRegistrationService
             _logger.LogError(ex, "初始化默认客户端时发生错误");
             return false;
         }
+    }
+    /// <summary>
+    /// Sanitize user input for log to prevent log forging.
+    /// </summary>
+    private static string SanitizeForLog(string? input)
+    {
+        if (string.IsNullOrEmpty(input))
+            return string.Empty;
+        // Remove potential log forging characters (\r, \n)
+        return input.Replace("\r", "").Replace("\n", "");
     }
 }
