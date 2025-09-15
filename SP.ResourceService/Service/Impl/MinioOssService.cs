@@ -285,7 +285,8 @@ public class MinioOssService : IOssService
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "无法确认文件上传:{ObjectName}", request.ObjectName);
+            var sanitizedObjectName = request.ObjectName?.Replace("\r", "").Replace("\n", "");
+            _logger.LogError(ex, "无法确认文件上传:{ObjectName}", sanitizedObjectName);
             throw new BadRequestException($"无法确认文件上传: {request.ObjectName}");
         }
     }
