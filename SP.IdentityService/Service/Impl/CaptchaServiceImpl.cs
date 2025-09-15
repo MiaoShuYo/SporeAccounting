@@ -211,12 +211,20 @@ public class CaptchaServiceImpl : ICaptchaService
             {
                 case 0: // 圆形
                     var radius = Math.Min(cellWidth, height) / 4;
-                    var circlePath = new PathBuilder().AddEllipse(new RectangleF(x - radius, y - radius, radius * 2, radius * 2)).Build();
+                    var circlePath = new PathBuilder()
+                        .AddLine(new PointF(x - radius, y), new PointF(x + radius, y))
+                        .AddLine(new PointF(x, y - radius), new PointF(x, y + radius))
+                        .Build();
                     ctx.Draw(pen, circlePath);
                     break;
                 case 1: // 矩形
                     var rectSize = Math.Min(cellWidth, height) / 3;
-                    var rectPath = new PathBuilder().AddRectangle(new RectangleF(x - rectSize/2, y - rectSize/2, rectSize, rectSize)).Build();
+                    var rectPath = new PathBuilder()
+                        .AddLine(new PointF(x - rectSize/2, y - rectSize/2), new PointF(x + rectSize/2, y - rectSize/2))
+                        .AddLine(new PointF(x + rectSize/2, y - rectSize/2), new PointF(x + rectSize/2, y + rectSize/2))
+                        .AddLine(new PointF(x + rectSize/2, y + rectSize/2), new PointF(x - rectSize/2, y + rectSize/2))
+                        .AddLine(new PointF(x - rectSize/2, y + rectSize/2), new PointF(x - rectSize/2, y - rectSize/2))
+                        .Build();
                     ctx.Draw(pen, rectPath);
                     break;
                 case 2: // 三角形
