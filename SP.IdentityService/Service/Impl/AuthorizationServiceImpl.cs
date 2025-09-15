@@ -468,15 +468,15 @@ public class AuthorizationServiceImpl : IAuthorizationService
     }
 
     /// <summary>
-    /// 发送邮件
+    /// 发送邮件验证码
     /// </summary>
     /// <param name="email">邮箱</param>
     /// <returns></returns>
-    public async Task SendEmailAsync(SendEmailRequest email)
+    public async Task EmailVerificationCode(SendEmailRequest email)
     {
         MqPublisher publisher = new MqPublisher(email.Email,
             MqExchange.MessageExchange,
-            MqRoutingKey.MessageRoutingKey,
+            MqRoutingKey.EmailRoutingKey,
             MqQueue.EmailQueue,
             email.MessageType,
             ExchangeType.Direct);
@@ -704,7 +704,7 @@ public class AuthorizationServiceImpl : IAuthorizationService
         // 发送短信验证码MQ
         MqPublisher publisher = new MqPublisher(body,
             MqExchange.MessageExchange,
-            MqRoutingKey.MessageRoutingKey,
+            MqRoutingKey.SmsRoutingKey,
             MqQueue.SmSQueue,
             MessageType.SmSVerificationCode,
             ExchangeType.Direct);

@@ -57,7 +57,7 @@ public class EmailConsumerService : BackgroundService
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
         MqSubscriber subscriber = new MqSubscriber(MqExchange.MessageExchange,
-            MqRoutingKey.MessageRoutingKey, MqQueue.EmailQueue);
+            MqRoutingKey.EmailRoutingKey, MqQueue.EmailQueue);
         await _rabbitMqMessage.ReceiveAsync(subscriber, async message =>
         {
             MqMessage mqMessage = message as MqMessage;

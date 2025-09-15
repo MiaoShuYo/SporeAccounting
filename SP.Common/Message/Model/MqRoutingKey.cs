@@ -11,9 +11,14 @@ public static class MqRoutingKey
     public const string BudgetRoutingKey = "budget_routing_key";
 
     /// <summary>
-    /// 发送邮件/短信消息路由键
+    /// 邮件消息路由键（推荐）
     /// </summary>
-    public const string MessageRoutingKey = "message_routing_key";
+    public const string EmailRoutingKey = "email_routing_key";
+
+    /// <summary>
+    /// 短信消息路由键（推荐）
+    /// </summary>
+    public const string SmsRoutingKey = "sms_routing_key";
 
     /// <summary>
     /// 用户配置默认币种消息路由键

@@ -224,13 +224,13 @@ public class AuthorizationController : ControllerBase
     }
 
     /// <summary>
-    /// 发送邮件
+    /// 发送邮件验证码
     /// </summary>
     /// <param name="email"></param>
-    [HttpPost("emails")]
-    public async Task<ActionResult> SendEmail([FromBody] SendEmailRequest email)
+    [HttpPost("emailVerificationCode")]
+    public async Task<ActionResult> EmailVerificationCode([FromBody] SendEmailRequest email)
     {
-        await _authorizationService.SendEmailAsync(email);
+        await _authorizationService.EmailVerificationCode(email);
         return Ok();
     }
 

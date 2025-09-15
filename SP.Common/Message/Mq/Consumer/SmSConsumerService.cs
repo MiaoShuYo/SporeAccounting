@@ -46,7 +46,7 @@ public class SmSConsumerService : BackgroundService
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
         MqSubscriber subscriber = new MqSubscriber(MqExchange.MessageExchange,
-            MqRoutingKey.MessageRoutingKey, MqQueue.SmSQueue);
+            MqRoutingKey.SmsRoutingKey, MqQueue.SmSQueue);
         await _rabbitMqMessage.ReceiveAsync(subscriber, async message =>
         {
             MqMessage mqMessage = message as MqMessage;

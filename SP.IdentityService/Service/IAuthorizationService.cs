@@ -52,7 +52,7 @@ public interface IAuthorizationService
     /// </summary>
     /// <param name="email"></param>
     /// <returns>是否发送成功</returns>
-    Task SendEmailAsync(SendEmailRequest email);
+    Task EmailVerificationCode(SendEmailRequest email);
 
     /// <summary>
     /// 添加邮箱
