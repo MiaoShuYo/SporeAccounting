@@ -136,10 +136,9 @@ public class RabbitMqMessage
 
             try
             {
+                // 为防止敏感信息外泄，不记录 Exchange、Queue、RoutingKey 和消息体内容
                 _logger.LogInformation(
-                    $"RabbitMQ消息接收开始：\r\n消息id：{mqMessage.Id}\r\n队列：{subscriber.Queue}\r\n" +
-                    $"\r\n交换机：{subscriber.Exchange}\r\n路由键：{subscriber.RoutingKey}\r\n消息体：{mqMessage.Body}" +
-                    $"\r\n消息类型：{mqMessage.Type}");
+                    $"RabbitMQ消息接收开始：\r\n消息id：{mqMessage.Id}\r\n消息类型：{mqMessage.Type}");
                 await onReceived(mqMessage);
                 await channel.BasicAckAsync(deliveryTag: ea.DeliveryTag, multiple: false);
             }
