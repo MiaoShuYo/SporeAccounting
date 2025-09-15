@@ -90,16 +90,37 @@ public class CaptchaServiceImpl : ICaptchaService
                 ctx.Draw(pen, pb.Build());
             }
 
-            // 文本：使用默认系统字体（第一个可用的字体）
-            var fontFamily = SystemFonts.Families.First();
-            var font = new Font(fontFamily, height * 0.6f, FontStyle.Bold);
-            var textOptions = new RichTextOptions(font)
+            // 文本：使用默认系统字体，如果无可用字体则跳过文字渲染
+            Font? font = null;
+            try
             {
-                HorizontalAlignment = HorizontalAlignment.Center,
-                VerticalAlignment = VerticalAlignment.Center,
-                Origin = new PointF(width / 2f, height / 2f)
-            };
-            ctx.DrawText(textOptions, code, Color.Black);
+                var fontFamily = SystemFonts.Families.FirstOrDefault();
+                if (fontFamily != null)
+                {
+                    font = new Font(fontFamily, height * 0.6f, FontStyle.Bold);
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "无法加载系统字体，将生成无文字的验证码");
+            }
+
+            // 只有在有字体时才绘制文字
+            if (font != null)
+            {
+                var textOptions = new RichTextOptions(font)
+                {
+                    HorizontalAlignment = HorizontalAlignment.Center,
+                    VerticalAlignment = VerticalAlignment.Center,
+                    Origin = new PointF(width / 2f, height / 2f)
+                };
+                ctx.DrawText(textOptions, code, Color.Black);
+            }
+            else
+            {
+                // 无字体时绘制简单的几何图形作为验证码
+                DrawFallbackPattern(ctx, width, height, code);
+            }
 
             // 轻微扭曲/噪点
             for (int i = 0; i < width * height / 30; i++)
@@ -160,5 +181,62 @@ public class CaptchaServiceImpl : ICaptchaService
         }
 
         return sb.ToString();
+    }
+
+    /// <summary>
+    /// 无字体时的回退图案绘制
+    /// </summary>
+    /// <param name="ctx">图像处理上下文</param>
+    /// <param name="width">图像宽度</param>
+    /// <param name="height">图像高度</param>
+    /// <param name="code">验证码文本</param>
+    private static void DrawFallbackPattern(IImageProcessingContext ctx, int width, int height, string code)
+    {
+        var random = Random.Shared;
+        var cellWidth = width / code.Length;
+        
+        for (int i = 0; i < code.Length; i++)
+        {
+            var x = i * cellWidth + cellWidth / 2;
+            var y = height / 2;
+            
+            // 根据字符绘制不同的几何图形
+            var charValue = code[i];
+            var shapeType = charValue % 4; // 4种形状
+            
+            var color = Color.FromRgb((byte)random.Next(100, 200), (byte)random.Next(100, 200), (byte)random.Next(100, 200));
+            var pen = Pens.Solid(color, 2);
+            
+            switch (shapeType)
+            {
+                case 0: // 圆形
+                    var radius = Math.Min(cellWidth, height) / 4;
+                    var circlePath = new PathBuilder().AddEllipse(new RectangleF(x - radius, y - radius, radius * 2, radius * 2)).Build();
+                    ctx.Draw(pen, circlePath);
+                    break;
+                case 1: // 矩形
+                    var rectSize = Math.Min(cellWidth, height) / 3;
+                    var rectPath = new PathBuilder().AddRectangle(new RectangleF(x - rectSize/2, y - rectSize/2, rectSize, rectSize)).Build();
+                    ctx.Draw(pen, rectPath);
+                    break;
+                case 2: // 三角形
+                    var triSize = Math.Min(cellWidth, height) / 3;
+                    var triPath = new PathBuilder()
+                        .AddLine(new PointF(x, y - triSize), new PointF(x - triSize, y + triSize))
+                        .AddLine(new PointF(x - triSize, y + triSize), new PointF(x + triSize, y + triSize))
+                        .CloseFigure()
+                        .Build();
+                    ctx.Draw(pen, triPath);
+                    break;
+                case 3: // 十字
+                    var crossSize = Math.Min(cellWidth, height) / 4;
+                    var crossPath = new PathBuilder()
+                        .AddLine(new PointF(x - crossSize, y), new PointF(x + crossSize, y))
+                        .AddLine(new PointF(x, y - crossSize), new PointF(x, y + crossSize))
+                        .Build();
+                    ctx.Draw(pen, crossPath);
+                    break;
+            }
+        }
     }
 }
