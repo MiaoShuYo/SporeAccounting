@@ -2,7 +2,6 @@
 using Baidu.Aip.Ocr;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
-using Newtonsoft.Json.Linq;
 using SP.Common.Message.Model;
 using SP.Common.Message.Mq;
 using SP.Common.Message.Mq.Model;
