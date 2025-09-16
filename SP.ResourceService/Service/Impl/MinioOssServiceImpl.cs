@@ -16,7 +16,7 @@ namespace SP.ResourceService.Service.Impl;
 /// <summary>
 /// MinIO oss 实现类
 /// </summary>
-public class MinioOssService : IOssService
+public class MinioOssServiceImpl : IOssService
 {
     /// <summary>
     /// MinIO 客户端
@@ -31,7 +31,7 @@ public class MinioOssService : IOssService
     /// <summary>
     /// 日志记录器
     /// </summary>
-    private readonly ILogger<MinioOssService> _logger;
+    private readonly ILogger<MinioOssServiceImpl> _logger;
 
     /// <summary>
     /// 数据库上下文
@@ -44,7 +44,7 @@ public class MinioOssService : IOssService
     /// <param name="options"></param>
     /// <param name="logger"></param>
     /// <param name="dbContext"></param>
-    public MinioOssService(IOptions<MinioOptions> options, ILogger<MinioOssService> logger,
+    public MinioOssServiceImpl(IOptions<MinioOptions> options, ILogger<MinioOssServiceImpl> logger,
         ResourceServiceDbContext dbContext)
     {
         _options = options;

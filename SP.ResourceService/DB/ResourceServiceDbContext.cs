@@ -13,7 +13,15 @@ public class ResourceServiceDbContext:DbContext
     /// </summary>
     private readonly IConfiguration _dbConfig;
     
+    /// <summary>
+    /// 文件表
+    /// </summary>
     public DbSet<Files> Files { get; set; }
+    
+    /// <summary>
+    /// 图片文字表
+    /// </summary>
+    public DbSet<ImageText> ImageTexts { get; set; }
 
     /// <summary>
     /// 构造函数

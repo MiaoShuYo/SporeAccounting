@@ -2,11 +2,13 @@ using System.Reflection;
 using Nacos.AspNetCore.V2;
 using Nacos.V2.DependencyInjection;
 using SP.Common;
+using SP.Common.ConfigService;
 using SP.Common.Logger;
 using SP.Common.Middleware;
 using SP.ResourceService;
 using SP.ResourceService.DB;
 using SP.Common.ExceptionHandling;
+using SP.Common.Message.Mq;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -77,8 +79,16 @@ builder.Services.AddScoped<ContextSession>();
 builder.Services.AddDbContext<ResourceServiceDbContext>(ServiceLifetime.Scoped);
 // 注入MinIO
 builder.Services.AddOssService(builder.Configuration);
+// 注入OCR
+builder.Services.AddOCRService(builder.Configuration);
 // 注入loki日志服务
 builder.Services.AddLoggerService(builder.Configuration);
+builder.Services.AddSingleton<RabbitMqMessage>(provider =>
+{
+    var configService = provider.GetRequiredService<RabbitMqConfigService>();
+    var logger = provider.GetRequiredService<ILogger<RabbitMqMessage>>();
+    return new RabbitMqMessage(logger, configService.GetRabbitMqConfig());
+});
 var app = builder.Build();
 
 // 设置静态服务提供者

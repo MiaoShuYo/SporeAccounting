@@ -6,6 +6,11 @@
 public static class MqRoutingKey
 {
     /// <summary>
+    /// OCR消息路由键
+    /// </summary>
+    public const string OCRRoutingKey = "ocr_routing_key";
+
+    /// <summary>
     /// 预算消息路由键
     /// </summary>
     public const string BudgetRoutingKey = "budget_routing_key";

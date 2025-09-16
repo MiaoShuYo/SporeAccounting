@@ -3,6 +3,11 @@
 public static class MqQueue
 {
     /// <summary>
+    /// OCR消息队列
+    /// </summary>
+    public const string OCRQueue="ocr_queue";
+
+    /// <summary>
     /// 预算消息队列
     /// </summary>
     public const string BudgetQueue = "budget_queue";

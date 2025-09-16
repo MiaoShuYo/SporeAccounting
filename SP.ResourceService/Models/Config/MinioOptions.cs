@@ -1,4 +1,4 @@
-namespace SP.ResourceService.Models.Entity;
+namespace SP.ResourceService.Models.Config;
 
 /// <summary>
 /// Minio 配置选项

@@ -72,6 +72,46 @@ namespace SP.ResourceService.Migrations
 
                     b.ToTable("Files");
                 });
+
+            modelBuilder.Entity("SP.ResourceService.Models.Entity.ImageText", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasComment("Id");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<DateTime>("CreateDateTime")
+                        .HasColumnType("datetime")
+                        .HasComment("创建时间");
+
+                    b.Property<long>("CreateUserId")
+                        .HasColumnType("bigint")
+                        .HasComment("创建用户");
+
+                    b.Property<long>("FileId")
+                        .HasColumnType("bigint");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<string>("RecognizedText")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<DateTime?>("UpdateDateTime")
+                        .HasColumnType("datetime")
+                        .HasComment("修改时间");
+
+                    b.Property<long?>("UpdateUserId")
+                        .HasColumnType("bigint")
+                        .HasComment("修改用户");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("image_text");
+                });
 #pragma warning restore 612, 618
         }
     }
