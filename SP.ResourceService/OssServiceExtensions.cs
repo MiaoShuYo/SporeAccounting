@@ -9,7 +9,7 @@ public static class OssServiceExtensions
     public static IServiceCollection AddOssService(this IServiceCollection services, IConfiguration configuration, string sectionName = "Minio")
     {
         services.Configure<MinioOptions>(configuration.GetSection(sectionName));
-        services.AddSingleton<IOssService, MinioOssService>();
+        services.AddScoped<IOssService, MinioOssService>();
         return services;
     }
 }
