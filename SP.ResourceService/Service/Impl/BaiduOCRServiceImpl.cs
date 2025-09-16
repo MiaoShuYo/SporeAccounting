@@ -56,11 +56,13 @@ public class BaiduOCRServiceImpl : IOCRService
         {
             throw new NotFoundException("文件不存在");
         }
+
         // 格式必须是PNG、JPG或JPEG
-        if(file.ContentType!="image/png" && file.ContentType!="image/jpg" && file.ContentType!="image/jpeg")
+        if (file.ContentType != "image/png" && file.ContentType != "image/jpg" && file.ContentType != "image/jpeg")
         {
             throw new BadRequestException("仅支持PNG、JPG或JPEG格式的图片");
         }
+
         string fileInfoJson = JsonSerializer.Serialize(file);
         MqPublisher publisher = new MqPublisher(fileInfoJson, MqExchange.MessageExchange,
             MqRoutingKey.OCRRoutingKey, MqQueue.OCRQueue, "", ExchangeType.Direct);
@@ -72,8 +74,14 @@ public class BaiduOCRServiceImpl : IOCRService
     /// </summary>
     /// <param name="fileId">图片文件id</param>
     /// <returns></returns>
-    public Task<string?> GetRecognizedTextAsync(long fileId)
+    public async Task<string?> GetRecognizedTextAsync(long fileId)
     {
-        throw new NotImplementedException();
+        string? text =await _dbContext.ImageTexts.Where(p => !p.IsDeleted && p.FileId == fileId)
+            .Select(p => p.RecognizedText).FirstOrDefaultAsync();
+        if (text == null)
+        {
+            return "";
+        }
+        return text;
     }
 }

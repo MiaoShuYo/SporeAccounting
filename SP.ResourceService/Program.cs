@@ -9,6 +9,7 @@ using SP.ResourceService;
 using SP.ResourceService.DB;
 using SP.Common.ExceptionHandling;
 using SP.Common.Message.Mq;
+using SP.ResourceService.Mq;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -83,6 +84,10 @@ builder.Services.AddOssService(builder.Configuration);
 builder.Services.AddOCRService(builder.Configuration);
 // 注入loki日志服务
 builder.Services.AddLoggerService(builder.Configuration);
+// 注册消息队列OCR消费者服务
+builder.Services.AddHostedService<OCRConsumerService>();
+// 注册 RabbitMqConfigService
+builder.Services.AddSingleton<RabbitMqConfigService>();
 builder.Services.AddSingleton<RabbitMqMessage>(provider =>
 {
     var configService = provider.GetRequiredService<RabbitMqConfigService>();

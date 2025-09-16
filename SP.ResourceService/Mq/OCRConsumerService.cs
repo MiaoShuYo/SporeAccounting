@@ -15,7 +15,7 @@ using SP.ResourceService.Service;
 namespace SP.ResourceService.Mq;
 
 /// <summary>
-/// 详细队列OCR消费之服务
+/// 消息队列OCR消费者服务
 /// </summary>
 public class OCRConsumerService : BackgroundService
 {
@@ -51,12 +51,14 @@ public class OCRConsumerService : BackgroundService
     /// <param name="rabbitMqMessage"></param>
     /// <param name="logger"></param>
     /// <param name="dbContext"></param>
+    /// <param name="ossService"></param>
     public OCRConsumerService(IOptions<BaiduOCROptions> options, RabbitMqMessage rabbitMqMessage,
-        ILogger<OCRConsumerService> logger, ResourceServiceDbContext dbContext)
+        ILogger<OCRConsumerService> logger, ResourceServiceDbContext dbContext, IOssService ossService)
     {
         _logger = logger;
         _rabbitMqMessage = rabbitMqMessage;
         _dbContext = dbContext;
+        _ossService = ossService;
 
         try
         {
@@ -85,37 +87,45 @@ public class OCRConsumerService : BackgroundService
             MqRoutingKey.OCRRoutingKey, MqQueue.OCRQueue);
         await _rabbitMqMessage.ReceiveAsync(subscriber, async message =>
         {
-            MqMessage mqMessage = message as MqMessage;
-
-            string body = mqMessage.Body;
-            _logger.LogInformation($"接收到OCR消息，消息内容：{body}");
-            Files? fileInfo = JsonSerializer.Deserialize<Files>(body);
-            if (fileInfo == null)
-            {
-                _logger.LogError("消息内容转换失败，消息内容为空");
-                return;
-            }
-
-            // 校验图片是否存在
-            Files? file = await _dbContext.Files.FirstOrDefaultAsync(p => !p.IsDeleted && p.Id == fileInfo.Id,
-                cancellationToken: stoppingToken);
-            if (file == null)
-            {
-                _logger.LogError("文件不存在，文件id：" + fileInfo.Id);
-                return;
-            }
-
-            // 从MinIO获取图片
-            string url = await _ossService.GetUrlAsync(file.Id);
-            if (string.IsNullOrWhiteSpace(url))
-            {
-                _logger.LogError("获取图片URL失败，文件id：" + fileInfo.Id + "，文件名：" + fileInfo.ObjectName);
-                return;
-            }
-
+            long fileId = 0L;
             try
             {
-                var image = File.ReadAllBytes("图片文件路径");
+                MqMessage mqMessage = message as MqMessage;
+
+                string body = mqMessage.Body;
+                _logger.LogInformation($"接收到OCR消息，消息内容：{body}");
+                Files? fileInfo = JsonSerializer.Deserialize<Files>(body);
+                if (fileInfo == null)
+                {
+                    _logger.LogError("消息内容转换失败，消息内容为空");
+                    return;
+                }
+
+                fileId = fileInfo.Id;
+                // 校验图片是否存在
+                Files? file = await _dbContext.Files.FirstOrDefaultAsync(p => !p.IsDeleted && p.Id == fileInfo.Id,
+                    cancellationToken: stoppingToken);
+                if (file == null)
+                {
+                    _logger.LogError("文件不存在，文件id：" + fileInfo.Id);
+                    return;
+                }
+
+                // 从MinIO下载图片
+                byte[] image;
+                try
+                {
+                    using var stream = await _ossService.DownloadAsync(file.ObjectName, file.IsPublic, stoppingToken);
+                    using var memoryStream = new MemoryStream();
+                    await stream.CopyToAsync(memoryStream, stoppingToken);
+                    image = memoryStream.ToArray();
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "下载图片失败，文件id：{FileId}，文件名：{ObjectName}", fileInfo.Id, fileInfo.ObjectName);
+                    return;
+                }
+
                 // 如果有可选参数
                 var options = new Dictionary<string, object>
                 {
@@ -131,26 +141,45 @@ public class OCRConsumerService : BackgroundService
                 }
 
                 _logger.LogInformation("OCR识别结果：" + result);
-                var words = result["words"];
-                if (words == null)
+                var worksResult = result["words_result"];
+                if (worksResult == null)
                 {
                     _logger.LogError("OCR识别结果为空，文件id：" + fileInfo.Id);
                     return;
                 }
 
-                ImageText imageText = new ImageText
+                List<string> wordList = new List<string>();
+                foreach (var item in worksResult)
                 {
-                    FileId = fileInfo.Id,
-                    RecognizedText = words.ToString()
-                };
-                SettingCommProperty.Create(imageText);
-                await _dbContext.ImageTexts.AddAsync(imageText, stoppingToken);
+                    wordList.Add(item["words"]?.ToString() ?? string.Empty);
+                }
+                // 查询是否存在，如果存在就替换识别的内容
+                ImageText? imageText =
+                    await _dbContext.ImageTexts.FirstOrDefaultAsync(p => !p.IsDeleted && p.FileId == fileId);
+                if (imageText == null)
+                {
+                    imageText = new ImageText
+                    {
+                        FileId = fileInfo.Id,
+                        RecognizedText = string.Join("", wordList),
+                    };
+                    SettingCommProperty.Create(imageText);
+                    await _dbContext.ImageTexts.AddAsync(imageText, stoppingToken);
+                }
+                else
+                {
+                    imageText.RecognizedText= string.Join("", wordList);
+                    SettingCommProperty.Edit(imageText);
+                    _dbContext.ImageTexts.Update(imageText);
+                }
+
+                
                 await _dbContext.SaveChangesAsync(stoppingToken);
                 _logger.LogInformation("OCR识别成功，文件id：" + fileInfo.Id);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "OCR识别失败，文件id：" + fileInfo.Id);
+                _logger.LogError(ex, "OCR识别失败，文件id：" + fileId);
             }
             finally
             {
