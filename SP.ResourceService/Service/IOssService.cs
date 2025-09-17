@@ -50,5 +50,5 @@ public interface IOssService
     /// </summary>
     /// <param name="request">上传确认请求</param>
     /// <returns></returns>
-    Task ConfirmUploadAsync(ConfirmUploadRequest request, CancellationToken ct = default);
+    Task<long> ConfirmUploadAsync(ConfirmUploadRequest request, CancellationToken ct = default);
 }

@@ -258,7 +258,7 @@ public class MinioOssServiceImpl : IOssService
     /// </summary>
     /// <param name="request"></param>
     /// <returns></returns>
-    public async Task ConfirmUploadAsync(ConfirmUploadRequest request, CancellationToken ct = default)
+    public async Task<long> ConfirmUploadAsync(ConfirmUploadRequest request, CancellationToken ct = default)
     {
         // 验证文件是否真的存在于 MinIO 中
         var bucket = request.IsPublic ? _options.Value.PublicBucket : _options.Value.PrivateBucket;
@@ -283,6 +283,7 @@ public class MinioOssServiceImpl : IOssService
             SettingCommProperty.Create(fileInfo);
             _dbContext.Files.Add(fileInfo);
             await _dbContext.SaveChangesAsync(ct);
+            return fileInfo.Id;
         }
         catch (Exception ex)
         {

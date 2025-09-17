@@ -36,7 +36,7 @@ public class FilesController : ControllerBase
     [Consumes("multipart/form-data")]
     public async Task<ActionResult> Upload(IFormFile file, [FromQuery] bool isPublic = true)
     {
-        await _oss.UploadAsync(file,isPublic);
+        await _oss.UploadAsync(file, isPublic);
         return Ok();
     }
 
@@ -46,9 +46,10 @@ public class FilesController : ControllerBase
     /// <param name="fileId">文件id</param>
     /// <returns></returns>
     [HttpGet("url")]
-    public async Task<string> GetUrl([FromQuery] long fileId)
+    public async Task<ActionResult<string>> GetUrl([FromQuery] long fileId)
     {
-        return await _oss.GetUrlAsync(fileId);
+        string url = await _oss.GetUrlAsync(fileId);
+        return Ok(url);
     }
 
     /// <summary>
@@ -69,21 +70,22 @@ public class FilesController : ControllerBase
     /// <param name="isPublic">是否上传到公开桶（默认公开）</param>
     /// <returns>包含预签名上传 URL 和对象名的响应</returns>
     [HttpGet("upload-token")]
-    public async Task<PresignedURLResponse> GetUploadToken([FromQuery] string fileName, [FromQuery] bool isPublic = true)
+    public async Task<ActionResult<PresignedURLResponse>> GetUploadToken([FromQuery] string fileName,
+        [FromQuery] bool isPublic = true)
     {
         PresignedURLResponse presignedPutUrl = await _oss.GetPresignedPutUrlAsync(fileName, isPublic);
-        return presignedPutUrl;
+        return Ok(presignedPutUrl);
     }
-    
+
     /// <summary>
     /// 确认文件上传成功
     /// </summary>
     /// <param name="request">文件确认请求</param>
-    /// <returns></returns>
+    /// <returns>文件id</returns>
     [HttpPost("confirm-upload")]
-    public async Task<ActionResult> ConfirmUpload([FromBody] ConfirmUploadRequest request)
+    public async Task<ActionResult<long>> ConfirmUpload([FromBody] ConfirmUploadRequest request)
     {
-        await _oss.ConfirmUploadAsync(request);
-        return Ok();
+        long fileId = await _oss.ConfirmUploadAsync(request);
+        return Ok(fileId);
     }
 }
