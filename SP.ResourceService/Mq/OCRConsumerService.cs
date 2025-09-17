@@ -1,6 +1,7 @@
 ﻿using System.Text.Json;
 using Baidu.Aip.Ocr;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using SP.Common.Message.Model;
 using SP.Common.Message.Mq;
@@ -29,14 +30,9 @@ public class OCRConsumerService : BackgroundService
     private readonly ILogger<OCRConsumerService> _logger;
 
     /// <summary>
-    /// 数据库上下文
+    /// 作用域工厂
     /// </summary>
-    private readonly ResourceServiceDbContext _dbContext;
-
-    /// <summary>
-    /// OSS 服务
-    /// </summary>
-    private readonly IOssService _ossService;
+    private readonly IServiceScopeFactory _serviceScopeFactory;
 
     /// <summary>
     /// 百度OCR客户端
@@ -49,15 +45,12 @@ public class OCRConsumerService : BackgroundService
     /// <param name="options"></param>
     /// <param name="rabbitMqMessage"></param>
     /// <param name="logger"></param>
-    /// <param name="dbContext"></param>
-    /// <param name="ossService"></param>
     public OCRConsumerService(IOptions<BaiduOCROptions> options, RabbitMqMessage rabbitMqMessage,
-        ILogger<OCRConsumerService> logger, ResourceServiceDbContext dbContext, IOssService ossService)
+        ILogger<OCRConsumerService> logger, IServiceScopeFactory serviceScopeFactory)
     {
         _logger = logger;
         _rabbitMqMessage = rabbitMqMessage;
-        _dbContext = dbContext;
-        _ossService = ossService;
+        _serviceScopeFactory = serviceScopeFactory;
 
         try
         {
@@ -101,8 +94,12 @@ public class OCRConsumerService : BackgroundService
                 }
 
                 fileId = fileInfo.Id;
+                using var scope = _serviceScopeFactory.CreateScope();
+                var dbContext = scope.ServiceProvider.GetRequiredService<ResourceServiceDbContext>();
+                var ossService = scope.ServiceProvider.GetRequiredService<IOssService>();
+
                 // 校验图片是否存在
-                Files? file = await _dbContext.Files.FirstOrDefaultAsync(p => !p.IsDeleted && p.Id == fileInfo.Id,
+                Files? file = await dbContext.Files.FirstOrDefaultAsync(p => !p.IsDeleted && p.Id == fileInfo.Id,
                     cancellationToken: stoppingToken);
                 if (file == null)
                 {
@@ -114,7 +111,7 @@ public class OCRConsumerService : BackgroundService
                 byte[] image;
                 try
                 {
-                    using var stream = await _ossService.DownloadAsync(file.ObjectName, file.IsPublic, stoppingToken);
+                    using var stream = await ossService.DownloadAsync(file.ObjectName, file.IsPublic, stoppingToken);
                     using var memoryStream = new MemoryStream();
                     await stream.CopyToAsync(memoryStream, stoppingToken);
                     image = memoryStream.ToArray();
@@ -154,7 +151,7 @@ public class OCRConsumerService : BackgroundService
                 }
                 // 查询是否存在，如果存在就替换识别的内容
                 ImageText? imageText =
-                    await _dbContext.ImageTexts.FirstOrDefaultAsync(p => !p.IsDeleted && p.FileId == fileId);
+                    await dbContext.ImageTexts.FirstOrDefaultAsync(p => !p.IsDeleted && p.FileId == fileId);
                 if (imageText == null)
                 {
                     imageText = new ImageText
@@ -163,17 +160,16 @@ public class OCRConsumerService : BackgroundService
                         RecognizedText = string.Join("", wordList),
                     };
                     SettingCommProperty.Create(imageText);
-                    await _dbContext.ImageTexts.AddAsync(imageText, stoppingToken);
+                    await dbContext.ImageTexts.AddAsync(imageText, stoppingToken);
                 }
                 else
                 {
                     imageText.RecognizedText= string.Join("", wordList);
                     SettingCommProperty.Edit(imageText);
-                    _dbContext.ImageTexts.Update(imageText);
+                    dbContext.ImageTexts.Update(imageText);
                 }
 
-                
-                await _dbContext.SaveChangesAsync(stoppingToken);
+                await dbContext.SaveChangesAsync(stoppingToken);
                 _logger.LogInformation("OCR识别成功，文件id：" + fileInfo.Id);
             }
             catch (Exception ex)
