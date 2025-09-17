@@ -82,6 +82,10 @@ builder.Services.AddDbContext<ResourceServiceDbContext>(ServiceLifetime.Scoped);
 builder.Services.AddOssService(builder.Configuration);
 // 注入OCR
 builder.Services.AddOCRService(builder.Configuration);
+// 注入提示词
+builder.Services.AddPromptsService(builder.Configuration);
+// 注入DeepSeek服务
+builder.Services.AddDeepSeekService(builder.Configuration);
 // 注入loki日志服务
 builder.Services.AddLoggerService(builder.Configuration);
 // 注册消息队列OCR消费者服务
