@@ -29,5 +29,16 @@ SP.ReportService/SP.ReportService.csproj.user
 SP.ResourceService/obj/
 SP.ResourceService/bin/
 SP.ResourceService/SP.ResourceService.csproj.user
+SP.MLService/obj/
+SP.MLService/bin/
+SP.MLService/SP.MLService.csproj.user
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+*.DotSettings
+*.DotSettings.user
+*.resharper
+*.sln.DotSettings
 SporeAccounting.sln.DotSettings.user
 microservice-analysis.md
