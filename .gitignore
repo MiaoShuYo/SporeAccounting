@@ -32,7 +32,7 @@ SP.ResourceService/SP.ResourceService.csproj.user
 SP.MLService/obj/
 SP.MLService/bin/
 SP.MLService/SP.MLService.csproj.user
-SP.MLService/Models/
+SP.MLService/AIModels/
 *.user
 *.suo
 *.userosscache

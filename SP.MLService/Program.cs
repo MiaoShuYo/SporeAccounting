@@ -78,7 +78,7 @@ builder.Services.AddCors(options =>
 builder.Services.AddSingleton<ProgressiveLearningManager>(provider =>
 {
     var config = provider.GetRequiredService<IConfiguration>();
-    var modelPath = config["ML:ModelPath"] ?? Path.Combine(AppContext.BaseDirectory, "Models", "category_model.zip");
+    var modelPath = config["ML:ModelPath"] ?? Path.Combine(AppContext.BaseDirectory, "AIModels", "category_model.zip");
     
     // MongoDB配置
     var connectionString = config["ML:MongoDB:ConnectionString"] ?? "mongodb://admin:admin@14.103.224.141:27017/admin";
@@ -106,6 +106,7 @@ if (app.Environment.IsDevelopment() || app.Environment.EnvironmentName == "Local
 }
 
 app.UseHttpsRedirection();
+app.UseStaticFiles(); 
 app.UseCors("AllowAll");
 app.UseAuthorization();
 app.MapControllers();
