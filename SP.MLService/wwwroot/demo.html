@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SporeAccountingML API 演示</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .section {
+            margin-bottom: 30px;
+            padding: 20px;
+            border: 1px solid #e0e0e0;
+            border-radius: 6px;
+        }
+        .section h3 {
+            margin-top: 0;
+            color: #2c5aa0;
+        }
+        input, select, button {
+            width: 100%;
+            padding: 10px;
+            margin: 5px 0;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        button {
+            background-color: #2c5aa0;
+            color: white;
+            border: none;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        button:hover {
+            background-color: #1e3d6f;
+        }
+        button:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+        }
+        .result {
+            margin-top: 15px;
+            padding: 15px;
+            border-radius: 4px;
+            white-space: pre-wrap;
+            font-family: monospace;
+            font-size: 13px;
+        }
+        .success {
+            background-color: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+        }
+        .error {
+            background-color: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+        }
+        .info {
+            background-color: #d1ecf1;
+            border: 1px solid #bee5eb;
+            color: #0c5460;
+        }
+        .category-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin: 10px 0;
+        }
+        .category-tag {
+            background-color: #e7f3ff;
+            border: 1px solid #b3d9ff;
+            padding: 5px 10px;
+            border-radius: 15px;
+            font-size: 12px;
+            color: #0056b3;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🧠 SporeAccountingML API 演示</h1>
+        
+        <!-- 统计信息 -->
+        <div class="section">
+            <h3>📊 学习统计</h3>
+            <button onclick="getStats()">获取统计信息</button>
+            <div id="statsResult" class="result" style="display:none;"></div>
+        </div>
+
+        <!-- 预测测试 -->
+        <div class="section">
+            <h3>🔮 智能预测</h3>
+            <input type="text" id="queryInput" placeholder="输入消费描述（如：星巴克咖啡、地铁卡充值）" value="星巴克咖啡">
+            <input type="text" id="userIdInput" placeholder="用户ID（可选）" value="demo_user">
+            <div class="category-list">
+                <div class="category-tag">餐饮</div>
+                <div class="category-tag">交通</div>
+                <div class="category-tag">数码</div>
+                <div class="category-tag">娱乐</div>
+                <div class="category-tag">购物</div>
+            </div>
+            <button onclick="predictCategory()">预测类目</button>
+            <div id="predictResult" class="result" style="display:none;"></div>
+        </div>
+
+        <!-- 反馈记录 -->
+        <div class="section">
+            <h3>✅ 记录用户选择</h3>
+            <input type="text" id="choiceQuery" placeholder="消费描述" value="肯德基外卖">
+            <select id="selectedCategory">
+                <option value="餐饮">餐饮</option>
+                <option value="交通">交通</option>
+                <option value="数码">数码</option>
+                <option value="娱乐">娱乐</option>
+                <option value="购物">购物</option>
+            </select>
+            <button onclick="recordChoice()">记录选择</button>
+            <div id="choiceResult" class="result" style="display:none;"></div>
+        </div>
+
+        <!-- 纠正记录 -->
+        <div class="section">
+            <h3>❌➡️✅ 记录用户纠正</h3>
+            <input type="text" id="correctionQuery" placeholder="消费描述" value="滴滴打车">
+            <select id="wrongCategory">
+                <option value="餐饮">错误预测：餐饮</option>
+                <option value="交通">错误预测：交通</option>
+                <option value="数码">错误预测：数码</option>
+                <option value="娱乐">错误预测：娱乐</option>
+                <option value="购物">错误预测：购物</option>
+            </select>
+            <select id="correctCategory">
+                <option value="餐饮">正确类目：餐饮</option>
+                <option value="交通" selected>正确类目：交通</option>
+                <option value="数码">正确类目：数码</option>
+                <option value="娱乐">正确类目：娱乐</option>
+                <option value="购物">正确类目：购物</option>
+            </select>
+            <button onclick="recordCorrection()">记录纠正</button>
+            <div id="correctionResult" class="result" style="display:none;"></div>
+        </div>
+
+        <!-- 手动重训 -->
+        <div class="section">
+            <h3>🔄 手动重训</h3>
+            <p>管理员功能：强制触发模型重新训练</p>
+            <button onclick="triggerRetraining()">触发重训</button>
+            <div id="retrainResult" class="result" style="display:none;"></div>
+        </div>
+    </div>
+
+    <script>
+        // API 基础配置
+        const API_BASE = window.location.origin + '/api/categoryprediction';
+        
+        // 默认类目列表
+        const defaultCategories = [
+            { id: 'c1', name: '餐饮' },
+            { id: 'c2', name: '交通' },
+            { id: 'c3', name: '数码' },
+            { id: 'c4', name: '娱乐' },
+            { id: 'c5', name: '购物' }
+        ];
+
+        // 通用API调用函数
+        async function callAPI(endpoint, method = 'GET', data = null) {
+            try {
+                const options = {
+                    method: method,
+                    headers: {
+                        'Content-Type': 'application/json',
+                    }
+                };
+                
+                if (data) {
+                    options.body = JSON.stringify(data);
+                }
+                
+                const response = await fetch(`${API_BASE}${endpoint}`, options);
+                const result = await response.json();
+                
+                if (!response.ok) {
+                    throw new Error(result.error || `HTTP ${response.status}`);
+                }
+                
+                return { success: true, data: result };
+            } catch (error) {
+                return { success: false, error: error.message };
+            }
+        }
+
+        // 显示结果
+        function showResult(elementId, result, type = 'info') {
+            const element = document.getElementById(elementId);
+            element.style.display = 'block';
+            element.className = `result ${type}`;
+            element.textContent = typeof result === 'string' ? result : JSON.stringify(result, null, 2);
+        }
+
+        // 获取统计信息
+        async function getStats() {
+            const result = await callAPI('/stats');
+            if (result.success) {
+                showResult('statsResult', result.data, 'success');
+            } else {
+                showResult('statsResult', `错误: ${result.error}`, 'error');
+            }
+        }
+
+        // 预测类目
+        async function predictCategory() {
+            const query = document.getElementById('queryInput').value.trim();
+            const userId = document.getElementById('userIdInput').value.trim();
+            
+            if (!query) {
+                showResult('predictResult', '请输入消费描述', 'error');
+                return;
+            }
+
+            const requestData = {
+                query: query,
+                categories: defaultCategories,
+                userId: userId,
+                merchant: '',
+                amountBucket: Math.floor(Math.random() * 5), // 随机金额分箱
+                hourOfDay: new Date().getHours()
+            };
+
+            const result = await callAPI('/predict', 'POST', requestData);
+            if (result.success) {
+                const prediction = result.data;
+                const displayText = `预测结果：
+类目: ${prediction.predictedCategory.name}
+置信度: ${(prediction.confidence * 100).toFixed(1)}%
+方法: ${prediction.method === 'MachineLearning' ? '机器学习' : '规则匹配'}
+需要确认: ${prediction.requiresUserConfirmation ? '是' : '否'}`;
+                showResult('predictResult', displayText, 'success');
+            } else {
+                showResult('predictResult', `预测失败: ${result.error}`, 'error');
+            }
+        }
+
+        // 记录用户选择
+        async function recordChoice() {
+            const query = document.getElementById('choiceQuery').value.trim();
+            const selectedCategoryName = document.getElementById('selectedCategory').value;
+            
+            if (!query) {
+                showResult('choiceResult', '请输入消费描述', 'error');
+                return;
+            }
+
+            const selectedCategory = defaultCategories.find(c => c.name === selectedCategoryName);
+            const requestData = {
+                query: query,
+                selectedCategory: selectedCategory,
+                availableCategories: defaultCategories,
+                userId: 'demo_user',
+                merchant: '',
+                amountBucket: Math.floor(Math.random() * 5),
+                hourOfDay: new Date().getHours()
+            };
+
+            const result = await callAPI('/feedback/choice', 'POST', requestData);
+            if (result.success) {
+                showResult('choiceResult', `选择已记录: "${query}" → ${selectedCategoryName}`, 'success');
+            } else {
+                showResult('choiceResult', `记录失败: ${result.error}`, 'error');
+            }
+        }
+
+        // 记录用户纠正
+        async function recordCorrection() {
+            const query = document.getElementById('correctionQuery').value.trim();
+            const wrongCategoryName = document.getElementById('wrongCategory').value;
+            const correctCategoryName = document.getElementById('correctCategory').value;
+            
+            if (!query) {
+                showResult('correctionResult', '请输入消费描述', 'error');
+                return;
+            }
+
+            const wrongCategory = defaultCategories.find(c => c.name === wrongCategoryName);
+            const correctCategory = defaultCategories.find(c => c.name === correctCategoryName);
+            
+            const requestData = {
+                query: query,
+                wrongCategory: wrongCategory,
+                correctCategory: correctCategory,
+                availableCategories: defaultCategories,
+                userId: 'demo_user',
+                merchant: '',
+                amountBucket: Math.floor(Math.random() * 5),
+                hourOfDay: new Date().getHours()
+            };
+
+            const result = await callAPI('/feedback/correction', 'POST', requestData);
+            if (result.success) {
+                showResult('correctionResult', `纠正已记录: "${query}" ${wrongCategoryName} → ${correctCategoryName}`, 'success');
+            } else {
+                showResult('correctionResult', `记录失败: ${result.error}`, 'error');
+            }
+        }
+
+        // 触发重训
+        async function triggerRetraining() {
+            const result = await callAPI('/retrain', 'POST');
+            if (result.success) {
+                showResult('retrainResult', '重训已触发，请查看控制台日志了解进度', 'success');
+            } else {
+                showResult('retrainResult', `重训失败: ${result.error}`, 'error');
+            }
+        }
+
+        // 页面加载时自动获取统计信息
+        window.onload = function() {
+            getStats();
+        };
+    </script>
+</body>
+</html>
