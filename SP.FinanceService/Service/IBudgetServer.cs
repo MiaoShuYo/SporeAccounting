@@ -50,6 +50,14 @@ public interface IBudgetServer
     List<Budget> QueryCurrentBudgets();
     
     /// <summary>
+    /// 根据支出分类获取当前用户在用的预算列表
+    /// </summary>
+    /// <param name="transactionCategoryId">收支分类id</param>
+    /// <param name="userId">用户id</param>
+    /// <returns>预算列表</returns>
+    List<Budget> QueryCurrentBudgetsByExpenseCategoryId(long transactionCategoryId, long userId);
+    
+    /// <summary>
     /// 更新预算列表
     /// </summary>
     /// <param name="budgets"></param>

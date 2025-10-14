@@ -1,5 +1,7 @@
-﻿using AutoMapper;
+﻿using System.Text.Json;
+using AutoMapper;
 using Refit;
+using SP.Common;
 using SP.Common.ExceptionHandling.Exceptions;
 using SP.Common.Message.Model;
 using SP.Common.Message.Mq;
@@ -10,6 +12,7 @@ using SP.FinanceService.DB;
 using SP.FinanceService.Models.Entity;
 using SP.FinanceService.Models.Request;
 using SP.FinanceService.Models.Response;
+using SP.FinanceService.Mq.Models;
 using SP.FinanceService.RefitClient;
 
 namespace SP.FinanceService.Service.Impl;
@@ -50,6 +53,11 @@ public class AccountingServerImpl : IAccountingServer
     private readonly IConfigServiceApi _configService;
 
     /// <summary>
+    /// 上下文会话
+    /// </summary>
+    private readonly ContextSession _contextSession;
+
+    /// <summary>
     /// 记账服务构造函数
     /// </summary>
     /// <param name="dbContext"></param>
@@ -58,9 +66,10 @@ public class AccountingServerImpl : IAccountingServer
     /// <param name="accountBookServer"></param>
     /// <param name="rabbitMqMessage"></param>
     /// <param name="currencyServer"></param>
+    /// <param name="contextSession"></param>
     public AccountingServerImpl(FinanceServiceDbContext dbContext, IMapper autoMapper,
         IConfigServiceApi configService, IAccountBookServer accountBookServer, RabbitMqMessage rabbitMqMessage,
-        ICurrencyService currencyServer)
+        ICurrencyService currencyServer, ContextSession contextSession)
     {
         _dbContext = dbContext;
         _autoMapper = autoMapper;
@@ -68,6 +77,7 @@ public class AccountingServerImpl : IAccountingServer
         _rabbitMqMessage = rabbitMqMessage;
         _currencyServer = currencyServer;
         _configService = configService;
+        _contextSession = contextSession;
     }
 
 
@@ -112,8 +122,18 @@ public class AccountingServerImpl : IAccountingServer
         _dbContext.Accountings.Add(accounting);
         _dbContext.SaveChanges();
 
+        // 组合预算变动消息：消费金额、消费类型
+        BudgetChangeMQ budgetChange = new BudgetChangeMQ
+        {
+            ChangeAmount = accounting.AfterAmount,
+            TransactionCategoryId = request.TransactionCategoryId,
+            UserId = _contextSession.UserId
+        };
+        string budgetChangeJson = JsonSerializer.Serialize(budgetChange);
+
+
         //通过MQ发送记账数据到消息队列，从预算中扣除金额
-        MqPublisher mqPublisher = new MqPublisher(accounting.AfterAmount.ToString("F2"),
+        MqPublisher mqPublisher = new MqPublisher(budgetChangeJson,
             MqExchange.BudgetExchange,
             MqRoutingKey.BudgetRoutingKey,
             MqQueue.BudgetQueue, MessageType.BudgetDeduct, ExchangeType.Direct);
@@ -145,8 +165,17 @@ public class AccountingServerImpl : IAccountingServer
         _dbContext.Accountings.Update(accounting);
         _dbContext.SaveChanges();
 
+        // 组合预算变动消息：消费金额、消费类型
+        BudgetChangeMQ budgetChange = new BudgetChangeMQ
+        {
+            ChangeAmount = accounting.AfterAmount,
+            TransactionCategoryId = accounting.TransactionCategoryId,
+            UserId = _contextSession.UserId
+        };
+        string budgetChangeJson = JsonSerializer.Serialize(budgetChange);
+
         //通过MQ发送删除记账数据到消息队列，把预算中的金额恢复
-        MqPublisher mqPublisher = new MqPublisher(accounting.AfterAmount.ToString("F2"),
+        MqPublisher mqPublisher = new MqPublisher(budgetChangeJson,
             MqExchange.BudgetExchange,
             MqRoutingKey.BudgetRoutingKey,
             MqQueue.BudgetQueue, MessageType.BudgetAdd, ExchangeType.Direct);

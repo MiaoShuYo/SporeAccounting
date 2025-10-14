@@ -277,6 +277,34 @@ public class BudgetServerImpl : IBudgetServer
     }
 
     /// <summary>
+    /// 根据支出分类获取当前用户在用的预算列表
+    /// </summary>
+    /// <param name="transactionCategoryId">收支分类id</param>
+    /// <param name="userId">用户id</param>
+    /// <returns>预算列表</returns>
+    public List<Budget> QueryCurrentBudgetsByExpenseCategoryId(long transactionCategoryId, long userId)
+    {
+        // 查询当前用户当月或者当季度或者当年的预算列表
+        var currentMonth = DateTime.Now.Month;
+        var currentQuarter = (currentMonth - 1) / 3 + 1;
+        var currentYear = DateTime.Now.Year;
+        var budgets = _dbContext.Budgets
+            .Where(b => !b.IsDeleted
+                        && b.StartTime.Year == currentYear
+                        && (b.StartTime.Month == currentMonth || b.StartTime.Month / 3 + 1 == currentQuarter)
+                        && b.TransactionCategoryId == transactionCategoryId
+                        && b.CreateUserId == userId)
+            .ToList();
+
+        if (budgets == null || budgets.Count == 0)
+        {
+            return new List<Budget>();
+        }
+
+        return budgets;
+    }
+
+    /// <summary>
     /// 更新预算列表
     /// </summary>
     /// <param name="budgets"></param>
