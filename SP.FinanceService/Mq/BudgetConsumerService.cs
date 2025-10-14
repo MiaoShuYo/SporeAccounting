@@ -48,7 +48,7 @@ public class BudgetConsumerService : BackgroundService
     /// </summary>
     /// <param name="stoppingToken"></param>
     /// <returns></returns>
-    protected override async Task ExecuteAsync(CancellationToken stoppingToken)
+    protected override async System.Threading.Tasks.Task ExecuteAsync(CancellationToken stoppingToken)
     {
         MqSubscriber subscriber = new MqSubscriber(MqExchange.BudgetExchange,
             MqRoutingKey.BudgetRoutingKey, MqQueue.BudgetQueue);
@@ -95,7 +95,7 @@ public class BudgetConsumerService : BackgroundService
                     break;
             }
 
-            await Task.CompletedTask;
+            await System.Threading.Tasks.Task.CompletedTask;
         });
     }
 
