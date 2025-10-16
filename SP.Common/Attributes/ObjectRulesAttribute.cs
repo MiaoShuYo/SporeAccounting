@@ -2,6 +2,9 @@
 
 namespace SP.Common.Attributes;
 
+/// <summary>
+/// 对象级别的复杂规则验证
+/// </summary>
 [AttributeUsage(AttributeTargets.Class, AllowMultiple = true)]
 public class ObjectRulesAttribute : ValidationAttribute
 {

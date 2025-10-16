@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using SP.Common.Attributes;
 using SP.FinanceService.Models.Enumeration;
 
 namespace SP.FinanceService.Models.Request;
@@ -6,6 +7,7 @@ namespace SP.FinanceService.Models.Request;
 /// <summary>
 /// 预算添加请求模型
 /// </summary>
+[StartTimeLessThanEndTime("StartTime", "EndTime", ErrorMessage = "预算开始时间必须小于结束时间")]
 public class BudgetAddRequest
 {
     /// <summary>
@@ -36,11 +38,13 @@ public class BudgetAddRequest
     /// 开始时间
     /// </summary>
     [Required(ErrorMessage = "开始时间不能为空")]
+    [FutureDate(ErrorMessage = "开始时间必须大于当前日期时间")]
     public DateTime StartTime { get; set; }
 
     /// <summary>
     /// 结束时间
     /// </summary>
     [Required(ErrorMessage = "结束时间不能为空")]
+    [FutureDate(ErrorMessage = "结束时间必须大于当前日期时间")]
     public DateTime EndTime { get; set; }
 }

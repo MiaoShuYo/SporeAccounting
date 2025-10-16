@@ -59,8 +59,6 @@ public class BudgetServerImpl : IBudgetServer
     /// <returns>预算id</returns>
     public long Add(BudgetAddRequest budget)
     {
-        //TODO：这里要加一个逻辑，预算的开始时间和结束时间当不能小于等于当前时间
-        
         // 预算是否存在，需要结合预算周期和预算开始时间与结束时间判断
         var existingBudget = _dbContext.Budgets
             .FirstOrDefault(b => b.TransactionCategoryId == budget.TransactionCategoryId
@@ -89,13 +87,23 @@ public class BudgetServerImpl : IBudgetServer
     /// <param name="id">预算id</param>
     public void Delete(long id)
     {
-        //TODO：这里要加一个逻辑，已经在使用的预算不能删除
         var budget = _dbContext.Budgets
             .FirstOrDefault(b => b.Id == id && !b.IsDeleted);
 
         if (budget == null)
         {
             throw new NotFoundException($"预算不存在，ID: {id}");
+        }
+
+        // 已经在使用的和使用过的预算不能删除，根据开始时间和结束时间判断
+        if (budget.StartTime <= DateTime.Now)
+        {
+            throw new BusinessException("正在使用中的预算不能删除");
+        }
+
+        if (budget.Remaining < budget.Amount)
+        {
+            throw new BusinessException("使用过的预算不能删除");
         }
 
         // 标记为已删除
@@ -110,7 +118,6 @@ public class BudgetServerImpl : IBudgetServer
     /// <param name="budget">修改预算</param>
     public void Edit(BudgetEditRequest budget)
     {
-        //TODO：这里要加一个逻辑，预算的开始时间和结束时间当不能小于等于当前时间
         var existingBudget = _dbContext.Budgets
             .FirstOrDefault(b => b.Id == budget.Id && !b.IsDeleted);
 
