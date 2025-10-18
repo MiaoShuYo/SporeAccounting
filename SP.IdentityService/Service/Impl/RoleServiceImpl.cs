@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using SP.Common.ExceptionHandling.Exceptions;
+using SP.Common.Model;
 using SP.IdentityService.Models.Entity;
 using SP.IdentityService.Models.Request;
 using SP.IdentityService.Models.Response;
@@ -38,7 +39,7 @@ public class RoleServiceImpl : IRoleService
     /// </summary>
     /// <param name="page"></param>
     /// <returns></returns>
-    public async Task<PagedResponse<RoleResponse>> GetRoleList(RolePageRequest page)
+    public async Task<PageResponse<RoleResponse>> GetRoleList(RolePageRequest page)
     {
         var query = _roleManager.Roles.AsQueryable();
         if (!string.IsNullOrEmpty(page.RoleName))
@@ -55,11 +56,13 @@ public class RoleServiceImpl : IRoleService
             RoleName = role.Name
         }).ToList();
 
-        return new PagedResponse<RoleResponse>
+        return new PageResponse<RoleResponse>
         {
-            TotalRow = total,
+            TotalCount = total,
             TotalPage = (int)Math.Ceiling((double)total / page.PageSize),
-            Data = roleResponses
+            Data = roleResponses,
+            PageSize = page.PageSize,
+            PageIndex = page.Page
         };
     }
 

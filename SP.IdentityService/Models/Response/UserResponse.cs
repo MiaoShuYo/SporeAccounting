@@ -19,6 +19,11 @@ public class UserResponse
     /// 电子邮件
     /// </summary>
     public string Email { get; set; } = string.Empty;
+    
+    /// <summary>
+    /// 电话号码
+    /// </summary>
+    public string PhoneNumber { get; set; } = string.Empty;
 
     /// <summary>
     /// 是否锁定

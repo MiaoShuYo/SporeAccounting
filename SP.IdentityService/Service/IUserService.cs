@@ -1,4 +1,5 @@
-﻿using SP.IdentityService.Models.Request;
+﻿using SP.Common.Model;
+using SP.IdentityService.Models.Request;
 using SP.IdentityService.Models.Response;
 
 namespace SP.IdentityService.Service;
@@ -20,7 +21,7 @@ public interface IUserService
     /// </summary>
     /// <param name="page"></param>
     /// <returns></returns>
-    Task<PagedResponse<UserResponse>> GetUserList(UserPageRequest page);
+    Task<PageResponse<UserResponse>> GetUserList(UserPageRequest page);
 
     /// <summary>
     /// 删除用户

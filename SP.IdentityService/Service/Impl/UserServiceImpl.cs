@@ -81,7 +81,7 @@ public class UserServiceImpl : IUserService
     /// </summary>
     /// <param name="page"></param>
     /// <returns></returns>
-    public async Task<PagedResponse<UserResponse>> GetUserList(UserPageRequest page)
+    public async Task<PageResponse<UserResponse>> GetUserList(UserPageRequest page)
     {
         var query = _userManager.Users.AsQueryable();
         if (!string.IsNullOrEmpty(page.UserName))
@@ -109,17 +109,20 @@ public class UserServiceImpl : IUserService
         int total = countTask.Result;
         List<SpUser> users = usersTask.Result;
 
-        var result = new PagedResponse<UserResponse>
+        var result = new PageResponse<UserResponse>
         {
-            TotalRow = total,
+            TotalCount = total,
             TotalPage = (int)Math.Ceiling((double)total / page.PageSize),
             Data = users.Select(x => new UserResponse
             {
                 Id = x.Id,
                 UserName = x.UserName,
                 Email = x.Email,
-                IsLocked = x.LockoutEnabled
-            }).ToList()
+                IsLocked = x.LockoutEnabled,
+                PhoneNumber = x.PhoneNumber
+            }).ToList(),
+            PageSize= page.PageSize,
+            PageIndex= page.Page
         };
 
         return result;
@@ -219,7 +222,7 @@ public class UserServiceImpl : IUserService
 
         return user.PhoneNumberConfirmed;
     }
-    
+
     /// <summary>
     /// 查询用户邮箱是否已验证
     /// </summary>

@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using SP.Common.Model;
 using SP.IdentityService.Models.Request;
 using SP.IdentityService.Models.Response;
 using SP.IdentityService.Service;
@@ -41,7 +42,7 @@ public class UserController : ControllerBase
     /// <param name="page">分页查询参数</param>
     /// <returns></returns>
     [HttpGet]
-    public async Task<ActionResult<PagedResponse<UserResponse>>> GetUsers([FromQuery] UserPageRequest page)
+    public async Task<ActionResult<PageResponse<UserResponse>>> GetUsers([FromQuery] UserPageRequest page)
     {
         var result = await _userService.GetUserList(page);
         return Ok(result);

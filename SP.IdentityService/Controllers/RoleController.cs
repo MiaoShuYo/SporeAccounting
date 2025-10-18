@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using SP.Common.Model;
 using SP.IdentityService.Models.Request;
 using SP.IdentityService.Models.Response;
 using SP.IdentityService.Service;
@@ -39,7 +40,7 @@ public class RoleController : ControllerBase
     /// <param name="page">分页查询参数</param>
     /// <returns></returns>
     [HttpGet]
-    public async Task<ActionResult<PagedResponse<RoleResponse>>> GetRoles([FromQuery] RolePageRequest page)
+    public async Task<ActionResult<PageResponse<RoleResponse>>> GetRoles([FromQuery] RolePageRequest page)
     {
         var result = await _roleService.GetRoleList(page);
         return Ok(result);
