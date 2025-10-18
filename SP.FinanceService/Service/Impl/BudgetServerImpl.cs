@@ -349,4 +349,19 @@ public class BudgetServerImpl : IBudgetServer
         _dbContext.Budgets.UpdateRange(budgets);
         _dbContext.SaveChanges();
     }
+
+    /// <summary>
+    /// 根据日期查询预算列表
+    /// </summary>
+    /// <param name="dateTime">日期</param>
+    /// <returns></returns>
+    public IQueryable<Budget> QueryBudgetsByDate(DateTime dateTime)
+    {
+        // 返回 IQueryable，不执行查询
+        return _dbContext.Budgets
+            .Where(b => !b.IsDeleted 
+                        && b.StartTime <= dateTime 
+                        && b.EndTime >= dateTime)
+            .AsQueryable();
+    }
 }

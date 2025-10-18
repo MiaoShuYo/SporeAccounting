@@ -29,4 +29,19 @@ public class SPRedisKey
     /// 图形验证码限流
     /// </summary>
     public const string CaptchaRateLimit = "CAPTCHA:RATE:{0}";
+
+    /// <summary>
+    /// 预警通知
+    /// </summary>
+    public const string DepletionHashKey = "BUDGET:NOTIFIED:DEPLETION:{0}";
+
+    /// <summary>
+    /// 耗尽通知
+    /// </summary>
+    public const string ExhaustedHashKey = "BUDGET:NOTIFIED:EXHAUSTED:{0}";
+
+    /// <summary>
+    /// 超额通知
+    /// </summary>
+    public const string OverrunHashKey = "BUDGET:NOTIFIED:OVERRUN:{0}";
 }

@@ -62,4 +62,11 @@ public interface IBudgetServer
     /// </summary>
     /// <param name="budgets"></param>
     void UpdateBudgets(List<Budget> budgets);
+    
+    /// <summary>
+    /// 查询指定日期的全部预算（用于Task）
+    /// </summary>
+    /// <param name="dateTime">指定日期</param>
+    /// <returns>预算列表</returns>
+    IQueryable<Budget> QueryBudgetsByDate(DateTime dateTime);
 }

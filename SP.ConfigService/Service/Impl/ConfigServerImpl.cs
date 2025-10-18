@@ -161,4 +161,22 @@ public class ConfigServerImpl : IConfigServer
         ConfigResponse configResponse = _autoMapper.Map<ConfigResponse>(config);
         return configResponse;
     }
+    
+    /// <summary>
+    /// 根据类型和userId获取配置
+    /// </summary>
+    /// <param name="type">类型</param>
+    /// <param name="userId">用户id</param>
+    /// <returns>配置信息</returns>
+    public ConfigResponse QueryByTypeAndUserId(ConfigTypeEnum type, long userId)
+    {
+        Config? config = _context.Configs.FirstOrDefault(p => p.ConfigType == type && p.UserId == userId);
+        if (config == null)
+        {
+            return new ConfigResponse();
+        }
+
+        ConfigResponse configResponse = _autoMapper.Map<ConfigResponse>(config);
+        return configResponse;
+    }
 }

@@ -13,7 +13,7 @@ namespace SP.ConfigService.Controllers
     [Route("api/configs")]
     [ApiController]
     public class ConfigController : ControllerBase
-    { 
+    {
         /// <summary>
         /// 用户配置服务
         /// </summary>
@@ -57,7 +57,20 @@ namespace SP.ConfigService.Controllers
         [HttpGet("by-type/{type}")]
         public ActionResult<ConfigResponse> QueryByType([FromRoute] ConfigTypeEnum type)
         {
-            ConfigResponse config=_configServer.QueryByType(type);
+            ConfigResponse config = _configServer.QueryByType(type);
+            return Ok(config);
+        }
+
+        ///<summary>
+        /// 根据配置类型和用户ID获取配置
+        ///</summary>
+        /// <param name="type">类型</param>
+        /// <param name="userId">用户id</param>
+        [HttpGet("by-type-and-user/{type}/{userId}")]
+        public ActionResult<ConfigResponse> QueryByTypeAndUserId([FromRoute] ConfigTypeEnum type,
+            [FromRoute] long userId)
+        {
+            ConfigResponse config = _configServer.QueryByTypeAndUserId(type, userId);
             return Ok(config);
         }
     }

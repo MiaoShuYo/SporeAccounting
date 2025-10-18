@@ -2,21 +2,23 @@ using System.Reflection;
 using Microsoft.OpenApi.Models;
 using Nacos.AspNetCore.V2;
 using Nacos.V2.DependencyInjection;
-using Nacos.V2;
-using Refit;
+using Quartz;
 using SP.Common.Refit;
 using SP.Common.ServiceDiscovery;
 using SP.Common;
 using SP.Common.ConfigService;
 using SP.Common.Logger;
+using SP.Common.Message.Email;
 using SP.Common.Message.Mq;
 using SP.Common.Middleware;
 using SP.Common.Redis;
 using SP.FinanceService.DB;
+using SP.FinanceService.Mq;
 using SP.FinanceService.RefitClient;
 using SP.FinanceService.Service;
 using SP.FinanceService.Service.Impl;
 using SP.Common.ExceptionHandling;
+using SP.FinanceService.Task.Budget;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -101,6 +103,12 @@ builder.Services.AddNacosRefitClient<IConfigServiceApi>(
     clusterName: clusterName,
     scheme: "http");
 
+builder.Services.AddNacosRefitClient<IUserServiceApi>(
+    serviceName: "SPIdentityService",
+    groupName: groupName,
+    clusterName: clusterName,
+    scheme: "http");
+
 // 注册 DbContext
 builder.Services.AddDbContext<FinanceServiceDbContext>(ServiceLifetime.Scoped);
 
@@ -120,6 +128,15 @@ builder.Services.AddAutoMapper(Assembly.GetExecutingAssembly());
 
 builder.Services.AddSingleton<JwtConfigService>();
 
+// 注册邮件配置服务
+builder.Services.AddSingleton<EmailConfigService>();
+// 注册邮件服务
+builder.Services.AddSingleton<EmailMessage>(provider =>
+{
+    var configService = provider.GetRequiredService<EmailConfigService>();
+    return new EmailMessage(configService.GetEmailConfig());
+});
+
 // 注册MQ配置服务
 builder.Services.AddSingleton<RabbitMqConfigService>();
 // 注册RabbitMqMessage服务
@@ -130,9 +147,30 @@ builder.Services.AddSingleton<RabbitMqMessage>(provider =>
     return new RabbitMqMessage(logger, configService.GetRabbitMqConfig());
 });
 
+// 注册后台服务（MQ消费者）
+builder.Services.AddHostedService<BudgetConsumerService>();
+builder.Services.AddHostedService<BudgetNotificationConsumerService>();
+
 builder.Services.AddRedisService(builder.Configuration);
 // 注入loki日志服务
 builder.Services.AddLoggerService(builder.Configuration);
+
+// 添加定时任务
+builder.Services.AddQuartz(q =>
+{
+    var exchangeRateTimerJobKey = new JobKey("ExchangeRateTimer");
+    q.AddJob<BudgetDepletionWatcher>(opts => opts.WithIdentity(exchangeRateTimerJobKey));
+    q.AddTrigger(opts => opts
+        .ForJob(exchangeRateTimerJobKey)
+        .WithIdentity("ExchangeRateTimerTrigger")
+        .StartNow()
+        .WithCronSchedule("0 0 1 * * ?"));
+});
+builder.Services.AddQuartzHostedService(options =>
+{
+    //启用 Quartz 的托管服务，`WaitForJobsToComplete = true` 表示在应用程序停止时等待任务完成后再关闭。
+    options.WaitForJobsToComplete = true;
+});
 
 var app = builder.Build();
 

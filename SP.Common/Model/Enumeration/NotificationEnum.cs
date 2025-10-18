@@ -1,22 +1,22 @@
 ﻿namespace SP.Common.Model.Enumeration;
 
 /// <summary>
-/// 用户配置类型
+/// 通知方式枚举
 /// </summary>
-public enum ConfigTypeEnum
+public enum NotificationEnum
 {
     /// <summary>
-    /// 币种
+    /// 邮件通知
     /// </summary>
-    Currency = 0,
+    Email = 0,
 
     /// <summary>
-    /// 通知方式
+    /// 短信通知
     /// </summary>
-    Notification = 1,
-    
+    SmS = 1,
+
     /// <summary>
-    /// 预算报警阈值
+    /// 应用内通知
     /// </summary>
-    BudgetAlertThreshold = 2
+    InApp = 2
 }
