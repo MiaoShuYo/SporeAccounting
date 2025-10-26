@@ -359,9 +359,26 @@ public class BudgetServerImpl : IBudgetServer
     {
         // 返回 IQueryable，不执行查询
         return _dbContext.Budgets
-            .Where(b => !b.IsDeleted 
-                        && b.StartTime <= dateTime 
+            .Where(b => !b.IsDeleted
+                        && b.StartTime <= dateTime
                         && b.EndTime >= dateTime)
             .AsQueryable();
+    }
+
+    /// <summary>
+    /// 获取当前用户正在使用的预算列表
+    /// </summary>
+    /// <returns>正在使用的预算列表</returns>
+    public List<BudgetResponse> QueryActiveBudgets()
+    {
+        var userId = _contextSession.UserId;
+        var budgets = _dbContext.Budgets
+            .Where(b => !b.IsDeleted
+                        && b.CreateUserId == userId
+                        && b.StartTime <= DateTime.Now
+                        && b.EndTime >= DateTime.Now)
+            .ToList();
+        var budgetResponses = _auMapper.Map<List<BudgetResponse>>(budgets);
+        return budgetResponses;
     }
 }

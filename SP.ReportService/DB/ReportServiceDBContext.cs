@@ -9,6 +9,9 @@ namespace SP.ReportService.DB;
 public class ReportServiceDBContext:DbContext
 {
     
+    /// <summary>
+    /// 报表实体集合
+    /// </summary>
     public DbSet<Report> Reports { get; set; }
     
     /// <summary>

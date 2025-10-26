@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using SP.ReportService.Models.Response;
+using SP.ReportService.Service;
 
 namespace SP.ReportService.Controllers;
 
@@ -10,6 +11,20 @@ namespace SP.ReportService.Controllers;
 [ApiController]
 public class BudgetReportController : ControllerBase
 {
+    /// <summary>
+    /// 预算报表服务
+    /// </summary>
+    private readonly IBudgetReportServer _budgetReportServer;
+
+    /// <summary>
+    /// 构造函数
+    /// </summary>
+    /// <param name="budgetReportServer">预算报表服务</param>
+    public BudgetReportController(IBudgetReportServer budgetReportServer)
+    {
+        _budgetReportServer = budgetReportServer;
+    }
+
     /// <summary>
     /// 预算进度
     /// </summary>
@@ -22,8 +37,9 @@ public class BudgetReportController : ControllerBase
     [Route("budget-progress")]
     public ActionResult<List<BudgetProgressReportResponse>> GetBudgetProgress()
     {
-        //TODO: 预算报表数据
-        return null;
+        List<BudgetProgressReportResponse> budgetProgressReports
+            = _budgetReportServer.GetBudgetProgress().Result;
+        return Ok(budgetProgressReports);
     }
 
     /// <summary>

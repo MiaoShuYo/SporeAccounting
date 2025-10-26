@@ -42,13 +42,13 @@ public interface IBudgetServer
     /// <param name="id">预算id</param>
     /// <returns>预算信息</returns>
     BudgetResponse QueryById(long id);
-    
+
     /// <summary>
     /// 查询当前在用的预算列表
     /// </summary>
     /// <returns>预算列表</returns>
     List<Budget> QueryCurrentBudgets();
-    
+
     /// <summary>
     /// 根据支出分类获取当前用户在用的预算列表
     /// </summary>
@@ -56,17 +56,23 @@ public interface IBudgetServer
     /// <param name="userId">用户id</param>
     /// <returns>预算列表</returns>
     List<Budget> QueryCurrentBudgetsByExpenseCategoryId(long transactionCategoryId, long userId);
-    
+
     /// <summary>
     /// 更新预算列表
     /// </summary>
     /// <param name="budgets"></param>
     void UpdateBudgets(List<Budget> budgets);
-    
+
     /// <summary>
     /// 查询指定日期的全部预算（用于Task）
     /// </summary>
     /// <param name="dateTime">指定日期</param>
     /// <returns>预算列表</returns>
     IQueryable<Budget> QueryBudgetsByDate(DateTime dateTime);
+
+    /// <summary>
+    /// 查询当前用户正在使用的预算列表
+    /// </summary>
+    /// <returns></returns>
+    List<BudgetResponse> QueryActiveBudgets();
 }

@@ -9,6 +9,9 @@ using SP.ReportService.DB;
 using SP.ReportService.Service;
 using SP.ReportService.Service.Impl;
 using SP.Common.ExceptionHandling;
+using SP.Common.ServiceDiscovery;
+using SP.Common.Refit;
+using SP.ReportService.RefitClient;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -71,6 +74,21 @@ builder.Services.AddSingleton<JwtConfigService>();
 builder.Services.AddScoped<IReportServer,ReportServerImpl>();
 // 注入loki日志服务
 builder.Services.AddLoggerService(builder.Configuration);
+
+// 注册通用服务发现
+builder.Services.AddSingleton<IServiceDiscovery, NacosServiceDiscovery>();
+
+// 注册 Refit 客户端（基于通用服务发现 + Nacos，无需硬编码 BaseUrl）
+var nacosSection = builder.Configuration.GetSection("nacos");
+var groupName = nacosSection.GetValue<string>("GroupName") ?? "DEFAULT_GROUP";
+var clusterName = nacosSection.GetValue<string>("ClusterName") ?? "DEFAULT";
+
+builder.Services.AddNacosRefitClient<IBudgetServiceApi>(
+    serviceName: "SPFinanceService",
+    groupName: groupName,
+    clusterName: clusterName,
+    scheme: "http");
+
 var app = builder.Build();
 
 // 设置静态服务提供者

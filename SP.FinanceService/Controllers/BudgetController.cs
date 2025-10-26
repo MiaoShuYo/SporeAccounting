@@ -74,7 +74,7 @@ namespace SP.FinanceService.Controllers
         /// <returns>预算分页列表</returns>
         [HttpGet]
         public ActionResult<PageResponse<BudgetResponse>> GetBudgets(
-            [FromQuery] int page = 1, 
+            [FromQuery] int page = 1,
             [FromQuery] int size = 10,
             [FromQuery] int year = 0,
             [FromQuery] int month = 0)
@@ -100,6 +100,17 @@ namespace SP.FinanceService.Controllers
         {
             BudgetResponse budget = _budgetServer.QueryById(id);
             return Ok(budget);
+        }
+
+        /// <summary>
+        /// 获取当前用户正在使用的预算列表
+        /// </summary>
+        /// <returns>正在使用的预算列表</returns>
+        [HttpGet("current-budgets")]
+        public ActionResult<List<BudgetResponse>> GetActiveBudgets()
+        {
+            List<BudgetResponse> budgets = _budgetServer.QueryActiveBudgets();
+            return Ok(budgets);
         }
     }
 }
