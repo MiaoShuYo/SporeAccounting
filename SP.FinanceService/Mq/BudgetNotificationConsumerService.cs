@@ -29,9 +29,9 @@ public class BudgetNotificationConsumerService : BackgroundService
     private readonly ILogger<BudgetNotificationConsumerService> _logger;
 
     /// <summary>
-    /// 预算服务
+    /// 服务作用域工厂
     /// </summary>
-    private readonly IBudgetServer _budgetServer;
+    private readonly IServiceScopeFactory _serviceScopeFactory;
 
     /// <summary>
     /// 邮件服务
@@ -39,30 +39,22 @@ public class BudgetNotificationConsumerService : BackgroundService
     private readonly EmailMessage _emailMessage;
 
     /// <summary>
-    /// 用户服务API
-    /// </summary>
-    private readonly IUserServiceApi _userServiceApi;
-
-    /// <summary>
     /// 构造函数
     /// </summary>
     /// <param name="rabbitMqMessage">RabbitMQ消息服务</param>
     /// <param name="logger">日志记录器</param>
-    /// <param name="budgetServer">预算服务</param>
+    /// <param name="serviceScopeFactory">服务作用域工厂</param>
     /// <param name="emailMessage">邮件服务</param>
-    /// <param name="userServiceApi">用户服务API</param>
     public BudgetNotificationConsumerService(
         RabbitMqMessage rabbitMqMessage,
         ILogger<BudgetNotificationConsumerService> logger,
-        IBudgetServer budgetServer,
-        EmailMessage emailMessage,
-        IUserServiceApi userServiceApi)
+        IServiceScopeFactory serviceScopeFactory,
+        EmailMessage emailMessage)
     {
         _rabbitMqMessage = rabbitMqMessage;
         _logger = logger;
-        _budgetServer = budgetServer;
+        _serviceScopeFactory = serviceScopeFactory;
         _emailMessage = emailMessage;
-        _userServiceApi = userServiceApi;
     }
 
     /// <summary>
@@ -110,8 +102,13 @@ public class BudgetNotificationConsumerService : BackgroundService
 
             try
             {
+                // 使用服务作用域工厂创建作用域并获取预算服务
+                using var scope = _serviceScopeFactory.CreateScope();
+                var budgetServer = scope.ServiceProvider.GetRequiredService<IBudgetServer>();
+                var userServiceApi = scope.ServiceProvider.GetRequiredService<IUserServiceApi>();
+
                 // 获取预算信息
-                var budget = _budgetServer.QueryById(notification.BudgetId);
+                var budget = budgetServer.QueryById(notification.BudgetId);
                 if (budget == null)
                 {
                     _logger.LogWarning($"未找到预算信息，预算ID: {notification.BudgetId}");
@@ -119,7 +116,7 @@ public class BudgetNotificationConsumerService : BackgroundService
                 }
 
                 // 根据消息类型和用户偏好发送通知
-                await ProcessNotification(mqMessage.Type, notification, budget);
+                await ProcessNotification(mqMessage.Type, notification, budget, userServiceApi);
             }
             catch (Exception ex)
             {
@@ -134,7 +131,8 @@ public class BudgetNotificationConsumerService : BackgroundService
     /// <param name="messageType">消息类型</param>
     /// <param name="notification">通知消息</param>
     /// <param name="budget">预算信息</param>
-    private async System.Threading.Tasks.Task ProcessNotification(string messageType, BudgetNotificationMQ notification, BudgetResponse budget)
+    /// <param name="userServiceApi">用户服务API</param>
+    private async System.Threading.Tasks.Task ProcessNotification(string messageType, BudgetNotificationMQ notification, BudgetResponse budget, IUserServiceApi userServiceApi)
     {
         // 构建通知内容
         string subject = GetNotificationSubject(messageType);
@@ -146,15 +144,15 @@ public class BudgetNotificationConsumerService : BackgroundService
         switch (preference)
         {
             case NotificationEnum.Email:
-                await SendEmailNotification(notification.UserId, subject, content);
+                await SendEmailNotification(userServiceApi, notification.UserId, subject, content);
                 break;
 
             case NotificationEnum.SmS:
-                await SendSmsNotification(notification.UserId, content);
+                await SendSmsNotification(userServiceApi, notification.UserId, content);
                 break;
 
             case NotificationEnum.InApp:
-                await SendInAppNotification(notification.UserId, subject, content);
+                await SendInAppNotification(userServiceApi, notification.UserId, subject, content);
                 break;
 
             default:
@@ -207,15 +205,16 @@ public class BudgetNotificationConsumerService : BackgroundService
     /// <summary>
     /// 发送邮件通知
     /// </summary>
+    /// <param name="userServiceApi">用户服务API</param>
     /// <param name="userId">用户ID</param>
     /// <param name="subject">主题</param>
     /// <param name="content">内容</param>
-    private async System.Threading.Tasks.Task SendEmailNotification(long userId, string subject, string content)
+    private async System.Threading.Tasks.Task SendEmailNotification(IUserServiceApi userServiceApi, long userId, string subject, string content)
     {
         try
         {
             // 调用用户服务获取用户邮箱
-            var userResponse = await _userServiceApi.GetUser(userId);
+            var userResponse = await userServiceApi.GetUser(userId);
             
             if (userResponse == null || userResponse.StatusCode != HttpStatusCode.OK || userResponse.Content == null)
             {
@@ -258,14 +257,15 @@ public class BudgetNotificationConsumerService : BackgroundService
     /// <summary>
     /// 发送短信通知
     /// </summary>
+    /// <param name="userServiceApi">用户服务API</param>
     /// <param name="userId">用户ID</param>
     /// <param name="content">内容</param>
-    private async System.Threading.Tasks.Task SendSmsNotification(long userId, string content)
+    private async System.Threading.Tasks.Task SendSmsNotification(IUserServiceApi userServiceApi, long userId, string content)
     {
         try
         {
             // 调用用户服务获取用户手机号
-            var userResponse = await _userServiceApi.GetUser(userId);
+            var userResponse = await userServiceApi.GetUser(userId);
             
             if (userResponse == null || userResponse.StatusCode != HttpStatusCode.OK || userResponse.Content == null)
             {
@@ -300,10 +300,11 @@ public class BudgetNotificationConsumerService : BackgroundService
     /// <summary>
     /// 发送应用内通知
     /// </summary>
+    /// <param name="userServiceApi">用户服务API</param>
     /// <param name="userId">用户ID</param>
     /// <param name="subject">主题</param>
     /// <param name="content">内容</param>
-    private async System.Threading.Tasks.Task SendInAppNotification(long userId, string subject, string content)
+    private async System.Threading.Tasks.Task SendInAppNotification(IUserServiceApi userServiceApi, long userId, string subject, string content)
     {
         try
         {

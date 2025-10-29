@@ -40,5 +40,8 @@ public class FinanceProfile : Profile
         CreateMap<BudgetAddRequest, Budget>();
         CreateMap<BudgetEditRequest, Budget>();
         CreateMap<Budget, BudgetResponse>();
+        
+        // BudgetRecord 映射
+        CreateMap<BudgetRecord, BudgetRecordResponse>();
     }
 }

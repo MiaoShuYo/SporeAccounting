@@ -25,22 +25,22 @@ public class BudgetConsumerService : BackgroundService
     private readonly ILogger<BudgetConsumerService> _logger;
 
     /// <summary>
-    /// 预算服务
+    /// 服务作用域工厂
     /// </summary>
-    private readonly IBudgetServer _budgetService;
+    private readonly IServiceScopeFactory _serviceScopeFactory;
 
     /// <summary>
     ///  Budget 消息消费者服务
     /// </summary>
     /// <param name="rabbitMqMessage"></param>
     /// <param name="logger"></param>
-    /// <param name="budgetService"></param>
+    /// <param name="serviceScopeFactory"></param>
     public BudgetConsumerService(RabbitMqMessage rabbitMqMessage, ILogger<BudgetConsumerService> logger,
-        IBudgetServer budgetService)
+        IServiceScopeFactory serviceScopeFactory)
     {
         _logger = logger;
         _rabbitMqMessage = rabbitMqMessage;
-        _budgetService = budgetService;
+        _serviceScopeFactory = serviceScopeFactory;
     }
 
     /// <summary>
@@ -55,7 +55,7 @@ public class BudgetConsumerService : BackgroundService
         await _rabbitMqMessage.ReceiveAsync(subscriber, async message =>
         {
             // 验证消息
-            MqMessage mqMessage = ValidateMessage(message);
+            MqMessage? mqMessage = ValidateMessage(message);
             if (mqMessage == null) return;
 
             if (string.IsNullOrEmpty(message.Body))
@@ -71,8 +71,12 @@ public class BudgetConsumerService : BackgroundService
                 return;
             }
 
+            // 使用服务作用域工厂创建作用域并获取预算服务
+            using var scope = _serviceScopeFactory.CreateScope();
+            var budgetService = scope.ServiceProvider.GetRequiredService<IBudgetServer>();
+
             // 获取当前预算
-            List<Budget> budgets = GetCurrentBudgets(bugChange.TransactionCategoryId,bugChange.UserId);
+            List<Budget> budgets = GetCurrentBudgets(budgetService, bugChange.TransactionCategoryId, bugChange.UserId);
             if (budgets == null || budgets.Count == 0) return;
 
             // 根据消息类型处理预算
@@ -80,15 +84,15 @@ public class BudgetConsumerService : BackgroundService
             {
                 case MessageType.BudgetAdd:
                     _logger.LogInformation("接收到预算增加处理消息， {Message}", mqMessage);
-                    UpdateBudgetsByAmount(budgets, bugChange, true);
+                    UpdateBudgetsByAmount(budgetService, budgets, bugChange, true);
                     break;
                 case MessageType.BudgetUpdate:
                     _logger.LogInformation("接收到预算更新消息， {Message}", mqMessage);
-                    UpdateBudgetsByAmount(budgets, bugChange, true);
+                    UpdateBudgetsByAmount(budgetService, budgets, bugChange, true);
                     break;
                 case MessageType.BudgetDeduct:
                     _logger.LogInformation("接收到预算扣除消息， {Message}", mqMessage);
-                    UpdateBudgetsByAmount(budgets, bugChange, false);
+                    UpdateBudgetsByAmount(budgetService, budgets, bugChange, false);
                     break;
                 default:
                     _logger.LogWarning("未知的消息类型: {Type}", mqMessage.Type);
@@ -104,9 +108,9 @@ public class BudgetConsumerService : BackgroundService
     /// </summary>
     /// <param name="message">原始消息</param>
     /// <returns>验证后的 MqMessage，如果验证失败返回 null</returns>
-    private MqMessage ValidateMessage(object message)
+    private MqMessage? ValidateMessage(object message)
     {
-        MqMessage mqMessage = message as MqMessage;
+        MqMessage? mqMessage = message as MqMessage;
         if (mqMessage == null)
         {
             _logger.LogError("消息转换失败");
@@ -119,12 +123,13 @@ public class BudgetConsumerService : BackgroundService
     /// <summary>
     /// 获取当前预算
     /// </summary>
+    /// <param name="budgetService">预算服务</param>
     /// <param name="transactionCategoryId">收支分类ID</param>
     /// <param name="userId">用户ID</param>
     /// <returns>当前预算列表，如果没有可用预算返回空列表</returns>
-    private List<Budget> GetCurrentBudgets(long transactionCategoryId, long userId)
+    private List<Budget> GetCurrentBudgets(IBudgetServer budgetService, long transactionCategoryId, long userId)
     {
-        List<Budget> budgets = _budgetService.QueryCurrentBudgetsByExpenseCategoryId(transactionCategoryId, userId);
+        List<Budget> budgets = budgetService.QueryCurrentBudgetsByExpenseCategoryId(transactionCategoryId, userId);
         if (budgets == null || budgets.Count == 0)
         {
             _logger.LogInformation("当前没有可用的预算，不执行处理");
@@ -137,10 +142,11 @@ public class BudgetConsumerService : BackgroundService
     /// <summary>
     /// 根据金额更新预算
     /// </summary>
+    /// <param name="budgetService">预算服务</param>
     /// <param name="budgets">预算列表</param>
     /// <param name="budgetChangeMq">金额</param>
     /// <param name="isAdd">是否为增加操作，true为增加，false为扣除</param>
-    private void UpdateBudgetsByAmount(List<Budget> budgets, BudgetChangeMQ budgetChangeMq, bool isAdd)
+    private void UpdateBudgetsByAmount(IBudgetServer budgetService, List<Budget> budgets, BudgetChangeMQ budgetChangeMq, bool isAdd)
     {
         string operation = isAdd ? "增加" : "扣除";
         decimal operationAmount = isAdd ? budgetChangeMq.ChangeAmount : -budgetChangeMq.ChangeAmount;
@@ -155,7 +161,7 @@ public class BudgetConsumerService : BackgroundService
         UpdateBudgetByPeriod(budgets, PeriodEnum.Quarter, operationAmount, operation);
 
         // 保存更改到数据库
-        _budgetService.UpdateBudgets(budgets);
+        budgetService.UpdateBudgets(budgets);
     }
 
     /// <summary>
@@ -167,7 +173,7 @@ public class BudgetConsumerService : BackgroundService
     /// <param name="operation">操作类型描述</param>
     private void UpdateBudgetByPeriod(List<Budget> budgets, PeriodEnum period, decimal operationAmount, string operation)
     {
-        Budget budget = budgets.FirstOrDefault(b => b.Period == period);
+        Budget? budget = budgets.FirstOrDefault(b => b.Period == period);
         if (budget != null)
         {
             budget.Remaining += operationAmount;

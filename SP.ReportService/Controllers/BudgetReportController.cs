@@ -35,10 +35,10 @@ public class BudgetReportController : ControllerBase
     /// </returns>
     [HttpGet]
     [Route("budget-progress")]
-    public ActionResult<List<BudgetProgressReportResponse>> GetBudgetProgress()
+    public async Task<ActionResult<List<BudgetProgressReportResponse>>> GetBudgetProgress()
     {
         List<BudgetProgressReportResponse> budgetProgressReports
-            = _budgetReportServer.GetBudgetProgress().Result;
+            =  await _budgetReportServer.GetBudgetProgress();
         return Ok(budgetProgressReports);
     }
 
@@ -53,10 +53,11 @@ public class BudgetReportController : ControllerBase
     /// </returns>
     [HttpGet]
     [Route("budget-consumption-trend")]
-    public ActionResult<List<BudgetConsumptionTrendReportResponse>> GetBudgetConsumptionTrend()
+    public async Task<ActionResult<List<BudgetConsumptionTrendReportResponse>>> GetBudgetConsumptionTrend()
     {
-        //TODO: 预算消耗趋势报表数据
-        return null;
+        List<BudgetProgressReportResponse> budgetProgressReports
+            = await _budgetReportServer.GetBudgetConsumptionTrend();
+        return Ok(budgetProgressReports);
     }
 
     /// <summary>

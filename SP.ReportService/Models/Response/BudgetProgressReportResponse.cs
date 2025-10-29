@@ -36,4 +36,9 @@ public class BudgetProgressReportResponse
     /// 剩余金额
     /// </summary>
     public decimal Remaining { get; set; }
+    
+    /// <summary>
+    /// 日期
+    /// </summary>
+    public string ReportDate { get; set; }
 }

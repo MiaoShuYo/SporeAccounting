@@ -30,7 +30,7 @@ builder.Services.AddSwaggerGen(c =>
     {
         c.IncludeXmlComments(xmlPath);
     }
-    
+
     // 添加JWT认证配置
     c.AddSecurityDefinition("Bearer", new Microsoft.OpenApi.Models.OpenApiSecurityScheme
     {
@@ -41,7 +41,7 @@ builder.Services.AddSwaggerGen(c =>
         BearerFormat = "JWT",
         Scheme = "Bearer"
     });
-    
+
     c.AddSecurityRequirement(new Microsoft.OpenApi.Models.OpenApiSecurityRequirement
     {
         {
@@ -53,7 +53,7 @@ builder.Services.AddSwaggerGen(c =>
                     Id = "Bearer"
                 }
             },
-            new string[] {}
+            new string[] { }
         }
     });
 });
@@ -66,12 +66,12 @@ builder.Services.AddNacosV2Naming(builder.Configuration);
 // 注册 DbContext
 builder.Services.AddDbContext<ReportServiceDBContext>(ServiceLifetime.Scoped);
 // 注册 IHttpContextAccessor
-builder.Services.AddHttpContextAccessor(); 
+builder.Services.AddHttpContextAccessor();
 // 注册 ContextSession
-builder.Services.AddScoped<ContextSession>(); 
+builder.Services.AddScoped<ContextSession>();
 builder.Services.AddAutoMapper(Assembly.GetExecutingAssembly());
 builder.Services.AddSingleton<JwtConfigService>();
-builder.Services.AddScoped<IReportServer,ReportServerImpl>();
+builder.Services.AddScoped<IReportServer, ReportServerImpl>();
 // 注入loki日志服务
 builder.Services.AddLoggerService(builder.Configuration);
 
@@ -88,6 +88,11 @@ builder.Services.AddNacosRefitClient<IBudgetServiceApi>(
     groupName: groupName,
     clusterName: clusterName,
     scheme: "http");
+builder.Services.AddNacosRefitClient<IBudgetRecordServiceApi>(
+    serviceName: "SPFinanceService",
+    groupName: groupName,
+    clusterName: clusterName,
+    scheme: "http");
 
 var app = builder.Build();
 
@@ -100,6 +105,7 @@ if (app.Environment.IsDevelopment() || app.Environment.EnvironmentName == "Local
     app.UseSwagger();
     app.UseSwaggerUI();
 }
+
 app.UseMiddleware<ApplicationMiddleware>();
 app.UseHttpsRedirection();
 

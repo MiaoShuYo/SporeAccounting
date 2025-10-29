@@ -118,6 +118,7 @@ builder.Services.AddScoped<IAccountBookServer, AccountBookServerImpl>();
 builder.Services.AddScoped<IAccountingServer, AccountingServerImpl>();
 builder.Services.AddScoped<IBudgetServer, BudgetServerImpl>();
 builder.Services.AddScoped<ICurrencyService, CurrencyServiceImpl>();
+builder.Services.AddScoped<IBudgetRecordServer, BudgetRecordServerImpl>();
 
 // 注册 IHttpContextAccessor
 builder.Services.AddHttpContextAccessor();
