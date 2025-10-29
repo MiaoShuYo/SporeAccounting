@@ -62,6 +62,8 @@ jobs:
             HOST_IP=$(curl -fsS https://api.ipify.org || curl -fsS https://ifconfig.me || curl -fsS https://ipinfo.io/ip)
             if [ -z "$HOST_IP" ]; then HOST_IP=$(ip -o route get 1.1.1.1 2>/dev/null | awk '{print $7; exit}'); fi
             if [ -z "$HOST_IP" ]; then HOST_IP=$(hostname -I | awk '{print $1}'); fi
+            echo "HOST_IP=$HOST_IP"
+            echo "ENVIRONMENT=${{ env.ENVIRONMENT }}"
             docker pull ${{ secrets.DOCKER_USERNAME }}/sp-finance-service:${{ github.event.inputs.tag || 'latest' }}
             docker stop sp-finance-service || true
             docker rm sp-finance-service || true
