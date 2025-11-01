@@ -21,6 +21,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SP.ResourceService", "SP.Re
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SP.MLService", "SP.MLService\SP.MLService.csproj", "{88126AC8-56E0-419B-8CF6-B5315E7F5FAE}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SP.NotificationService", "SP.NotificationService\SP.NotificationService.csproj", "{62EF82C6-D0F7-4090-B623-8CC3075F1C5C}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -63,6 +65,10 @@ Global
 		{88126AC8-56E0-419B-8CF6-B5315E7F5FAE}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{88126AC8-56E0-419B-8CF6-B5315E7F5FAE}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{88126AC8-56E0-419B-8CF6-B5315E7F5FAE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{62EF82C6-D0F7-4090-B623-8CC3075F1C5C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{62EF82C6-D0F7-4090-B623-8CC3075F1C5C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{62EF82C6-D0F7-4090-B623-8CC3075F1C5C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{62EF82C6-D0F7-4090-B623-8CC3075F1C5C}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

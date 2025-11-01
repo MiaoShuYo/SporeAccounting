@@ -33,6 +33,9 @@ SP.MLService/obj/
 SP.MLService/bin/
 SP.MLService/SP.MLService.csproj.user
 SP.MLService/AIModels/
+SP.NotificationService/obj/
+SP.NotificationService/bin/
+SP.NotificationService/SP.NotificationService.csproj.user
 *.user
 *.suo
 *.userosscache
