@@ -15,7 +15,7 @@ public interface IInSiteNotificationsServer
     /// </summary>
     /// <param name="sendInSiteNotification"></param>
     /// <returns></returns>
-    void SendInSiteNotificationAsync(SendInSiteNotificationRequest sendInSiteNotification);
+    long SendInSiteNotificationAsync(SendInSiteNotificationRequest sendInSiteNotification);
 
     /// <summary>
     /// 给全部用户发送站内信

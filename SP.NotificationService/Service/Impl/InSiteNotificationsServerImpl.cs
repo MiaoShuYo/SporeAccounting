@@ -48,11 +48,12 @@ public class InSiteNotificationsServerImpl : IInSiteNotificationsServer
     /// </summary>
     /// <param name="sendInSiteNotification"></param>
     /// <returns></returns>
-    public void SendInSiteNotificationAsync(SendInSiteNotificationRequest sendInSiteNotification)
+    public long SendInSiteNotificationAsync(SendInSiteNotificationRequest sendInSiteNotification)
     {
         InSiteNotification notification = _autoMapper.Map<InSiteNotification>(sendInSiteNotification);
         _notificationServiceDb.InSiteNotifications.Add(notification);
         _notificationServiceDb.SaveChanges();
+        return notification.Id;
     }
 
     /// <summary>
