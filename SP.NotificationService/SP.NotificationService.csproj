@@ -27,8 +27,6 @@
     <ItemGroup>
       <Folder Include="Controllers\" />
       <Folder Include="Models\Enumeration\" />
-      <Folder Include="Models\Request\" />
-      <Folder Include="Models\Response\" />
     </ItemGroup>
 
 </Project>

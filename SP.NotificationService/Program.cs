@@ -2,6 +2,7 @@ using System.Reflection;
 using Microsoft.OpenApi.Models;
 using Nacos.AspNetCore.V2;
 using Nacos.V2.DependencyInjection;
+using SP.Common;
 using SP.Common.Middleware;
 using SP.Common.ServiceDiscovery;
 using SP.NotificationService.DB;
@@ -70,10 +71,13 @@ builder.Services.AddNacosV2Naming(builder.Configuration);
 
 // 注册通用服务发现
 builder.Services.AddSingleton<IServiceDiscovery, NacosServiceDiscovery>();
+// 注册ContextSession
+builder.Services.AddScoped<ContextSession>();
 
 // 注册 DbContext
 builder.Services.AddDbContext<NotificationServiceDBContext>(ServiceLifetime.Scoped);
-
+// 注册AutoMapper
+builder.Services.AddAutoMapper(Assembly.GetExecutingAssembly());
 
 
 var app = builder.Build();
