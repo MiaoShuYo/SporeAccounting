@@ -71,6 +71,8 @@ builder.Services.AddNacosV2Naming(builder.Configuration);
 
 // 注册通用服务发现
 builder.Services.AddSingleton<IServiceDiscovery, NacosServiceDiscovery>();
+// 注册 IHttpContextAccessor
+builder.Services.AddHttpContextAccessor();
 // 注册ContextSession
 builder.Services.AddScoped<ContextSession>();
 
