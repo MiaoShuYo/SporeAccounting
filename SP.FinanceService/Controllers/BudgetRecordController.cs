@@ -16,7 +16,7 @@ namespace SP.FinanceService.Controllers
         /// <summary>
         /// 预算记录控制器构造函数
         /// </summary>
-        /// <param name="budgetRecordServer"></param>
+        /// <param name="budgetRecordServer">预算记录服务</param>
         public BudgetRecordController(IBudgetRecordServer budgetRecordServer)
         {
             _budgetRecordServer = budgetRecordServer;
