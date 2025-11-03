@@ -4,6 +4,9 @@ using SP.FinanceService.Service;
 
 namespace SP.FinanceService.Controllers
 {
+    /// <summary>
+    /// 预算记录控制器
+    /// </summary>
     [Route("api/budget-records")]
     [ApiController]
     public class BudgetRecordController : ControllerBase
