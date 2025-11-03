@@ -9,7 +9,7 @@ namespace SP.FinanceService.Controllers
     /// <summary>
     /// 预算控制器
     /// </summary>
-    [Route("api/budgets")]
+    [Route("api/budgets123")]
     [ApiController]
     public class BudgetController : ControllerBase
     {
