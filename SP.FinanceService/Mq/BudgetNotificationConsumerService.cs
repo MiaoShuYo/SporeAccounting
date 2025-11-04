@@ -6,6 +6,7 @@ using SP.Common.Message.Mq;
 using SP.Common.Message.Mq.Model;
 using SP.Common.Message.SmS.Model;
 using SP.Common.Model.Enumeration;
+using SP.FinanceService.Models.Request;
 using SP.FinanceService.Models.Response;
 using SP.FinanceService.Mq.Models;
 using SP.FinanceService.RefitClient;
@@ -120,7 +121,8 @@ public class BudgetNotificationConsumerService : BackgroundService
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"处理预算通知消息失败: {mqMessage.Type}, 用户ID: {notification.UserId}, 预算ID: {notification.BudgetId}");
+                _logger.LogError(ex,
+                    $"处理预算通知消息失败: {mqMessage.Type}, 用户ID: {notification.UserId}, 预算ID: {notification.BudgetId}");
             }
         });
     }
@@ -132,7 +134,8 @@ public class BudgetNotificationConsumerService : BackgroundService
     /// <param name="notification">通知消息</param>
     /// <param name="budget">预算信息</param>
     /// <param name="userServiceApi">用户服务API</param>
-    private async System.Threading.Tasks.Task ProcessNotification(string messageType, BudgetNotificationMQ notification, BudgetResponse budget, IUserServiceApi userServiceApi)
+    private async System.Threading.Tasks.Task ProcessNotification(string messageType, BudgetNotificationMQ notification,
+        BudgetResponse budget, IUserServiceApi userServiceApi)
     {
         // 构建通知内容
         string subject = GetNotificationSubject(messageType);
@@ -186,15 +189,15 @@ public class BudgetNotificationConsumerService : BackgroundService
     {
         return messageType switch
         {
-            MessageType.BudgetWarning => 
+            MessageType.BudgetWarning =>
                 $"您的预算「{budget.TransactionCategoryName}」已使用 {notification.UsagePercent:F2}%，" +
                 $"剩余金额：{budget.Remaining:F2}，请注意控制支出。",
 
-            MessageType.BudgetExhausted => 
+            MessageType.BudgetExhausted =>
                 $"您的预算「{budget.TransactionCategoryName}」已用完，" +
                 $"预算金额：{budget.Amount:F2}，请谨慎支出。",
 
-            MessageType.BudgetOverrun => 
+            MessageType.BudgetOverrun =>
                 $"您的预算「{budget.TransactionCategoryName}」已超支 {notification.OverrunPercent:F2}%，" +
                 $"预算金额：{budget.Amount:F2}，当前剩余：{budget.Remaining:F2}，请及时调整。",
 
@@ -209,13 +212,14 @@ public class BudgetNotificationConsumerService : BackgroundService
     /// <param name="userId">用户ID</param>
     /// <param name="subject">主题</param>
     /// <param name="content">内容</param>
-    private async System.Threading.Tasks.Task SendEmailNotification(IUserServiceApi userServiceApi, long userId, string subject, string content)
+    private async System.Threading.Tasks.Task SendEmailNotification(IUserServiceApi userServiceApi, long userId,
+        string subject, string content)
     {
         try
         {
             // 调用用户服务获取用户邮箱
             var userResponse = await userServiceApi.GetUser(userId);
-            
+
             if (userResponse == null || userResponse.StatusCode != HttpStatusCode.OK || userResponse.Content == null)
             {
                 _logger.LogWarning($"无法获取用户信息: 用户ID={userId}");
@@ -223,7 +227,7 @@ public class BudgetNotificationConsumerService : BackgroundService
             }
 
             var user = userResponse.Content;
-            
+
             if (string.IsNullOrEmpty(user.Email))
             {
                 _logger.LogWarning($"用户邮箱为空，无法发送邮件通知: 用户ID={userId}");
@@ -245,7 +249,7 @@ public class BudgetNotificationConsumerService : BackgroundService
 
             // 发送邮件到邮件队列
             await SendToEmailQueue(user.Email, subject, htmlContent);
-            
+
             _logger.LogInformation($"邮件通知已发送到队列: 用户ID={userId}, 邮箱={user.Email}, 主题={subject}");
         }
         catch (Exception ex)
@@ -260,13 +264,14 @@ public class BudgetNotificationConsumerService : BackgroundService
     /// <param name="userServiceApi">用户服务API</param>
     /// <param name="userId">用户ID</param>
     /// <param name="content">内容</param>
-    private async System.Threading.Tasks.Task SendSmsNotification(IUserServiceApi userServiceApi, long userId, string content)
+    private async System.Threading.Tasks.Task SendSmsNotification(IUserServiceApi userServiceApi, long userId,
+        string content)
     {
         try
         {
             // 调用用户服务获取用户手机号
             var userResponse = await userServiceApi.GetUser(userId);
-            
+
             if (userResponse == null || userResponse.StatusCode != HttpStatusCode.OK || userResponse.Content == null)
             {
                 _logger.LogWarning($"无法获取用户信息: 用户ID={userId}");
@@ -274,7 +279,7 @@ public class BudgetNotificationConsumerService : BackgroundService
             }
 
             var user = userResponse.Content;
-            
+
             if (string.IsNullOrEmpty(user.PhoneNumber))
             {
                 _logger.LogWarning($"用户手机号为空，无法发送短信通知: 用户ID={userId}");
@@ -282,13 +287,13 @@ public class BudgetNotificationConsumerService : BackgroundService
             }
 
             // 短信内容限制长度（一般短信限制70字符）
-            string smsContent = content.Length > 70 
-                ? content.Substring(0, 67) + "..." 
+            string smsContent = content.Length > 70
+                ? content.Substring(0, 67) + "..."
                 : content;
 
             // 发送短信到短信队列
             await SendToSmsQueue(user.PhoneNumber, smsContent);
-            
+
             _logger.LogInformation($"短信通知已发送到队列: 用户ID={userId}, 手机号={MaskPhoneNumber(user.PhoneNumber)}");
         }
         catch (Exception ex)
@@ -304,12 +309,23 @@ public class BudgetNotificationConsumerService : BackgroundService
     /// <param name="userId">用户ID</param>
     /// <param name="subject">主题</param>
     /// <param name="content">内容</param>
-    private async System.Threading.Tasks.Task SendInAppNotification(IUserServiceApi userServiceApi, long userId, string subject, string content)
+    private async System.Threading.Tasks.Task SendInAppNotification(IUserServiceApi userServiceApi, long userId,
+        string subject, string content)
     {
         try
         {
-            // TODO: 实现应用内通知逻辑
-            // 可以存储到数据库，或者通过WebSocket推送等
+            using var scope = _serviceScopeFactory.CreateScope();
+            var inSiteNotificationsService = scope.ServiceProvider.GetRequiredService<IInSiteNotificationsServiceApi>();
+            SendInSiteNotificationRequest sendInSiteNotification = new SendInSiteNotificationRequest();
+            sendInSiteNotification.UserId = userId;
+            sendInSiteNotification.Title = subject;
+            sendInSiteNotification.Content = content;
+            var response = await inSiteNotificationsService.SendInSiteNotification(sendInSiteNotification);
+            if (!response.IsSuccessStatusCode)
+            {
+                _logger.LogError($"站内信发送失败：{response.Error}");
+                await System.Threading.Tasks.Task.CompletedTask;
+            }
             _logger.LogInformation($"应用内通知: 用户ID={userId}, 主题={subject}, 内容={content}");
             await System.Threading.Tasks.Task.CompletedTask;
         }
@@ -368,7 +384,7 @@ public class BudgetNotificationConsumerService : BackgroundService
                 ExchangeType.Direct);
 
             await _rabbitMqMessage.SendAsync(publisher);
-            
+
             _logger.LogInformation($"短信已发送到队列: {MaskPhoneNumber(phoneNumber)}");
         }
         catch (Exception ex)
@@ -388,8 +404,7 @@ public class BudgetNotificationConsumerService : BackgroundService
         {
             return phoneNumber;
         }
-        
+
         return phoneNumber.Substring(0, 3) + "****" + phoneNumber.Substring(7);
     }
 }
-

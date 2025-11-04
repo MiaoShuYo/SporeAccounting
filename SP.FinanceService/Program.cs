@@ -108,6 +108,11 @@ builder.Services.AddNacosRefitClient<IUserServiceApi>(
     groupName: groupName,
     clusterName: clusterName,
     scheme: "http");
+builder.Services.AddNacosRefitClient<IInSiteNotificationsServiceApi>(
+    serviceName: "SPNotificationService",
+    groupName: groupName,
+    clusterName: clusterName,
+    scheme: "http");
 
 // 注册 DbContext
 builder.Services.AddDbContext<FinanceServiceDbContext>(ServiceLifetime.Scoped);
