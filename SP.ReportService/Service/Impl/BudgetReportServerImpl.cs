@@ -156,7 +156,7 @@ public class BudgetReportServerImpl : IBudgetReportServer
                 var totalUsedAmount = group.Sum(r => r.UsedAmount);
                 var totalBudgetAmount = periodBudgets.Sum(b => b.Amount);
                 var totalRemaining = periodBudgets.Sum(b => b.Remaining);
-                
+
                 trendReports.Add(new BudgetProgressReportResponse
                 {
                     Period = period,
@@ -215,7 +215,7 @@ public class BudgetReportServerImpl : IBudgetReportServer
                 var totalUsedAmount = recordGroup.Sum(r => r.UsedAmount);
                 var totalBudgetAmount = periodBudgets.Sum(b => b.Amount);
                 var totalRemaining = periodBudgets.Sum(b => b.Remaining);
-                
+
                 trendReports.Add(new BudgetProgressReportResponse
                 {
                     Period = period,

@@ -103,4 +103,19 @@ public class AccountingController : ControllerBase
         PageResponse<AccountingResponse> result = _accountingServer.QueryPage(accountBookId, request);
         return Ok(result);
     }
+
+    /// <summary>
+    /// 根据时间范围获取记账记录列表
+    /// </summary>
+    /// <param name="startTime">开始时间</param>
+    /// <param name="endTime">结束时间</param>
+    /// <returns>返回记账记录列表</returns>
+    [HttpGet("by-time-range")]
+    public ActionResult<List<AccountingResponse>> GetAccountingsByTimeRange(
+        [FromQuery] DateTime startTime,
+        [FromQuery] DateTime endTime)
+    {
+        var result = _accountingServer.GetAccountingsByTimeRange(startTime, endTime);
+        return Ok(result);
+    }
 }

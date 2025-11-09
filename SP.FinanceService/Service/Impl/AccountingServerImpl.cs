@@ -357,4 +357,25 @@ public class AccountingServerImpl : IAccountingServer
 
         throw new RefitException($"获取汇率失败: {apiResponse.StatusCode}");
     }
+
+    /// <summary>
+    /// 根据时间范围获取记账记录列表
+    /// </summary>
+    /// <param name="startTime"></param>
+    /// <param name="endTime"></param>
+    /// <returns></returns>
+    public object GetAccountingsByTimeRange(DateTime startTime, DateTime endTime)
+    {
+        // 查询记账记录
+        var accountings = _dbContext.Accountings
+            .Where(a => a.IsDeleted == false 
+                && a.RecordDate >= startTime 
+                && a.RecordDate <= endTime 
+                && a.CreateUserId == _contextSession.UserId)
+            .ToList();
+        // 将实体列表映射到响应模型列表
+        var responseList = _autoMapper.Map<List<AccountingResponse>>(accountings);
+        // 返回响应列表
+        return responseList;
+    }
 }

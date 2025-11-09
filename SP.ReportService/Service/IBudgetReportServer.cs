@@ -16,7 +16,7 @@ public interface IBudgetReportServer
     /// 2. 各类别预算进度
     /// </returns>
     Task<List<BudgetProgressReportResponse>> GetBudgetProgress();
-    
+
     /// <summary>
     /// 预算消耗趋势报表
     /// </summary>

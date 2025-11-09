@@ -38,7 +38,7 @@ public class BudgetReportController : ControllerBase
     public async Task<ActionResult<List<BudgetProgressReportResponse>>> GetBudgetProgress()
     {
         List<BudgetProgressReportResponse> budgetProgressReports
-            =  await _budgetReportServer.GetBudgetProgress();
+            = await _budgetReportServer.GetBudgetProgress();
         return Ok(budgetProgressReports);
     }
 
@@ -58,38 +58,5 @@ public class BudgetReportController : ControllerBase
         List<BudgetProgressReportResponse> budgetProgressReports
             = await _budgetReportServer.GetBudgetConsumptionTrend();
         return Ok(budgetProgressReports);
-    }
-
-    /// <summary>
-    /// 预算与实际对比报表
-    /// </summary>
-    /// <returns>
-    /// 预算与实际对比报表列表包括：
-    /// 1. 综合预算与实际对比
-    /// 2. 各类别预算与实际对比
-    /// </returns>
-    [HttpGet]
-    [Route("budget-actual-comparison")]
-    public ActionResult<List<BudgetActualComparisonReportResponse>> GetBudgetActualComparison()
-    {
-        //TODO: 预算与实际对比报表数据
-        return null;
-    }
-
-    /// <summary>
-    /// 最近N个历史预算对比报告
-    /// </summary>
-    /// <param name="n">最近N个预算，默认值为3</param>
-    /// <returns>
-    /// 历史预算对比报表列表包括：
-    /// 1. 综合历史预算对比
-    /// 2. 各类别历史预算对比
-    /// </returns>
-    [HttpGet]
-    [Route("historical-budget-comparison")]
-    public ActionResult<List<HistoricalBudgetComparisonReportResponse>> GetHistoricalBudgetComparison(int n = 3)
-    {
-        //TODO: 历史预算对比报表数据
-        return null;
     }
 }
