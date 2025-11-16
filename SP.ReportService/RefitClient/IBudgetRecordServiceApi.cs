@@ -1,5 +1,4 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using Refit;
+﻿using Refit;
 using SP.ReportService.Models.Response;
 
 namespace SP.ReportService.RefitClient;

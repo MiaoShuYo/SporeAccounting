@@ -9,6 +9,6 @@ public interface IBudgetServiceApi
     /// 获取当前用户正在使用的预算列表
     /// </summary>
     /// <returns>正在使用的预算列表</returns>
-    [Get("/api/budget/current-budgets")]
+    [Get("/api/budgets/current-budgets")]
     Task<ApiResponse<List<BudgetResponse>>> GetCurrentBudgetsAsync();
 }

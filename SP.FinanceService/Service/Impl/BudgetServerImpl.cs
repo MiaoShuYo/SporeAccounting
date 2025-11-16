@@ -370,7 +370,7 @@ public class BudgetServerImpl : IBudgetServer
     /// </summary>
     /// <returns>正在使用的预算列表</returns>
     public List<BudgetResponse> QueryActiveBudgets()
-    {
+    { 
         var userId = _contextSession.UserId;
         var budgets = _dbContext.Budgets
             .Where(b => !b.IsDeleted
