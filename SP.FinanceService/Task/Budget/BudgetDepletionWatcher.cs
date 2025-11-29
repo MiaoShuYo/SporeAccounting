@@ -113,14 +113,28 @@ public class BudgetDepletionWatcher : IJob
                 {
                     // 提醒频率从redis中读取，如果当天的频率大于了配置的频率，则不发送通知。
                     string reminderFrequencyKey = string.Format(SPRedisKey.ReminderFrequencyKey, budget.CreateUserId, today);
-                    int reminderFrequency = await _redisService.GetAsync<int>(reminderFrequencyKey);
-                    if (reminderFrequency != null && reminderFrequency > 0 && reminderFrequency >= int.Parse(reminderFrequencyResponse.Content.Value))
+                    // IRedisService.GetAsync<T> is constrained to reference types, use string APIs instead
+                    string? reminderFrequencyStr = await _redisService.GetStringAsync(reminderFrequencyKey);
+                    int reminderFrequency = 0;
+                    if (!string.IsNullOrEmpty(reminderFrequencyStr))
+                    {
+                        int.TryParse(reminderFrequencyStr, out reminderFrequency);
+                    }
+
+                    int configFrequency;
+                    if (!int.TryParse(reminderFrequencyResponse.Content.Value, out configFrequency))
+                    {
+                        // if config is invalid, treat as very high so we don't early continue
+                        configFrequency = int.MaxValue;
+                    }
+
+                    if (reminderFrequency > 0 && reminderFrequency >= configFrequency)
                     {
                         continue;
                     }
                     else
                     {
-                        await _redisService.SetAsync<int>(reminderFrequencyKey, reminderFrequency + 1);
+                        await _redisService.SetStringAsync(reminderFrequencyKey, (reminderFrequency + 1).ToString());
                     }
                 }
 
