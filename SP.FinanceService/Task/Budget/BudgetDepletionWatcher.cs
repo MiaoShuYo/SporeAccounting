@@ -90,6 +90,42 @@ public class BudgetDepletionWatcher : IJob
         {
             try
             {
+                // 获取用户配置的静音时段
+                ApiResponse<ConfigResponse> silentPeriodResponse = await _configService.QueryByTypeAndUserId(ConfigTypeEnum.SilentPeriod, budget.CreateUserId);
+                if (silentPeriodResponse != null && silentPeriodResponse.StatusCode == HttpStatusCode.OK && silentPeriodResponse.Content != null && silentPeriodResponse.Content.Value != null)
+                {
+                    // 判断是否处于静音时段，如果处于静音时段，则不发送通知。格式为startTime%endTime
+                    string[] silentPeriod = silentPeriodResponse.Content.Value.Split('%');
+                    if (silentPeriod.Length == 2)
+                    {
+                        DateTime startTime = DateTime.Parse(silentPeriod[0]);
+                        DateTime endTime = DateTime.Parse(silentPeriod[1]);
+                        if (now >= startTime && now <= endTime)
+                        {
+                            continue;
+                        }
+                    }
+                }
+
+                // 获取用户配置的提醒频率
+                ApiResponse<ConfigResponse> reminderFrequencyResponse = await _configService.QueryByTypeAndUserId(ConfigTypeEnum.ReminderFrequency, budget.CreateUserId);
+                if (reminderFrequencyResponse != null && reminderFrequencyResponse.StatusCode == HttpStatusCode.OK && reminderFrequencyResponse.Content != null && reminderFrequencyResponse.Content.Value != null)
+                {
+                    // 提醒频率从redis中读取，如果当天的频率大于了配置的频率，则不发送通知。
+                    string reminderFrequencyKey = string.Format(SPRedisKey.ReminderFrequencyKey, budget.CreateUserId, today);
+                    int reminderFrequency = await _redisService.GetAsync<int>(reminderFrequencyKey);
+                    if (reminderFrequency != null && reminderFrequency > 0 && reminderFrequency >= int.Parse(reminderFrequencyResponse.Content.Value))
+                    {
+                        continue;
+                    }
+                    else
+                    {
+                        await _redisService.SetAsync<int>(reminderFrequencyKey, reminderFrequency + 1);
+                    }
+                }
+
+
+
                 // 计算预算使用情况
                 decimal usedAmount = budget.Amount - budget.Remaining;
                 decimal usagePercent = budget.Amount > 0

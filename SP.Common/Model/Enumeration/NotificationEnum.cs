@@ -18,5 +18,5 @@ public enum NotificationEnum
     /// <summary>
     /// 应用内通知
     /// </summary>
-    InApp = 2
+    InApp = 2,
 }

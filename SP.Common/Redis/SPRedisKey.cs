@@ -44,4 +44,9 @@ public class SPRedisKey
     /// 超额通知
     /// </summary>
     public const string OverrunHashKey = "BUDGET:NOTIFIED:OVERRUN:{0}";
+
+    /// <summary>
+    /// 预算提醒频率
+    /// </summary>
+    public const string ReminderFrequencyKey = "BUDGET:NOTIFIED:REMINDER:FREQUENCY:{0}:{1}";
 }
