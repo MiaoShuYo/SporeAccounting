@@ -47,6 +47,13 @@ public interface IAccountingServer
     object GetAccountingsByTimeRange(DateTime startTime, DateTime endTime);
 
     /// <summary>
+    /// 迁移记账记录到目标账本
+    /// </summary>
+    /// <param name="targetAccountBookId">目标账本</param>
+    /// <param name="sourceIds">源账本</param>
+    void MigrateAccountBook(long targetAccountBookId, List<long> sourceIds);
+
+    /// <summary>
     /// 查询记账详情
     /// </summary>
     /// <param name="accountBookId">账本ID</param>

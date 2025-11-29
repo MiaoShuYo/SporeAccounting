@@ -80,4 +80,15 @@ public class AccountBookController : ControllerBase
         PageResponse<AccountBookResponse> result = _accountBookServer.QueryPage(pageRequest);
         return Ok(result);
     }
+
+    ///<summary>
+    ///账本合并
+    ///</summary>
+    ///<param name="request">账本合并请求</param>
+    [HttpGet]
+    public ActionResult<bool> MergeAccountBooks([FromBody] AccountBookMergeRequest request)
+    {
+        _accountBookServer.Merge(request);
+        return Ok();
+    }
 }

@@ -41,4 +41,10 @@ public interface IAccountBookServer
     /// <param name="accountBookId"></param>
     /// <returns></returns>
     bool Exist(long accountBookId);
+
+    /// <summary>
+    /// 合并账本
+    /// </summary>
+    /// <param name="request"></param>
+    void Merge(AccountBookMergeRequest request);
 }

@@ -368,14 +368,34 @@ public class AccountingServerImpl : IAccountingServer
     {
         // 查询记账记录
         var accountings = _dbContext.Accountings
-            .Where(a => a.IsDeleted == false 
-                && a.RecordDate >= startTime 
-                && a.RecordDate <= endTime 
+            .Where(a => a.IsDeleted == false
+                && a.RecordDate >= startTime
+                && a.RecordDate <= endTime
                 && a.CreateUserId == _contextSession.UserId)
             .ToList();
         // 将实体列表映射到响应模型列表
         var responseList = _autoMapper.Map<List<AccountingResponse>>(accountings);
         // 返回响应列表
         return responseList;
+    }
+
+    /// <summary>
+    /// 合并记账记录到目标账本
+    /// </summary>
+    /// <param name="targetAccountBookId"></param>
+    /// <param name="sourceIds"></param>
+    public void MigrateAccountBook(long targetAccountBookId, List<long> sourceIds)
+    {
+        // 迁移记账记录到目标账本
+        var accountingsToMigrate = _dbContext.Accountings
+            .Where(a => sourceIds.Contains(a.AccountBookId) && a.IsDeleted == false)
+            .ToList();
+        foreach (var accounting in accountingsToMigrate)
+        {
+            accounting.AccountBookId = targetAccountBookId;
+            SettingCommProperty.Edit(accounting);
+        }
+        _dbContext.Accountings.UpdateRange(accountingsToMigrate);
+        _dbContext.SaveChanges();
     }
 }

@@ -29,17 +29,24 @@ public class AccountBookServerImpl : IAccountBookServer
     private readonly IServiceProvider _serviceProvider;
 
     /// <summary>
+    /// 记账服务
+    /// </summary>
+    private readonly IAccountingServer _accountingServer;
+
+    /// <summary>
     /// 账本服务构造函数
     /// </summary>
     /// <param name="dbContext"></param>
     /// <param name="automapper"></param>
     /// <param name="serviceProvider"></param>
+    /// <param name="accountingServer"></param>
     public AccountBookServerImpl(FinanceServiceDbContext dbContext, IMapper automapper,
-        IServiceProvider serviceProvider)
+        IServiceProvider serviceProvider, IAccountingServer accountingServer)
     {
         _automapper = automapper;
         _dbContext = dbContext;
         _serviceProvider = serviceProvider;
+        _accountingServer = accountingServer;
     }
 
     /// <summary>
@@ -150,6 +157,33 @@ public class AccountBookServerImpl : IAccountBookServer
     }
 
     /// <summary>
+    /// 合并账本
+    /// </summary>
+    /// <param name="request"></param>
+    /// <exception cref="NotImplementedException"></exception>
+    public void Merge(AccountBookMergeRequest request)
+    {
+        // 目标账本是否存在
+        bool targetExist = Exist(request.TargetAccountBookId);
+        if (targetExist)
+        {
+            throw new NotFoundException($"账本不存在，ID: {request.TargetAccountBookId}");
+        }
+
+        // 来源账本是否存在
+        List<long> sourceIds = request.SourceAccountBookIds;
+        List<long> notExistIds = BatchQuery(sourceIds);
+        if (notExistIds.Any())
+        {
+            throw new NotFoundException($"以下账本不存在，ID: {string.Join(", ", notExistIds)}");
+        }
+
+        // 迁移账本下的记录
+        // 规则源账本的记录迁移到目标账本下，修改账本ID为目标账本ID
+        _accountingServer.MigrateAccountBook(request.TargetAccountBookId, sourceIds);
+    }
+
+    /// <summary>
     /// 根据id查找账本
     /// </summary>
     /// <param name="id">账本ID</param>
@@ -159,5 +193,18 @@ public class AccountBookServerImpl : IAccountBookServer
         // 查询指定ID的账本
         var accountBook = _dbContext.AccountBooks.Find(id);
         return accountBook;
+    }
+
+    /// <summary>
+    /// 批量判断账本是否存在
+    /// </summary>
+    /// <param name="ids">账本列表</param>
+    /// <returns>不存在的账本ID列表</returns>
+    public List<long> BatchQuery(List<long> ids)
+    {
+        // 查询所有账本
+        var accountBooks = _dbContext.AccountBooks.Where(p => ids.Contains(p.Id)).ToList();
+        // 返回不存在的账本ID
+        return ids.Where(id => !accountBooks.Any(p => p.Id == id)).ToList();
     }
 }
