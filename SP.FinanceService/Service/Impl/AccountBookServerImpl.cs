@@ -5,6 +5,7 @@ using SP.FinanceService.DB;
 using SP.FinanceService.Models.Entity;
 using SP.FinanceService.Models.Request;
 using SP.FinanceService.Models.Response;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace SP.FinanceService.Service.Impl;
 
@@ -28,10 +29,8 @@ public class AccountBookServerImpl : IAccountBookServer
     /// </summary>
     private readonly IServiceProvider _serviceProvider;
 
-    /// <summary>
-    /// 记账服务
-    /// </summary>
-    private readonly IAccountingServer _accountingServer;
+    // 注意：不要直接在构造函数中注入 IAccountingServer，以免与 AccountingServerImpl 形成循环依赖。
+    // 需要时通过 IServiceProvider 延迟获取。
 
     /// <summary>
     /// 账本服务构造函数
@@ -39,14 +38,12 @@ public class AccountBookServerImpl : IAccountBookServer
     /// <param name="dbContext"></param>
     /// <param name="automapper"></param>
     /// <param name="serviceProvider"></param>
-    /// <param name="accountingServer"></param>
     public AccountBookServerImpl(FinanceServiceDbContext dbContext, IMapper automapper,
-        IServiceProvider serviceProvider, IAccountingServer accountingServer)
+        IServiceProvider serviceProvider)
     {
         _automapper = automapper;
         _dbContext = dbContext;
         _serviceProvider = serviceProvider;
-        _accountingServer = accountingServer;
     }
 
     /// <summary>
@@ -178,9 +175,10 @@ public class AccountBookServerImpl : IAccountBookServer
             throw new NotFoundException($"以下账本不存在，ID: {string.Join(", ", notExistIds)}");
         }
 
-        // 迁移账本下的记录
-        // 规则源账本的记录迁移到目标账本下，修改账本ID为目标账本ID
-        _accountingServer.MigrateAccountBook(request.TargetAccountBookId, sourceIds);
+    // 迁移账本下的记录
+    // 规则：源账本的记录迁移到目标账本下，修改账本ID为目标账本ID
+    var accountingServer = _serviceProvider.GetRequiredService<IAccountingServer>();
+    accountingServer.MigrateAccountBook(request.TargetAccountBookId, sourceIds);
     }
 
     /// <summary>
