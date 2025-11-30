@@ -85,7 +85,7 @@ public class AccountBookController : ControllerBase
     ///账本合并
     ///</summary>
     ///<param name="request">账本合并请求</param>
-    [HttpGet]
+    [HttpPost("merge")]
     public ActionResult<bool> MergeAccountBooks([FromBody] AccountBookMergeRequest request)
     {
         _accountBookServer.Merge(request);

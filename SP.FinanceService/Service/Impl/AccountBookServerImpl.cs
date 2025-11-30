@@ -200,7 +200,7 @@ public class AccountBookServerImpl : IAccountBookServer
     /// </summary>
     /// <param name="ids">账本列表</param>
     /// <returns>不存在的账本ID列表</returns>
-    public List<long> BatchQuery(List<long> ids)
+    private List<long> BatchQuery(List<long> ids)
     {
         // 查询所有账本
         var accountBooks = _dbContext.AccountBooks.Where(p => ids.Contains(p.Id)).ToList();
