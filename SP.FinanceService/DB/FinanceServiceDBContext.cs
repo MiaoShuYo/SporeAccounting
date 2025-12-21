@@ -33,6 +33,10 @@ public class FinanceServiceDbContext : DbContext
     /// </summary>
     public DbSet<BudgetRecord> BudgetRecords { get; set; }
 
+    /// <summary>
+    /// 账本分享
+    /// </summary>
+    public DbSet<AccountBookShare> AccountBookShares { get; set; }
 
     /// <summary>
     /// 数据库连接配置

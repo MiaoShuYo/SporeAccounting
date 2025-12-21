@@ -43,5 +43,8 @@ public class FinanceProfile : Profile
         
         // BudgetRecord 映射
         CreateMap<BudgetRecord, BudgetRecordResponse>();
+
+        // 账本分享映射
+        CreateMap<AccountBookShareAddRequest, AccountBookShare>();
     }
 }

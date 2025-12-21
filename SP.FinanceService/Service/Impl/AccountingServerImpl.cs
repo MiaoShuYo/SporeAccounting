@@ -369,9 +369,9 @@ public class AccountingServerImpl : IAccountingServer
         // 查询记账记录
         var accountings = _dbContext.Accountings
             .Where(a => a.IsDeleted == false
-                && a.RecordDate >= startTime
-                && a.RecordDate <= endTime
-                && a.CreateUserId == _contextSession.UserId)
+                        && a.RecordDate >= startTime
+                        && a.RecordDate <= endTime
+                        && a.CreateUserId == _contextSession.UserId)
             .ToList();
         // 将实体列表映射到响应模型列表
         var responseList = _autoMapper.Map<List<AccountingResponse>>(accountings);
@@ -395,6 +395,7 @@ public class AccountingServerImpl : IAccountingServer
             accounting.AccountBookId = targetAccountBookId;
             SettingCommProperty.Edit(accounting);
         }
+
         _dbContext.Accountings.UpdateRange(accountingsToMigrate);
         _dbContext.SaveChanges();
     }

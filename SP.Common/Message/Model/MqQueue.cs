@@ -26,4 +26,10 @@ public static class MqQueue
     /// 用户配置消息队列
     /// </summary>
     public const string UserConfigQueue = "user_config_queue";
+
+    /// <summary>
+    /// 账本分享消息队列
+    /// </summary>
+    public const string AccountBookShareQueue = "account_book_share_queue";
+
 }

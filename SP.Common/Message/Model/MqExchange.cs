@@ -19,4 +19,9 @@ public class MqExchange
     /// 用户配置交换机
     /// </summary>
     public const string UserConfigExchange = "user_config_exchange";
+
+    /// <summary>
+    /// 账本分享交换机
+    /// </summary>
+    public const string AccountBookShareExchange = "account_book_share_exchange";
 }

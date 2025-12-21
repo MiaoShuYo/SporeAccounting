@@ -47,4 +47,11 @@ public interface IAccountBookServer
     /// </summary>
     /// <param name="request"></param>
     void Merge(AccountBookMergeRequest request);
+
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="requestAccountBookId"></param>
+    /// <returns></returns>
+    AccountBookResponse Get(long requestAccountBookId);
 }

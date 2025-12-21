@@ -59,4 +59,19 @@ public static class MessageType
     /// 预算超额通知
     /// </summary>
     public const string BudgetOverrun = "BudgetOverrun";
+
+    /// <summary>
+    /// 账本分享
+    /// </summary>
+    public const string AccountBookShare = "AccountBookShare";
+
+    /// <summary>
+    /// 账本分享撤回
+    /// </summary>
+    public const string AccountBookShareRevoke = "AccountBookShareRevoke";
+
+    /// <summary>
+    /// 账本分享权限修改
+    /// </summary>
+    public const string AccountBookSharePermissionUpdate = "AccountBookSharePermissionUpdate";
 }

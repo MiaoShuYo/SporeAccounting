@@ -1,11 +1,13 @@
 ﻿using AutoMapper;
+using Microsoft.Extensions.DependencyInjection;
+using SP.Common;
 using SP.Common.ExceptionHandling.Exceptions;
 using SP.Common.Model;
 using SP.FinanceService.DB;
 using SP.FinanceService.Models.Entity;
+using SP.FinanceService.Models.Enumeration;
 using SP.FinanceService.Models.Request;
 using SP.FinanceService.Models.Response;
-using Microsoft.Extensions.DependencyInjection;
 
 namespace SP.FinanceService.Service.Impl;
 
@@ -29,8 +31,10 @@ public class AccountBookServerImpl : IAccountBookServer
     /// </summary>
     private readonly IServiceProvider _serviceProvider;
 
-    // 注意：不要直接在构造函数中注入 IAccountingServer，以免与 AccountingServerImpl 形成循环依赖。
-    // 需要时通过 IServiceProvider 延迟获取。
+    /// <summary>
+    /// 账本分享
+    /// </summary>
+    private readonly IAccountBookShareServer _accountBookShareServer;
 
     /// <summary>
     /// 账本服务构造函数
@@ -38,12 +42,15 @@ public class AccountBookServerImpl : IAccountBookServer
     /// <param name="dbContext"></param>
     /// <param name="automapper"></param>
     /// <param name="serviceProvider"></param>
+    /// <param name="accountBookShareServer"></param>
     public AccountBookServerImpl(FinanceServiceDbContext dbContext, IMapper automapper,
-        IServiceProvider serviceProvider)
+        IServiceProvider serviceProvider,
+        IAccountBookShareServer accountBookShareServer)
     {
         _automapper = automapper;
         _dbContext = dbContext;
         _serviceProvider = serviceProvider;
+        _accountBookShareServer = accountBookShareServer;
     }
 
     /// <summary>
@@ -115,20 +122,75 @@ public class AccountBookServerImpl : IAccountBookServer
 
     /// <summary>
     /// 查询账本分页
+    /// 分页查询当前用户创建的账本以及分享给当前用户的账本
     /// </summary>
     /// <param name="page">分页数据</param>
     /// <returns></returns>
     public PageResponse<AccountBookResponse> QueryPage(AccountBookPageRequest page)
     {
-        // 查询符合条件的账本列表
-        var query = _dbContext.AccountBooks.Where(p => !p.IsDeleted).AsQueryable();
+        // 获取当前会话用户（通过延迟解析）
+        var contextSession = _serviceProvider.GetService<ContextSession>();
+        long currentUserId = contextSession?.UserId ?? 0;
 
-        // 分页查询
+        // 构建查询：未删除，并且是当前用户创建的 OR 分享给当前用户的账本
+        var query = _dbContext.AccountBooks
+            .Where(ab => !ab.IsDeleted &&
+                         (ab.CreateUserId == currentUserId ||
+                          _dbContext.AccountBookShares.Any(sh =>
+                              !sh.IsDeleted && sh.AccountBookId == ab.Id && sh.UserId == currentUserId)))
+            .OrderByDescending(ab => ab.CreateDateTime)
+            .AsQueryable();
+
+        // 获取总数并分页
         var totalCount = query.Count();
-        var accountBooks = query.Skip((page.PageIndex - 1) * page.PageSize)
-            .Take(page.PageSize).ToList();
+        var accountBooks = query
+            .Skip((page.PageIndex - 1) * page.PageSize)
+            .Take(page.PageSize)
+            .ToList();
 
+        // 获取当前页账本的统计（收入/支出）
+        var accountBookIds = accountBooks.Select(ab => ab.Id).ToList();
+        var stats = _dbContext.Accountings
+            .Where(a => !a.IsDeleted && accountBookIds.Contains(a.AccountBookId))
+            .GroupBy(a => a.AccountBookId)
+            .Select(g => new
+            {
+                AccountBookId = g.Key,
+                Income = g.Where(x => x.AfterAmount > 0).Sum(x => x.AfterAmount),
+                Expenditure = g.Where(x => x.AfterAmount < 0).Sum(x => Math.Abs(x.AfterAmount))
+            })
+            .ToList();
+
+        // 映射响应对象
         var accountBookResponses = _automapper.Map<List<AccountBookResponse>>(accountBooks);
+
+        // 查询账本权限
+        List<long> ids = accountBookResponses.Select(ab => ab.Id).ToList();
+        Dictionary<long, PermissionTypeEnum> permissionDict = _accountBookShareServer.GetPermission(ids);
+
+        // 将统计填充到响应对象
+        foreach (var resp in accountBookResponses)
+        {
+            var stat = stats.FirstOrDefault(s => s.AccountBookId == resp.Id);
+            resp.IncomeAmount = stat?.Income ?? 0m;
+            resp.ExpenditureAmount = stat?.Expenditure ?? 0m;
+
+            // 获取当前账本对象以判断是否是创建者
+            var accountBook = accountBooks.FirstOrDefault(ab => ab.Id == resp.Id);
+            long currentUserIdForPermission = contextSession?.UserId ?? 0;
+
+            // 如果是创建者（所有者），权限为 Admin；否则从分享表查询
+            if (accountBook?.CreateUserId == currentUserIdForPermission)
+            {
+                resp.PermissionType = PermissionTypeEnum.Admin;
+            }
+            else
+            {
+                resp.PermissionType = permissionDict.ContainsKey(resp.Id)
+                    ? permissionDict[resp.Id]
+                    : PermissionTypeEnum.ReadOnly; // 默认只读
+            }
+        }
 
         // 返回分页结果
         return new PageResponse<AccountBookResponse>
@@ -175,10 +237,10 @@ public class AccountBookServerImpl : IAccountBookServer
             throw new NotFoundException($"以下账本不存在，ID: {string.Join(", ", notExistIds)}");
         }
 
-    // 迁移账本下的记录
-    // 规则：源账本的记录迁移到目标账本下，修改账本ID为目标账本ID
-    var accountingServer = _serviceProvider.GetRequiredService<IAccountingServer>();
-    accountingServer.MigrateAccountBook(request.TargetAccountBookId, sourceIds);
+        // 迁移账本下的记录
+        // 规则：源账本的记录迁移到目标账本下，修改账本ID为目标账本ID
+        var accountingServer = _serviceProvider.GetRequiredService<IAccountingServer>();
+        accountingServer.MigrateAccountBook(request.TargetAccountBookId, sourceIds);
     }
 
     /// <summary>
