@@ -19,6 +19,7 @@ public enum ConfigTypeEnum
     /// 预算报警阈值
     /// </summary>
     BudgetAlertThreshold = 2,
+
     /// <summary>
     /// 提醒频率
     /// </summary>
@@ -27,5 +28,20 @@ public enum ConfigTypeEnum
     /// <summary>
     /// 静音时段
     /// </summary>
-    SilentPeriod = 4
+    SilentPeriod = 4,
+
+    /// <summary>
+    /// 使用主题
+    /// </summary>
+    Theme = 5,
+
+    /// <summary>
+    /// 字体设置
+    /// </summary>
+    Font = 6,
+
+    /// <summary>
+    /// 数据展示方式（表格、图表）
+    /// </summary>
+    Data = 7,
 }
