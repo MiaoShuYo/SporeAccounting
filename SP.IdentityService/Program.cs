@@ -1,7 +1,5 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using Nacos.AspNetCore.V2;
-using Nacos.V2.DependencyInjection;
 using SP.Common.Redis;
 using SP.IdentityService.DB;
 using SP.IdentityService.Models.Entity;
@@ -22,6 +20,8 @@ using SP.IdentityService.Mq;
 using SP.IdentityService.Services;
 using SP.IdentityService.Service.Impl;
 using SP.Common.ExceptionHandling;
+using SP.Common.Nacos;
+using SP.Common.Nacos.Configuration;
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -42,11 +42,11 @@ builder.Services.ConfigureDetailedModelValidation();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 
-// 添加Nacos服务注册
-builder.Services.AddNacosAspNet(builder.Configuration);
-// 添加Nacos配置中心
-builder.Configuration.AddNacosV2Configuration(builder.Configuration.GetSection("nacos"));
-builder.Services.AddNacosV2Naming(builder.Configuration);
+// Nacos 配置中心（OpenAPI）
+builder.Configuration.AddSpNacosConfiguration(builder.Configuration.GetSection("nacos"));
+
+// 注册 SP.Common Nacos OpenAPI 封装
+builder.Services.AddSpNacos(builder.Configuration);
 // 引入redis
 builder.Services.AddRedisService(builder.Configuration);
 

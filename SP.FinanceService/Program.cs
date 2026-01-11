@@ -1,11 +1,11 @@
 using System.Reflection;
 using Microsoft.OpenApi.Models;
-using Nacos.AspNetCore.V2;
-using Nacos.V2.DependencyInjection;
 using Quartz;
 using SP.Common.Refit;
 using SP.Common.ServiceDiscovery;
 using SP.Common;
+using SP.Common.Nacos;
+using SP.Common.Nacos.Configuration;
 using SP.Common.ConfigService;
 using SP.Common.Logger;
 using SP.Common.Message.Email;
@@ -77,14 +77,14 @@ if (!string.IsNullOrWhiteSpace(hostIp) || !string.IsNullOrWhiteSpace(exposePort)
     builder.Configuration.AddInMemoryCollection(overrides);
 }
 
-// 添加Nacos服务注册
-builder.Services.AddNacosAspNet(builder.Configuration);
-// 添加Nacos配置中心
-builder.Configuration.AddNacosV2Configuration(builder.Configuration.GetSection("nacos"));
-builder.Services.AddNacosV2Naming(builder.Configuration);
+// Nacos 配置中心（OpenAPI）
+builder.Configuration.AddSpNacosConfiguration(builder.Configuration.GetSection("nacos"));
+
+// 注册 SP.Common Nacos OpenAPI 封装
+builder.Services.AddSpNacos(builder.Configuration);
 
 // 注册通用服务发现
-builder.Services.AddSingleton<IServiceDiscovery, NacosServiceDiscovery>();
+builder.Services.AddSingleton<IServiceDiscovery, NacosOpenApiServiceDiscovery>();
 
 // 注册 Refit 客户端（基于通用服务发现 + Nacos，无需硬编码 BaseUrl）
 var nacosSection = builder.Configuration.GetSection("nacos");

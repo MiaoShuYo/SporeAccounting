@@ -1,4 +1,4 @@
-﻿using Nacos.V2;
+﻿using SP.Common.Nacos;
 
 namespace SP.Gateway.Services.Impl;
 
@@ -7,7 +7,7 @@ namespace SP.Gateway.Services.Impl;
 /// </summary>
 public class NacosServiceDiscoveryService : INacosServiceDiscoveryService
 {
-    private readonly INacosNamingService _namingService;
+    private readonly INacosClient _nacos;
     private readonly HttpClient _httpClient;
     private readonly ILogger<NacosServiceDiscoveryService> _logger;
     private readonly IConfiguration _configuration;
@@ -17,12 +17,12 @@ public class NacosServiceDiscoveryService : INacosServiceDiscoveryService
     private const string IdentityServiceName = "SPIdentityService";
 
     public NacosServiceDiscoveryService(
-        INacosNamingService namingService,
+        INacosClient nacos,
         HttpClient httpClient,
         ILogger<NacosServiceDiscoveryService> logger,
         IConfiguration configuration)
     {
-        _namingService = namingService;
+        _nacos = nacos;
         _httpClient = httpClient;
         _logger = logger;
         _configuration = configuration;
@@ -33,8 +33,12 @@ public class NacosServiceDiscoveryService : INacosServiceDiscoveryService
         try
         {
             _logger.LogInformation("开始从Nacos获取身份服务实例，服务名: {ServiceName}", IdentityServiceName);
+
+            var nacosSection = _configuration.GetSection("nacos");
+            var groupName = nacosSection.GetValue<string>("GroupName") ?? "DEFAULT_GROUP";
+            var clusterName = nacosSection.GetValue<string>("ClusterName") ?? "DEFAULT";
             
-            var instances = await _namingService.SelectInstances(IdentityServiceName, "DEFAULT_GROUP", new List<string> { "DEFAULT" }, true);
+            var instances = await _nacos.ListHealthyInstancesAsync(IdentityServiceName, groupName, clusterName);
             
             _logger.LogInformation("从Nacos获取到 {Count} 个实例", instances?.Count ?? 0);
             

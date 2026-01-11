@@ -267,4 +267,9 @@ public class AccountBookServerImpl : IAccountBookServer
         // 返回不存在的账本ID
         return ids.Where(id => !accountBooks.Any(p => p.Id == id)).ToList();
     }
+
+    public AccountBookResponse Get(long requestAccountBookId)
+    {
+        throw new NotImplementedException();
+    }
 }

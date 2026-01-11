@@ -1,4 +1,4 @@
-﻿using Nacos.V2;
+﻿using SP.Common.Nacos;
 
 namespace SP.Common.ServiceDiscovery;
 
@@ -7,15 +7,9 @@ namespace SP.Common.ServiceDiscovery;
 /// </summary>
 public class NacosServiceDiscovery : IServiceDiscovery
 {
-    /// <summary>
-    /// Nacos命名服务
-    /// </summary>
-    private readonly INacosNamingService _naming;
-    /// <summary>
-    /// 构造函数
-    /// </summary>
-    /// <param name="naming">Nacos命名服务</param>
-    public NacosServiceDiscovery(INacosNamingService naming) => _naming = naming;
+    private readonly INacosClient _nacos;
+
+    public NacosServiceDiscovery(INacosClient nacos) => _nacos = nacos;
 
     /// <summary>
     /// 解析服务
@@ -30,13 +24,7 @@ public class NacosServiceDiscovery : IServiceDiscovery
     public async Task<Uri> ResolveAsync(string serviceName, string groupName, string clusterName, string scheme,
         CancellationToken ct = default)
     {
-        var instance = await _naming.SelectOneHealthyInstance(
-            serviceName,
-            string.IsNullOrWhiteSpace(groupName) ? "DEFAULT_GROUP" : groupName,
-            new List<string> { string.IsNullOrWhiteSpace(clusterName) ? "DEFAULT" : clusterName });
-        if (instance == null) throw new InvalidOperationException($"No healthy instance for {serviceName}");
-        var finalScheme = instance.Metadata?.GetValueOrDefault("scheme", scheme) ?? scheme;
-        return new Uri($"{finalScheme}://{instance.Ip}:{instance.Port}");
+        return await _nacos.ResolveAsync(serviceName, groupName, clusterName, scheme, ct);
     }
     /// <summary>
     /// 
@@ -51,22 +39,14 @@ public class NacosServiceDiscovery : IServiceDiscovery
     public async Task<IReadOnlyList<Uri>> ListAsync(string serviceName, string groupName, string clusterName,
         string scheme, CancellationToken ct = default)
     {
-        var instances = await _naming.SelectInstances(
-            serviceName,
-            string.IsNullOrWhiteSpace(groupName) ? "DEFAULT_GROUP" : groupName,
-            new List<string> { string.IsNullOrWhiteSpace(clusterName) ? "DEFAULT" : clusterName },
-            true);
-        var uris = new List<Uri>();
-        if (instances != null)
+        var instances = await _nacos.ListHealthyInstancesAsync(serviceName, groupName, clusterName, ct);
+        var uris = new List<Uri>(instances.Count);
+
+        foreach (var ins in instances)
         {
-            foreach (var ins in instances)
-            {
-                if (ins.Enabled && ins.Healthy)
-                {
-                    var finalScheme = ins.Metadata?.GetValueOrDefault("scheme", scheme) ?? scheme;
-                    uris.Add(new Uri($"{finalScheme}://{ins.Ip}:{ins.Port}"));
-                }
-            }
+            if (!ins.Enabled || !ins.Healthy) continue;
+            var finalScheme = ins.Metadata?.GetValueOrDefault("scheme", scheme) ?? scheme;
+            uris.Add(new Uri($"{finalScheme}://{ins.Ip}:{ins.Port}"));
         }
 
         return uris;

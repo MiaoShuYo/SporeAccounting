@@ -5,9 +5,9 @@ using SP.Common;
 using SP.ConfigService.DB;
 using SP.ConfigService.Service;
 using SP.ConfigService.Service.Impl;
-using Nacos.V2.DependencyInjection;
-using Nacos.AspNetCore.V2;
 using SP.Common.ConfigService;
+using SP.Common.Nacos;
+using SP.Common.Nacos.Configuration;
 using SP.Common.Logger;
 using SP.Common.Redis;
 using SP.Common.ExceptionHandling;
@@ -69,11 +69,11 @@ if (!string.IsNullOrWhiteSpace(hostIp) || !string.IsNullOrWhiteSpace(exposePort)
     builder.Configuration.AddInMemoryCollection(overrides);
 }
 
-// 添加Nacos服务注册
-builder.Services.AddNacosAspNet(builder.Configuration);
-// 添加Nacos配置中心
-builder.Configuration.AddNacosV2Configuration(builder.Configuration.GetSection("nacos"));
-builder.Services.AddNacosV2Naming(builder.Configuration);
+// Nacos 配置中心（OpenAPI）
+builder.Configuration.AddSpNacosConfiguration(builder.Configuration.GetSection("nacos"));
+
+// 注册 SP.Common Nacos OpenAPI 封装
+builder.Services.AddSpNacos(builder.Configuration);
 
 // 注册HttpContextAccessor
 builder.Services.AddHttpContextAccessor();

@@ -1,14 +1,14 @@
 using Ocelot.DependencyInjection;
 using Ocelot.Middleware;
-using Ocelot.Provider.Nacos;
-using Nacos.V2.DependencyInjection;
-using Nacos.AspNetCore.V2;
 using SP.Gateway.Middleware;
 using SP.Common.Redis;
 using SP.Gateway.Services;
 using SP.Gateway.Services.Impl;
 using SP.Common.Logger;
 using SP.Common.ExceptionHandling;
+using SP.Common.Nacos;
+using SP.Common.Nacos.Configuration;
+using SP.Gateway.ServiceDiscovery;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -30,11 +30,11 @@ if (!string.IsNullOrWhiteSpace(hostIp) || !string.IsNullOrWhiteSpace(exposePort)
     builder.Configuration.AddInMemoryCollection(overrides);
 }
 
-// 添加Nacos服务注册
-builder.Services.AddNacosAspNet(builder.Configuration);
-// Nacos 配置中心
-builder.Services.AddNacosV2Naming(builder.Configuration);
-builder.Configuration.AddNacosV2Configuration(builder.Configuration.GetSection("nacos"));
+// Nacos 配置中心（OpenAPI）
+builder.Configuration.AddSpNacosConfiguration(builder.Configuration.GetSection("nacos"));
+
+// 注册 SP.Common Nacos OpenAPI 封装
+builder.Services.AddSpNacos(builder.Configuration);
 
 // 添加 HTTP 客户端用于获取微服务的 OpenAPI 文档
 builder.Services.AddHttpClient();
@@ -70,8 +70,10 @@ builder.Services.AddHttpClient("TokenIntrospection", client => { client.Timeout 
 
 // Ocelot + Nacos 服务发现，并添加下游响应日志处理器
 builder.Services.AddOcelot(builder.Configuration)
-    .AddNacosDiscovery()
     .AddDelegatingHandler<DownstreamLoggingHandler>(true);
+
+// 使用 SP.Common 的 Nacos OpenAPI 封装替代 Ocelot.Provider.Nacos
+builder.Services.AddSpNacosServiceDiscoveryForOcelot();
 
 if (builder.Environment.IsDevelopment() || builder.Environment.EnvironmentName == "Local")
 {

@@ -39,6 +39,11 @@ public class FinanceServiceDbContext : DbContext
     public DbSet<AccountBookShare> AccountBookShares { get; set; }
 
     /// <summary>
+    /// 规定开销规则
+    /// </summary>
+    public DbSet<RecurringExpenseRule> RecurringExpenseRules { get; set; }
+
+    /// <summary>
     /// 数据库连接配置
     /// </summary>
     private readonly IConfiguration _dbConfig;

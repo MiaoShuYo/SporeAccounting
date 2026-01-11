@@ -1,8 +1,9 @@
 ﻿using System.Reflection;
 using SP.MLService.Services;
 using SP.MLService.Domain;
-using Nacos.V2.DependencyInjection;
-using Nacos.AspNetCore.V2;
+using SP.Common.Nacos;
+using SP.Common.Nacos.Configuration;
+using SP.Common.Nacos;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -57,11 +58,11 @@ if (!string.IsNullOrWhiteSpace(hostIp) || !string.IsNullOrWhiteSpace(exposePort)
     if (!string.IsNullOrWhiteSpace(exposePort)) overrides["nacos:Port"] = exposePort;
     builder.Configuration.AddInMemoryCollection(overrides);
 }
-// 添加Nacos服务注册
-builder.Services.AddNacosAspNet(builder.Configuration);
-// 添加Nacos配置中心
-builder.Configuration.AddNacosV2Configuration(builder.Configuration.GetSection("nacos"));
-builder.Services.AddNacosV2Naming(builder.Configuration);
+// Nacos 配置中心（OpenAPI）
+builder.Configuration.AddSpNacosConfiguration(builder.Configuration.GetSection("nacos"));
+
+// 注册 SP.Common Nacos OpenAPI 封装
+builder.Services.AddSpNacos(builder.Configuration);
 
 // 配置 CORS（允许前端调用）
 builder.Services.AddCors(options =>
