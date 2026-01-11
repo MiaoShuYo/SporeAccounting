@@ -46,5 +46,10 @@ public class FinanceProfile : Profile
 
         // 账本分享映射
         CreateMap<AccountBookShareAddRequest, AccountBookShare>();
+
+        // 定期支出映射
+        CreateMap<RecurringExpenseRuleAddRequest, RecurringExpenseRule>();
+        CreateMap<RecurringExpenseRuleEditRequest, RecurringExpenseRule>();
+        CreateMap<RecurringExpenseRule, RecurringExpenseRuleResponse>();
     }
 }
