@@ -55,7 +55,7 @@ public class TransactionCategoryServerImpl : ITransactionCategoryServer
     {
         // 查询指定父分类下的所有子分类
         var categories = _dbContext.TransactionCategories
-            .Where(c => c.ParentId == parentId && c.CreateUserId ==_userId).ToList();
+            .Where(c => c.ParentId == parentId && c.CreateUserId ==_userId && !c.IsDeleted).ToList();
         List<TransactionCategoryResponse> categoryResponses =
             _automapper.Map<List<TransactionCategoryResponse>>(categories);
         return categoryResponses;
