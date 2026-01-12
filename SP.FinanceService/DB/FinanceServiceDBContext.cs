@@ -44,6 +44,11 @@ public class FinanceServiceDbContext : DbContext
     public DbSet<RecurringExpenseRule> RecurringExpenseRules { get; set; }
 
     /// <summary>
+    /// 规定开销执行记录
+    /// </summary>
+    public DbSet<RecurringExpenseRuleExecutionRecord> RecurringExpenseRuleExecutionRecords { get; set; }
+
+    /// <summary>
     /// 数据库连接配置
     /// </summary>
     private readonly IConfiguration _dbConfig;

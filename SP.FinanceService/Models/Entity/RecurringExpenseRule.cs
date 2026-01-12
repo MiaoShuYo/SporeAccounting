@@ -35,4 +35,8 @@ public class RecurringExpenseRule: BaseModel
     /// 频率（单位：天）
     /// </summary>
     public int FrequencyInDays { get; set; }
+    /// <summary>
+    /// 币种id
+    /// </summary>
+    public long CurrencyId { get; set; }
 }

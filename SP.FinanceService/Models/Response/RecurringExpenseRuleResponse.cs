@@ -37,4 +37,12 @@ public class RecurringExpenseRuleResponse
     /// 频率（0：天，1：周，2：月，3：季度，4：年）
     /// </summary>
     public FrequencyEnum Frequency { get; set; }
+    /// <summary>
+    /// 币种id
+    /// </summary>
+    public long CurrencyId { get; set; }
+    /// <summary>
+    /// 创建人
+    /// </summary>
+    public long CreateUserId { get; set; }
 }

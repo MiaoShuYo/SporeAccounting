@@ -34,9 +34,9 @@ public class RecurringExpenseRuleController : ControllerBase
     /// <param name="recurringExpenseRuleAdd">新增请求</param>
     /// <returns>是否成功</returns>
     [HttpPost]
-    public ActionResult<long> AddRecurringExpenseRule([FromBody] RecurringExpenseRuleAddRequest recurringExpenseRuleAdd)
+    public  async Task<ActionResult<long>> AddRecurringExpenseRule([FromBody] RecurringExpenseRuleAddRequest recurringExpenseRuleAdd)
     {
-        long id = _recurringExpenseRuleServer.AddRecurringExpenseRule(recurringExpenseRuleAdd);
+        long id = await _recurringExpenseRuleServer.AddRecurringExpenseRule(recurringExpenseRuleAdd);
         return Ok(id);
     }
 
@@ -46,9 +46,9 @@ public class RecurringExpenseRuleController : ControllerBase
     /// <param name="recurringExpenseRuleEdit">修改请求</param>
     /// <returns></returns>
     [HttpPut]
-    public ActionResult<long> EditRecurringExpenseRule([FromBody] RecurringExpenseRuleEditRequest recurringExpenseRuleEdit)
+    public async  Task<ActionResult<long>> EditRecurringExpenseRule([FromBody] RecurringExpenseRuleEditRequest recurringExpenseRuleEdit)
     {
-        long id = _recurringExpenseRuleServer.EditRecurringExpenseRule(recurringExpenseRuleEdit);
+        long id = await _recurringExpenseRuleServer.EditRecurringExpenseRule(recurringExpenseRuleEdit);
         return Ok(id);
     }
 

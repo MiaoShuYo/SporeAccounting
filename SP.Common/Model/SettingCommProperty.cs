@@ -64,7 +64,7 @@ public static class SettingCommProperty
     /// 获取当前用户ID
     /// </summary>
     /// <returns></returns>
-    private static long GetCurrentUserId()
+    public static long GetCurrentUserId()
     {
         if (ServiceProvider == null)
         {
