@@ -170,43 +170,58 @@ using (var scope = app.Services.CreateScope())
     try
     {
         var db = services.GetRequiredService<IdentityServerDbContext>();
-        db.Database.Migrate();
+        await db.Database.MigrateAsync();
 
         var roleManager = services.GetRequiredService<RoleManager<SpRole>>();
         string[] roleNames = new[] { "Admin", "User" };
         foreach (var roleName in roleNames)
         {
-            var exists = roleManager.RoleExistsAsync(roleName).GetAwaiter().GetResult();
+            var exists = await roleManager.RoleExistsAsync(roleName);
             if (!exists)
             {
-                var createResult = roleManager.CreateAsync(new SpRole { Name = roleName, NormalizedName = roleName.ToUpperInvariant() }).GetAwaiter().GetResult();
+                var createResult = await roleManager.CreateAsync(new SpRole
+                {
+                    Name = roleName,
+                    NormalizedName = roleName.ToUpperInvariant()
+                });
                 if (!createResult.Succeeded)
                 {
-                    logger.LogWarning("创建角色 {Role} 失败：{Errors}", roleName, string.Join(",", createResult.Errors.Select(e => e.Description)));
+                    logger.LogWarning("创建角色 {Role} 失败：{Errors}", roleName,
+                        string.Join(",", createResult.Errors.Select(e => e.Description)));
                 }
             }
         }
 
         var userManager = services.GetRequiredService<UserManager<SpUser>>();
-        var adminUser = userManager.FindByNameAsync("admin").GetAwaiter().GetResult();
+        var adminUser = await userManager.FindByNameAsync("admin");
         if (adminUser == null)
         {
-            adminUser = new SpUser { UserName = "admin", Email = "494324190@qq.com", EmailConfirmed = true };
-            var createAdmin = userManager.CreateAsync(adminUser, "123*asdasd").GetAwaiter().GetResult();
+            var newAdminUser = new SpUser { UserName = "admin", Email = "494324190@qq.com", EmailConfirmed = true };
+            var createAdmin = await userManager.CreateAsync(newAdminUser, "123*asdasd");
             if (!createAdmin.Succeeded)
             {
-                logger.LogWarning("创建管理员用户失败：{Errors}", string.Join(",", createAdmin.Errors.Select(e => e.Description)));
+                logger.LogWarning("创建管理员用户失败：{Errors}",
+                    string.Join(",", createAdmin.Errors.Select(e => e.Description)));
+                return;
             }
+            adminUser = await userManager.FindByNameAsync("admin");
+        }
+
+        if (adminUser == null)
+        {
+            logger.LogWarning("管理员用户初始化失败：未能读取 admin 用户");
+            return;
         }
 
         // 确保管理员在 Admin 角色中
-        var inRole = userManager.IsInRoleAsync(adminUser, "Admin").GetAwaiter().GetResult();
+        var inRole = await userManager.IsInRoleAsync(adminUser, "Admin");
         if (!inRole)
         {
-            var addToRole = userManager.AddToRoleAsync(adminUser, "Admin").GetAwaiter().GetResult();
+            var addToRole = await userManager.AddToRoleAsync(adminUser, "Admin");
             if (!addToRole.Succeeded)
             {
-                logger.LogWarning("将管理员加入 Admin 角色失败：{Errors}", string.Join(",", addToRole.Errors.Select(e => e.Description)));
+                logger.LogWarning("将管理员加入 Admin 角色失败：{Errors}",
+                    string.Join(",", addToRole.Errors.Select(e => e.Description)));
             }
         }
     }

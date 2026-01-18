@@ -224,7 +224,7 @@ public class AccountBookServerImpl : IAccountBookServer
     {
         // 目标账本是否存在
         bool targetExist = Exist(request.TargetAccountBookId);
-        if (targetExist)
+        if (!targetExist)
         {
             throw new NotFoundException($"账本不存在，ID: {request.TargetAccountBookId}");
         }
@@ -250,8 +250,9 @@ public class AccountBookServerImpl : IAccountBookServer
     /// <returns>返回账本信息</returns>
     private AccountBook? QueryById(long id)
     {
-        // 查询指定ID的账本
-        var accountBook = _dbContext.AccountBooks.Find(id);
+        // 查询指定ID的账本（过滤软删除）
+        var accountBook = _dbContext.AccountBooks
+            .FirstOrDefault(p => p.Id == id && !p.IsDeleted);
         return accountBook;
     }
 
@@ -262,8 +263,8 @@ public class AccountBookServerImpl : IAccountBookServer
     /// <returns>不存在的账本ID列表</returns>
     private List<long> BatchQuery(List<long> ids)
     {
-        // 查询所有账本
-        var accountBooks = _dbContext.AccountBooks.Where(p => ids.Contains(p.Id)).ToList();
+        // 查询所有账本（过滤软删除）
+        var accountBooks = _dbContext.AccountBooks.Where(p => ids.Contains(p.Id) && !p.IsDeleted).ToList();
         // 返回不存在的账本ID
         return ids.Where(id => !accountBooks.Any(p => p.Id == id)).ToList();
     }

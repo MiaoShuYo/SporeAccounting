@@ -1,4 +1,6 @@
-﻿using System.Text.Json;
+﻿using System.Globalization;
+using System.Threading.Tasks;
+using System.Text.Json;
 using AutoMapper;
 using Refit;
 using SP.Common;
@@ -89,7 +91,7 @@ public class AccountingServerImpl : IAccountingServer
     public bool AccountingExistByAccountBookId(long accountBookId)
     {
         // 查询账本下是否有记账数据
-        return _dbContext.Accountings.Any(a => a.AccountBookId == accountBookId);
+        return _dbContext.Accountings.Any(a => a.AccountBookId == accountBookId && !a.IsDeleted);
     }
 
     /// <summary>
@@ -98,13 +100,13 @@ public class AccountingServerImpl : IAccountingServer
     /// <param name="accountBookId">账本ID</param>
     /// <param name="request">记账添加请求</param>
     /// <returns></returns>
-    public long Add(long accountBookId, AccountingAddRequest request)
+    public async System.Threading.Tasks.Task<long> Add(long accountBookId, AccountingAddRequest request)
     {
         AccountBookExist(accountBookId);
 
         // 将请求映射到实体
         var accounting = _autoMapper.Map<Accounting>(request);
-        long targetCurrencyId = GetUserTargetCurrencyId();
+        long targetCurrencyId = await GetUserTargetCurrencyId();
 
         if (request.CurrencyId == targetCurrencyId)
         {
@@ -112,7 +114,7 @@ public class AccountingServerImpl : IAccountingServer
         }
         else
         {
-            accounting.AfterAmount = CalculateConvertedAmount(
+            accounting.AfterAmount = await CalculateConvertedAmount(
                 request.CurrencyId, targetCurrencyId, request.Amount);
         }
 
@@ -187,7 +189,7 @@ public class AccountingServerImpl : IAccountingServer
     /// </summary>
     /// <param name="accountBookId">账本ID</param>
     /// <param name="request">修改请求</param>
-    public void Edit(long accountBookId, AccountingEditRequest request)
+    public async System.Threading.Tasks.Task Edit(long accountBookId, AccountingEditRequest request)
     {
         // 检查账本是否存在
         AccountBookExist(accountBookId);
@@ -201,7 +203,7 @@ public class AccountingServerImpl : IAccountingServer
 
         // 将请求模型映射到实体
         existingAccounting = _autoMapper.Map<Accounting>(request);
-        long targetCurrencyId = GetUserTargetCurrencyId();
+        long targetCurrencyId = await GetUserTargetCurrencyId();
         // 计算原金额与现金额的差额，用于更新预算
         decimal originalAmount = existingAccounting.AfterAmount;
         // 如果修改的货币与目标货币相同，直接使用原金额，否则进行转换
@@ -211,7 +213,7 @@ public class AccountingServerImpl : IAccountingServer
         }
         else
         {
-            existingAccounting.AfterAmount = CalculateConvertedAmount(
+            existingAccounting.AfterAmount = await CalculateConvertedAmount(
                 request.CurrencyId, targetCurrencyId, request.Amount);
         }
 
@@ -226,7 +228,7 @@ public class AccountingServerImpl : IAccountingServer
         _dbContext.SaveChanges();
 
         // 通过MQ发送修改记账数据到消息队列，更新预算中的金额
-        MqPublisher mqPublisher = new MqPublisher(amountDifference.ToString("F2"),
+        MqPublisher mqPublisher = new MqPublisher(amountDifference.ToString("F2", CultureInfo.InvariantCulture),
             MqExchange.BudgetExchange,
             MqRoutingKey.BudgetRoutingKey,
             MqQueue.BudgetQueue, MessageType.BudgetUpdate, ExchangeType.Direct);
@@ -331,13 +333,13 @@ public class AccountingServerImpl : IAccountingServer
     /// <param name="sourceCurrencyId">源货币ID</param>
     /// <param name="targetCurrencyId">目标货币ID</param>
     /// <returns>返回转换后的金额</returns>
-    private decimal CalculateConvertedAmount(long sourceCurrencyId, long targetCurrencyId, decimal amount)
+    private async System.Threading.Tasks.Task<decimal> CalculateConvertedAmount(long sourceCurrencyId, long targetCurrencyId, decimal amount)
     {
         // 获取今日汇率记录
-        var todayExchangeRate = _currencyServer
+        var todayExchangeRate = await _currencyServer
             .GetTodayExchangeRateByCode(sourceCurrencyId, targetCurrencyId);
         // 返回汇率
-        decimal exchangeRate = todayExchangeRate.Result.ExchangeRate;
+        decimal exchangeRate = todayExchangeRate.ExchangeRate;
         // 计算转换后的金额
         return amount * exchangeRate;
     }
@@ -346,16 +348,21 @@ public class AccountingServerImpl : IAccountingServer
     /// 从用户配置中获取用户设置的目标币种
     /// </summary>
     /// <returns>返回目标币种ID</returns>
-    private long GetUserTargetCurrencyId()
+    private async System.Threading.Tasks.Task<long> GetUserTargetCurrencyId()
     {
-        ApiResponse<ConfigResponse> apiResponse = _configService.QueryByType(ConfigTypeEnum.Currency).Result;
+        ApiResponse<ConfigResponse> apiResponse = await _configService.QueryByType(ConfigTypeEnum.Currency);
         // 检查响应是否成功，并且内容不为空
         if (apiResponse.IsSuccessStatusCode && apiResponse.Content != null)
         {
-            return long.Parse(apiResponse.Content.Value ?? string.Empty);
+            if (long.TryParse(apiResponse.Content.Value, out var currencyId))
+            {
+                return currencyId;
+            }
+
+            throw new BusinessException("用户默认币种配置无效");
         }
 
-        throw new RefitException($"获取汇率失败: {apiResponse.StatusCode}");
+        throw new RefitException($"获取用户默认币种失败: {apiResponse.StatusCode}");
     }
 
     /// <summary>

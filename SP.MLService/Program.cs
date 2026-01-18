@@ -82,7 +82,11 @@ builder.Services.AddSingleton<ProgressiveLearningManager>(provider =>
     var modelPath = config["ML:ModelPath"] ?? Path.Combine(AppContext.BaseDirectory, "AIModels", "category_model.zip");
     
     // MongoDB配置
-    var connectionString = config["ML:MongoDB:ConnectionString"] ?? "mongodb://admin:admin@14.103.224.141:27017/admin";
+    var connectionString = config["ML:MongoDB:ConnectionString"];
+    if (string.IsNullOrWhiteSpace(connectionString))
+    {
+        throw new InvalidOperationException("Missing required configuration: ML:MongoDB:ConnectionString");
+    }
     var databaseName = config["ML:MongoDB:DatabaseName"] ?? "SporeAccountingML";
     var collectionName = config["ML:MongoDB:FeedbackCollectionName"] ?? "UserFeedbacks";
     

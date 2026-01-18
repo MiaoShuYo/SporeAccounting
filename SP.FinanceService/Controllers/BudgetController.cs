@@ -60,6 +60,16 @@ namespace SP.FinanceService.Controllers
         [HttpPut("{id}")]
         public ActionResult<bool> UpdateBudget([FromRoute] long id, [FromBody] BudgetEditRequest budget)
         {
+            if (budget == null || budget.Id <= 0)
+            {
+                return BadRequest("Invalid budget data.");
+            }
+
+            if (id != budget.Id)
+            {
+                return BadRequest("Route id does not match budget.Id.");
+            }
+
             _budgetServer.Edit(budget);
             return Ok(true);
         }

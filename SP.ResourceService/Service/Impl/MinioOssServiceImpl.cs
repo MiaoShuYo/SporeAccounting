@@ -160,7 +160,7 @@ public class MinioOssServiceImpl : IOssService
     public async Task<string> GetUrlAsync(long fileId)
     {
         // 查询文件信息
-        Files? file = _dbContext.Files.FirstOrDefault(f=>f.Id==fileId && f.IsDeleted== false);
+        Files? file = await _dbContext.Files.FirstOrDefaultAsync(f => f.Id == fileId && f.IsDeleted == false);
         if (file == null)
         {
             throw new NotFoundException("文件不存在");
@@ -204,7 +204,7 @@ public class MinioOssServiceImpl : IOssService
     public async Task DeleteAsync(long fileId, CancellationToken ct = default)
     {
         // 查询文件
-        Files? fileInfo = _dbContext.Files.FirstOrDefault(f => f.IsDeleted == false && f.Id == fileId);
+        Files? fileInfo = await _dbContext.Files.FirstOrDefaultAsync(f => f.IsDeleted == false && f.Id == fileId, ct);
         if (fileInfo == null)
         {
             throw new NotFoundException("文件不存在");

@@ -106,8 +106,8 @@ public class UserServiceImpl : IUserService
 
         await Task.WhenAll(countTask, usersTask);
 
-        int total = countTask.Result;
-        List<SpUser> users = usersTask.Result;
+        var total = await countTask;
+        var users = await usersTask;
 
         var result = new PageResponse<UserResponse>
         {
@@ -214,7 +214,7 @@ public class UserServiceImpl : IUserService
     public async Task<bool> IsUserPhoneVerified()
     {
         var userId = _contextSession.UserId;
-        var user = _userManager.Users.FirstOrDefault(u => u.Id == userId);
+        var user = await _userManager.Users.FirstOrDefaultAsync(u => u.Id == userId);
         if (user == null)
         {
             throw new NotFoundException("用户不存在");
@@ -230,7 +230,7 @@ public class UserServiceImpl : IUserService
     public async Task<bool> IsUserEmailVerified()
     {
         var userId = _contextSession.UserId;
-        var user = _userManager.Users.FirstOrDefault(u => u.Id == userId);
+        var user = await _userManager.Users.FirstOrDefaultAsync(u => u.Id == userId);
         if (user == null)
         {
             throw new NotFoundException("用户不存在");

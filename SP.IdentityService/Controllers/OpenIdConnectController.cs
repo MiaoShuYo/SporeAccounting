@@ -39,8 +39,11 @@ namespace SP.IdentityService.Controllers
         /// OpenID Connect 发现端点
         /// </summary>
         /// <returns>OpenID Connect 配置信息</returns>
+        // 标准 OIDC Discovery 路径：/.well-known/openid-configuration
+        // 兼容历史路径：/.well-known/openid_configuration
+        [HttpGet("openid-configuration")]
         [HttpGet("openid_configuration")]
-        public async Task<IActionResult> GetConfiguration()
+        public IActionResult GetConfiguration()
         {
             try
             {

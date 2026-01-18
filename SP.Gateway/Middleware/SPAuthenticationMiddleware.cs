@@ -161,7 +161,7 @@ public class SPAuthenticationMiddleware
             
             if (string.IsNullOrEmpty(storedToken))
             {
-                return true; // 如果Redis中没有存储令牌，认为有效
+                return false; // Redis中没有存储令牌，视为已撤销/无效
             }
             
             return storedToken == token;

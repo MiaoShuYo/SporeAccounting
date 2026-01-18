@@ -57,6 +57,16 @@ public class AccountBookController : ControllerBase
     [HttpPut("{id}")]
     public ActionResult<bool> UpdateAccountBook([FromRoute] long id, [FromBody] AccountBookEditeRequest request)
     {
+        if (request == null || request.Id <= 0)
+        {
+            return BadRequest("Invalid account book data.");
+        }
+
+        if (id != request.Id)
+        {
+            return BadRequest("Route id does not match request.Id.");
+        }
+
         _accountBookServer.Edit(request);
         return Ok();
     }

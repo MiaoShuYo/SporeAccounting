@@ -121,8 +121,8 @@ public class RoleServiceImpl : IRoleService
 
         spRole.Name = role.RoleName;
 
-        var result = _roleManager.UpdateAsync(spRole);
-        if (!result.Result.Succeeded)
+        var result = await _roleManager.UpdateAsync(spRole);
+        if (!result.Succeeded)
         {
             throw new BusinessException($"更新角色失败");
         }
@@ -141,8 +141,8 @@ public class RoleServiceImpl : IRoleService
             throw new BusinessException($"角色不存在");
         }
 
-        var result = _roleManager.DeleteAsync(role);
-        if (!result.Result.Succeeded)
+        var result = await _roleManager.DeleteAsync(role);
+        if (!result.Succeeded)
         {
             throw new BusinessException($"删除角色失败");
         }

@@ -33,9 +33,9 @@ namespace SP.ConfigService.Controllers
         /// </summary>
         /// <returns>用户配置列表</returns>
         [HttpGet]
-        public ActionResult<List<ConfigResponse>> GetConfigs()
+        public async Task<ActionResult<List<ConfigResponse>>> GetConfigs()
         {
-            List<ConfigResponse> configs = _configServer.GetConfig().Result;
+            List<ConfigResponse> configs = await _configServer.GetConfig();
             return Ok(configs);
         }
 

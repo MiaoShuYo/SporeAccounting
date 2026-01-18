@@ -179,7 +179,7 @@ public class BudgetConsumerService : BackgroundService
             budget.Remaining += operationAmount;
             string periodName = GetPeriodName(period);
             _logger.LogInformation("{PeriodName}预算{Operation}成功，{Operation}金额: {Amount}",
-                periodName, operation, operation, budget.Amount);
+                periodName, operation, operation, operationAmount);
         }
     }
 

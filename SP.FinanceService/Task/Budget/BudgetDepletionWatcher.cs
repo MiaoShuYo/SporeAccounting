@@ -192,7 +192,7 @@ public class BudgetDepletionWatcher : IJob
                 }
 
                 // 3. 预算超额通知（超过预算10%以上）
-                else if (usedAmount > budget.Amount * 1.1m)
+                else if (budget.Amount > 0 && usedAmount > budget.Amount * 1.1m)
                 {
                     string? notifiedValue = await _redisService.HashGetAsync(
                         overrunHashKey,

@@ -1,4 +1,5 @@
-﻿using SP.Common.Model;
+﻿using System.Threading.Tasks;
+using SP.Common.Model;
 using SP.FinanceService.Models.Request;
 using SP.FinanceService.Models.Response;
 
@@ -22,7 +23,7 @@ public interface IAccountingServer
     /// <param name="accountBookId">账本ID</param>
     /// <param name="request">记账添加请求</param>
     /// <returns></returns>
-    long Add(long accountBookId, AccountingAddRequest request);
+    System.Threading.Tasks.Task<long> Add(long accountBookId, AccountingAddRequest request);
 
     /// <summary>
     /// 删除记账
@@ -36,7 +37,7 @@ public interface IAccountingServer
     /// </summary>
     /// <param name="accountBookId">账本ID</param>
     /// <param name="request">修改请求</param>
-    void Edit(long accountBookId, AccountingEditRequest request);
+    System.Threading.Tasks.Task Edit(long accountBookId, AccountingEditRequest request);
 
     /// <summary>
     /// 根据时间范围获取记账记录列表

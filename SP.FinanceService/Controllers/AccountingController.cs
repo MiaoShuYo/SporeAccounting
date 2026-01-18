@@ -32,9 +32,9 @@ public class AccountingController : ControllerBase
     /// <param name="request">记账请求</param>
     /// <returns>返回记账记录id</returns>
     [HttpPost]
-    public ActionResult<long> CreateAccounting([FromBody] AccountingAddRequest request)
+    public async Task<ActionResult<long>> CreateAccounting([FromBody] AccountingAddRequest request)
     {
-        long accountingId = _accountingServer.Add(request.AccountBookId, request);
+        long accountingId = await _accountingServer.Add(request.AccountBookId, request);
         return Ok(accountingId);
     }
 
@@ -57,9 +57,19 @@ public class AccountingController : ControllerBase
     /// <param name="request">记账修改请求</param>
     /// <returns>返回修改结果</returns>
     [HttpPut("{id}")]
-    public ActionResult<bool> UpdateAccounting([FromRoute] long id, [FromBody] AccountingEditRequest request)
+    public async Task<ActionResult<bool>> UpdateAccounting([FromRoute] long id, [FromBody] AccountingEditRequest request)
     {
-        _accountingServer.Edit(request.AccountBookId, request);
+        if (request == null)
+        {
+            return BadRequest("Invalid accounting data.");
+        }
+
+        if (id != request.Id)
+        {
+            return BadRequest("Route id does not match request.Id.");
+        }
+
+        await _accountingServer.Edit(request.AccountBookId, request);
         return Ok(true);
     }
 

@@ -36,12 +36,17 @@ public class UserConfigDefaultCurrencyConsumerService : BackgroundService
     /// 用户配置默认币种消息消费者服务构造函数
     /// </summary>
     /// <param name="rabbitMqMessage"></param>
+    /// <param name="configServer"></param>
     /// <param name="logger"></param>
     /// <param name="configuration"></param>
-    public UserConfigDefaultCurrencyConsumerService(RabbitMqMessage rabbitMqMessage, ILogger<UserConfigDefaultCurrencyConsumerService> logger,
+    public UserConfigDefaultCurrencyConsumerService(
+        RabbitMqMessage rabbitMqMessage,
+        IConfigServer configServer,
+        ILogger<UserConfigDefaultCurrencyConsumerService> logger,
         IConfiguration configuration)
     {
         _rabbitMqMessage = rabbitMqMessage;
+        _configServer = configServer;
         _logger = logger;
         _configuration = configuration;
     }
@@ -80,8 +85,13 @@ public class UserConfigDefaultCurrencyConsumerService : BackgroundService
             // 设置用户默认币种，默认币种id从配置文件中获取
             string defaultCurrencyId = _configuration["DefaultCurrencyId"];
             _logger.LogInformation($"nacos中配置的默认币种ID: {defaultCurrencyId}");
+            if (string.IsNullOrWhiteSpace(defaultCurrencyId))
+            {
+                _logger.LogError("默认币种ID不能为空，请检查配置: DefaultCurrencyId");
+                throw new BusinessException("默认币种ID不能为空");
+            }
             // 调用币种服务设置用户默认币种
-            await _configServer.SetUserDefaultCurrencyAsync(parsedUserId,defaultCurrencyId);
+            await _configServer.SetUserDefaultCurrencyAsync(parsedUserId, defaultCurrencyId);
         });
     }
 }

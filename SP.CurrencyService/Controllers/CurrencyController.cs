@@ -23,9 +23,9 @@ public class CurrencyController : ControllerBase
     /// </summary>
     /// <returns>返回币种列表</returns>
     [HttpGet]
-    public ActionResult<List<CurrencyResponse>> GetCurrencies()
+    public async System.Threading.Tasks.Task<ActionResult<List<CurrencyResponse>>> GetCurrencies()
     {
-        List<CurrencyResponse> currencies = _currencyServer.Query().Result;
+        List<CurrencyResponse> currencies = await _currencyServer.Query();
         return Ok(currencies);
     }
 }

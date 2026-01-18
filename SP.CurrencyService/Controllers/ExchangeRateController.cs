@@ -60,11 +60,11 @@ public class ExchangeRateController : ControllerBase
     /// <param name="targetCurrencyId">目标币种ID</param>
     /// <returns>返回今日汇率记录</returns>
     [HttpGet("{sourceCurrencyId}/{targetCurrencyId}/today")]
-    public ActionResult<ExchangeRateRecordResponse> GetTodayExchangeRate(
+    public async System.Threading.Tasks.Task<ActionResult<ExchangeRateRecordResponse>> GetTodayExchangeRate(
         [FromRoute] long sourceCurrencyId, [FromRoute] long targetCurrencyId)
     {
-        ExchangeRateRecordResponse response = _exchangeRateRecordServer.GetTodayExchangeRate(
-            sourceCurrencyId, targetCurrencyId).Result;
+        ExchangeRateRecordResponse response = await _exchangeRateRecordServer.GetTodayExchangeRate(
+            sourceCurrencyId, targetCurrencyId);
         return Ok(response);
     }
 }

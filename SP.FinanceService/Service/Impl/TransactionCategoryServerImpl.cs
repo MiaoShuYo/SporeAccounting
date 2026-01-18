@@ -134,6 +134,7 @@ public class TransactionCategoryServerImpl : ITransactionCategoryServer
 
         // 保存更改到数据库
         _dbContext.SaveChanges();
+        transaction.Commit();
         return true;
     }
 

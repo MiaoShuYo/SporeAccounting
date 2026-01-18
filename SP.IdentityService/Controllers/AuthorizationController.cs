@@ -502,15 +502,9 @@ public class AuthorizationController : ControllerBase
                 });
             }
 
-            _logger.LogError("token={Token}", token);
-            if (string.IsNullOrEmpty(token))
-            {
-                return BadRequest(new
-                {
-                    error = OpenIddictConstants.Errors.InvalidRequest,
-                    error_description = "token参数不能为空"
-                });
-            }
+            // Avoid logging the full token (sensitive). Keep a short prefix for troubleshooting.
+            var tokenPrefix = token.Length <= 10 ? token : token.Substring(0, 10);
+            _logger.LogDebug("Introspect request received, token_prefix={TokenPrefix}", tokenPrefix);
 
             var introspectionResult = await ValidateTokenForIntrospectionAsync(token);
 

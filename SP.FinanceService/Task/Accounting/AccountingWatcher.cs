@@ -1,4 +1,5 @@
-﻿using Quartz;
+﻿using System.Threading.Tasks;
+using Quartz;
 using SP.Common;
 using SP.FinanceService.Models.Entity;
 using SP.FinanceService.Models.Enumeration;
@@ -67,7 +68,7 @@ public class AccountingWatcher : IJob
             {
                 if (record == null || record.CreateDateTime.Date < DateTime.Now.Date)
                 {
-                    Account(recurringExpense);
+                    await Account(recurringExpense);
                     RecurringExpenseRuleExecutionRecord newRecord = new RecurringExpenseRuleExecutionRecord();
                     newRecord.IsOK = true;
                     newRecord.RecurringExpenseRuleExecutioId = recurringExpense.Id;
@@ -85,7 +86,7 @@ public class AccountingWatcher : IJob
             {
                 if (record == null || record.CreateDateTime < GetStartOfWeek(DateTime.Now))
                 {
-                    Account(recurringExpense);
+                    await Account(recurringExpense);
 
                     RecurringExpenseRuleExecutionRecord newRecord = new RecurringExpenseRuleExecutionRecord();
                     newRecord.IsOK = true;
@@ -105,7 +106,7 @@ public class AccountingWatcher : IJob
                 if (record == null ||
                     record.CreateDateTime.Date < new DateTime(DateTime.Now.Year, DateTime.Now.Month, 1))
                 {
-                    Account(recurringExpense);
+                    await Account(recurringExpense);
                     RecurringExpenseRuleExecutionRecord newRecord = new RecurringExpenseRuleExecutionRecord();
                     newRecord.IsOK = true;
                     newRecord.RecurringExpenseRuleExecutioId = recurringExpense.Id;
@@ -123,7 +124,7 @@ public class AccountingWatcher : IJob
             {
                 if(record==null || record.CreateDateTime.Date < new DateTime(DateTime.Now.Year, (DateTime.Now.Month - 1) / 3 * 3 + 1, 1))
                 {
-                    Account(recurringExpense);
+                    await Account(recurringExpense);
                     RecurringExpenseRuleExecutionRecord newRecord = new RecurringExpenseRuleExecutionRecord();
                     newRecord.IsOK = true;
                     newRecord.RecurringExpenseRuleExecutioId = recurringExpense.Id;
@@ -141,7 +142,7 @@ public class AccountingWatcher : IJob
             {
                 if (record == null || record.CreateDateTime.Date < new DateTime(DateTime.Now.Year, 1, 1))
                 {
-                    Account(recurringExpense);
+                    await Account(recurringExpense);
                     RecurringExpenseRuleExecutionRecord newRecord = new RecurringExpenseRuleExecutionRecord();
                     newRecord.IsOK = true;
                     newRecord.RecurringExpenseRuleExecutioId = recurringExpense.Id;
@@ -159,7 +160,7 @@ public class AccountingWatcher : IJob
     /// 记账
     /// </summary>
     /// <param name="recurringExpense"></param>
-    private void Account(RecurringExpenseRuleResponse recurringExpense)
+    private async System.Threading.Tasks.Task Account(RecurringExpenseRuleResponse recurringExpense)
     {
         long accountBookId = recurringExpense.AccountBookId;
         AccountingAddRequest accountingAdd = new AccountingAddRequest();
@@ -168,7 +169,7 @@ public class AccountingWatcher : IJob
         accountingAdd.CurrencyId = recurringExpense.CurrencyId;
         accountingAdd.RecordDate = DateTime.Now;
         accountingAdd.TransactionCategoryId = recurringExpense.CategoryId;
-        _accountingServer.Add(accountBookId, accountingAdd);
+        await _accountingServer.Add(accountBookId, accountingAdd);
     }
 
     /// <summary>

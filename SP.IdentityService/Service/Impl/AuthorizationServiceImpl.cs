@@ -488,7 +488,6 @@ public class AuthorizationServiceImpl : IAuthorizationService
     /// </summary>
     /// <param name="verifyCode"></param>
     /// <exception cref="BusinessException"></exception>
-    /// <exception cref="Exception"></exception>
     public async Task AddEmailAsync(VerifyCodeRequest verifyCode)
     {
         // 从Redis中获取验证码
@@ -516,7 +515,7 @@ public class AuthorizationServiceImpl : IAuthorizationService
         var result = await _userManager.UpdateAsync(user);
         if (!result.Succeeded)
         {
-            throw new Exception(string.Join(",", result.Errors.Select(e => e.Description)));
+            throw new BusinessException("绑定邮箱失败：" + string.Join(",", result.Errors.Select(e => e.Description)));
         }
 
         // 删除Redis中的验证码
@@ -612,7 +611,7 @@ public class AuthorizationServiceImpl : IAuthorizationService
             var result = await _userManager.UpdateAsync(user);
             if (!result.Succeeded)
             {
-                throw new Exception(string.Join(",", result.Errors.Select(e => e.Description)));
+                throw new BusinessException("绑定手机号失败：" + string.Join(",", result.Errors.Select(e => e.Description)));
             }
         }
         else
@@ -733,8 +732,8 @@ public class AuthorizationServiceImpl : IAuthorizationService
                 if (!roleResult.Succeeded)
                 {
                     await _userManager.DeleteAsync(newUser);
-                    throw new Exception("用户创建成功，但分配角色失败：" +
-                                        string.Join(",", roleResult.Errors.Select(e => e.Description)));
+                    throw new BusinessException("用户创建成功，但分配角色失败：" +
+                                                string.Join(",", roleResult.Errors.Select(e => e.Description)));
                 }
 
                 await transaction.CommitAsync();
@@ -747,7 +746,7 @@ public class AuthorizationServiceImpl : IAuthorizationService
                 return newUser.Id;
             }
 
-            throw new Exception(string.Join(",", result.Errors.Select(e => e.Description)));
+            throw new BusinessException("创建用户失败：" + string.Join(",", result.Errors.Select(e => e.Description)));
         }
         catch
         {

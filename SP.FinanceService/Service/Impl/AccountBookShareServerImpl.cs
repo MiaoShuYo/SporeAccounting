@@ -105,7 +105,7 @@ public class AccountBookShareServerImpl : IAccountBookShareServer
     /// <returns></returns>
     public PageResponse<AccountBookShareResponse> Page(AccountBookSharePageRequest request)
     {
-        var query = _dbContext.AccountBookShares.Where(p => p.IsDeleted && p.CreateUserId == _contextSession.UserId)
+        var query = _dbContext.AccountBookShares.Where(p => !p.IsDeleted && p.CreateUserId == _contextSession.UserId)
             .OrderByDescending(o => o.CreateDateTime)
             .AsNoTracking();
         // 获取总数
@@ -137,7 +137,7 @@ public class AccountBookShareServerImpl : IAccountBookShareServer
     /// <exception cref="NotImplementedException"></exception>
     public PageResponse<AccountBookShareResponse> PageSharesToMe(AccountBookSharePageRequest request)
     {
-        var query = _dbContext.AccountBookShares.Where(p => p.IsDeleted && p.UserId == _contextSession.UserId)
+        var query = _dbContext.AccountBookShares.Where(p => !p.IsDeleted && p.UserId == _contextSession.UserId)
             .OrderByDescending(o => o.CreateDateTime)
             .AsNoTracking();
         // 获取总数
@@ -169,7 +169,7 @@ public class AccountBookShareServerImpl : IAccountBookShareServer
     public async System.Threading.Tasks.Task Revoke(AccountBookRevokeSharingRequest request)
     {
         var shares = _dbContext.AccountBookShares
-            .Where(p => p.AccountBookId == request.AccountBookId && request.UserIds.Contains(p.UserId) && p.IsDeleted)
+            .Where(p => p.AccountBookId == request.AccountBookId && request.UserIds.Contains(p.UserId) && !p.IsDeleted)
             .ToList();
         if (!shares.Any())
         {
@@ -201,7 +201,7 @@ public class AccountBookShareServerImpl : IAccountBookShareServer
     public async System.Threading.Tasks.Task Edit(AccountBookShareEditRequest request) 
     {
         var shares = _dbContext.AccountBookShares
-            .Where(p => p.AccountBookId == request.AccountBookId && request.UserIds.Contains(p.UserId) && p.IsDeleted)
+            .Where(p => p.AccountBookId == request.AccountBookId && request.UserIds.Contains(p.UserId) && !p.IsDeleted)
             .ToList();
         if (!shares.Any())
         {

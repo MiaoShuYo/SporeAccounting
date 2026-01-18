@@ -140,6 +140,9 @@ public class BudgetServerImpl : IBudgetServer
             throw new BusinessException($"该分类在指定时间段内已存在其他预算配置");
         }
 
+        // 重新计算剩余预算（保持已使用金额不变）
+        var usedAmount = existingBudget.Amount - existingBudget.Remaining;
+
         // 更新预算信息
         existingBudget.TransactionCategoryId = budget.TransactionCategoryId;
         existingBudget.Amount = budget.Amount;
@@ -148,8 +151,6 @@ public class BudgetServerImpl : IBudgetServer
         existingBudget.StartTime = budget.StartTime;
         existingBudget.EndTime = budget.EndTime;
 
-        // 重新计算剩余预算（保持已使用金额不变）
-        var usedAmount = existingBudget.Amount - existingBudget.Remaining;
         existingBudget.Remaining = budget.Amount - usedAmount;
         SettingCommProperty.Edit(existingBudget);
 

@@ -8,12 +8,12 @@ public class IdentityServiceConfig
     /// <summary>
     /// 客户端ID
     /// </summary>
-    public string ClientId { get; set; } = "gateway-client";
+    public string ClientId { get; set; } = default!;
     
     /// <summary>
     /// 客户端密钥
     /// </summary>
-    public string ClientSecret { get; set; } = "gateway-secret";
+    public string ClientSecret { get; set; } = default!;
     
     /// <summary>
     /// 超时时间（秒）

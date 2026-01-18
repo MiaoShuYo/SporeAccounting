@@ -3,10 +3,10 @@
 namespace SP.Common.Attributes;
 
 /// <summary>
-/// 验证开始时间是否大于结束时间
+/// 验证开始时间是否小于结束时间
 /// </summary>
 [AttributeUsage(AttributeTargets.Class, AllowMultiple = true)]
-public class StartTimeLessThanEndTimeAttribute:ValidationAttribute
+public class StartTimeLessThanEndTimeAttribute : ValidationAttribute
 {
     private readonly string _startTimePropertyName;
     private readonly string _endTimePropertyName;
@@ -40,7 +40,7 @@ public class StartTimeLessThanEndTimeAttribute:ValidationAttribute
         {
             if (startTime >= endTime)
             {
-                return new ValidationResult($"'{_startTimePropertyName}' 必须小于或等于 '{_endTimePropertyName}'");
+                return new ValidationResult($"'{_startTimePropertyName}' 必须小于 '{_endTimePropertyName}'");
             }
         }
 
