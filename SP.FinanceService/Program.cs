@@ -18,6 +18,7 @@ using SP.FinanceService.RefitClient;
 using SP.FinanceService.Service;
 using SP.FinanceService.Service.Impl;
 using SP.Common.ExceptionHandling;
+using SP.FinanceService.Task.Accounting;
 using SP.FinanceService.Task.Budget;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -171,6 +172,17 @@ builder.Services.AddQuartz(q =>
         .WithIdentity("ExchangeRateTimerTrigger")
         .StartNow()
         .WithCronSchedule("0 0 1 * * ?"));
+});
+// 添加定时开销记录任务
+builder.Services.AddQuartz(q =>
+{
+    var accountingWatcherJobKey = new JobKey("AccountingWatcherJob");
+    q.AddJob<AccountingWatcher>(opts => opts.WithIdentity(accountingWatcherJobKey));
+    q.AddTrigger(opts => opts
+        .ForJob(accountingWatcherJobKey)
+        .WithIdentity("AccountingWatcherTrigger")
+        .StartNow()
+        .WithCronSchedule("0 0 0 * * ?")); // 每天午夜12点执行
 });
 builder.Services.AddQuartzHostedService(options =>
 {
