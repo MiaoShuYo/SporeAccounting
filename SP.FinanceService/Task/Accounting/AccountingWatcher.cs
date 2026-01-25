@@ -57,12 +57,17 @@ public class AccountingWatcher : IJob
         List<RecurringExpenseRuleResponse> recurringExpenseRules =
             await _recurringExpenseRuleServer.GetAllRecurringExpenseRules();
 
+        List<long> deleteIds = new List<long>();
         foreach (var recurringExpense in recurringExpenseRules)
         {
+            if (recurringExpense.EndDate < DateTime.Now)
+            {
+                deleteIds.Add(recurringExpense.Id);
+                continue;
+            }
             // 查询上次记录的执行时间
             RecurringExpenseRuleExecutionRecord record =
                 _recurringExpenseRuleRecordServer.GetRecordById(recurringExpense.Id);
-
             // 如果是每天记录，并且上次执行时间小于今天，则执行记账
             if (recurringExpense.Frequency == FrequencyEnum.Day)
             {
@@ -154,6 +159,9 @@ public class AccountingWatcher : IJob
                 continue;
             }
         }
+
+        await _recurringExpenseRuleServer.DeleteRecurringExpenseRule(deleteIds);
+
     }
 
     /// <summary>

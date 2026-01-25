@@ -25,6 +25,7 @@ public class RecurringExpenseRuleAddRequest
     /// 金额
     /// </summary>
     [Required(ErrorMessage = "金额不能为空")]
+    [Range(0.01, double.MaxValue, ErrorMessage = "金额必须大于0")]
     public decimal Amount { get; set; }
     /// <summary>
     /// 分类id

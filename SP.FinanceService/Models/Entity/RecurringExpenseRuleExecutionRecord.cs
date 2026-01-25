@@ -22,6 +22,4 @@ public class RecurringExpenseRuleExecutionRecord : BaseModel
     [Required]
     [Column(TypeName = "tinyint")]
     public bool IsOK { get; set; } = true;
-
-
 }

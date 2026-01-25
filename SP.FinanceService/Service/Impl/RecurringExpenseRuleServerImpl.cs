@@ -92,17 +92,23 @@ public class RecurringExpenseRuleServerImpl : IRecurringExpenseRuleServer
     /// <summary>
     /// 删除定期支出规则
     /// </summary>
-    /// <param name="id">定期支出规则id</param>
-    public void DeleteRecurringExpenseRule(long id)
+    /// <param name="ids">定期支出规则id集合</param>
+    public async System.Threading.Tasks.Task DeleteRecurringExpenseRule(List<long> ids)
     {
-        RecurringExpenseRule recurringExpenseRule = _dbContext.RecurringExpenseRules.FirstOrDefault(p => p.Id == id);
-        if (recurringExpenseRule == null)
+        List<RecurringExpenseRule> recurringExpenseRules = _dbContext.RecurringExpenseRules.Where(p => ids.Contains(p.Id)).ToList();
+        if (recurringExpenseRules == null)
         {
             throw new NotFoundException("定期指出规则不存在");
         }
 
-        SettingCommProperty.Delete(recurringExpenseRule);
-        _dbContext.SaveChanges();
+        foreach (var recurringExpenseRule in recurringExpenseRules)
+        {
+            SettingCommProperty.Delete(recurringExpenseRule);
+        }
+
+        string recurringExpenseKey = FinanceRedisKey.RecurringExpenseKey;
+        await _redisService.RemoveAsync(recurringExpenseKey);
+        await _dbContext.SaveChangesAsync();
     }
 
     /// <summary>
@@ -169,6 +175,9 @@ public class RecurringExpenseRuleServerImpl : IRecurringExpenseRuleServer
 
         var dbDate = await  _dbContext.RecurringExpenseRules.Where(p => !p.IsDeleted).ToListAsync();
         data = _automapper.Map<List<RecurringExpenseRuleResponse>>(dbDate);
+
+        // 记录redis
+        await _redisService.SetAsync(recurringExpenseKey, data);
         return data;
     }
 }

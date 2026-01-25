@@ -55,11 +55,11 @@ public class RecurringExpenseRuleController : ControllerBase
     /// <summary>
     /// 删除
     /// </summary>
-    /// <param name="id">删除的数据id</param>
-    [HttpDelete]
-    public ActionResult<bool> DeleteRecurringExpenseRule([FromRoute] long id)
+    /// <param name="ids">删除的数据id</param>
+    [HttpPost]
+    public async Task<ActionResult<bool>> DeleteRecurringExpenseRule([FromBody] List<long> ids)
     {
-        _recurringExpenseRuleServer.DeleteRecurringExpenseRule(id);
+        await _recurringExpenseRuleServer.DeleteRecurringExpenseRule(ids);
         return Ok(true);
     }
 

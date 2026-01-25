@@ -1,5 +1,4 @@
 ﻿using SP.Common.Model;
-using SP.FinanceService.Models.Entity;
 using SP.FinanceService.Models.Request;
 using SP.FinanceService.Models.Response;
 
@@ -27,8 +26,8 @@ public interface IRecurringExpenseRuleServer
     /// <summary>
     /// 删除定期支出规则
     /// </summary>
-    /// <param name="id">定期支出规则id</param>
-    void DeleteRecurringExpenseRule(long id);
+    /// <param name="ids">定期支出规则id集合</param>
+    System.Threading.Tasks.Task DeleteRecurringExpenseRule(List<long> ids);
     /// <summary>
     /// 获取定期支出规则
     /// </summary>
