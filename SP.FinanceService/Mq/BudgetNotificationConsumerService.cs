@@ -109,7 +109,7 @@ public class BudgetNotificationConsumerService : BackgroundService
                 var userServiceApi = scope.ServiceProvider.GetRequiredService<IUserServiceApi>();
 
                 // 获取预算信息
-                var budget = budgetServer.QueryById(notification.BudgetId);
+                var budget = budgetServer.QueryById(notification.BudgetId, notification.UserId);
                 if (budget == null)
                 {
                     _logger.LogWarning($"未找到预算信息，预算ID: {notification.BudgetId}");
@@ -124,7 +124,7 @@ public class BudgetNotificationConsumerService : BackgroundService
                 _logger.LogError(ex,
                     $"处理预算通知消息失败: {mqMessage.Type}, 用户ID: {notification.UserId}, 预算ID: {notification.BudgetId}");
             }
-        });
+        }, stoppingToken);
     }
 
     /// <summary>

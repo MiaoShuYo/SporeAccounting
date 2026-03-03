@@ -68,8 +68,7 @@ namespace SP.IdentityService.Controllers
                     // 支持的ID令牌签名算法
                     id_token_signing_alg_values_supported = new[]
                     {
-                        "RS256", // RSA SHA-256
-                        "HS256" // HMAC SHA-256
+                        "RS256" // 仅公布非对称算法，避免泄露对称密钥体系信息
                     },
                     
                     // 支持的授权范围
@@ -138,20 +137,7 @@ namespace SP.IdentityService.Controllers
             {
                 var keys = new List<object>();
 
-                // 生成kid - 使用密钥的哈希值作为kid
-                var jwtSecret = _jwtConfigService.GetJwtSecret();
-                var kid = GenerateKeyId(jwtSecret);
-
-                var signingKey = new
-                {
-                    kty = "oct",  // 密钥类型：对称密钥
-                    use = "sig",  // 用途：签名
-                    kid = kid,    // 密钥ID：使用哈希值
-                    alg = "HS256", // 算法
-                    k = Convert.ToBase64String(Encoding.UTF8.GetBytes(jwtSecret))
-                };
-
-                keys.Add(signingKey);
+                _logger.LogWarning("JWKS 请求已命中：当前实例使用对称签名密钥，不返回任何公钥以避免密钥泄露");
 
                 var jwks = new
                 {
@@ -170,18 +156,6 @@ namespace SP.IdentityService.Controllers
                     error_description = "获取JWKS时发生内部错误"
                 });
             }
-        }
-
-        /// <summary>
-        /// 生成密钥ID
-        /// </summary>
-        /// <param name="key">密钥</param>
-        /// <returns>密钥ID</returns>
-        private string GenerateKeyId(string key)
-        {
-            using var sha256 = System.Security.Cryptography.SHA256.Create();
-            var hash = sha256.ComputeHash(Encoding.UTF8.GetBytes(key));
-            return Convert.ToBase64String(hash).Substring(0, 8);
         }
 
         /// <summary>

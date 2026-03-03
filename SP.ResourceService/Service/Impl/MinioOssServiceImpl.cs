@@ -10,6 +10,8 @@ using Microsoft.EntityFrameworkCore;
 using SP.ResourceService.Models.Config;
 using SP.ResourceService.Models.Request;
 using SP.ResourceService.Models.Response;
+using SP.Common;
+using System.Text.RegularExpressions;
 
 namespace SP.ResourceService.Service.Impl;
 
@@ -37,6 +39,7 @@ public class MinioOssServiceImpl : IOssService
     /// 数据库上下文
     /// </summary>
     private readonly ResourceServiceDbContext _dbContext;
+    private readonly ContextSession _contextSession;
 
     /// <summary>
     /// 构造函数
@@ -45,11 +48,12 @@ public class MinioOssServiceImpl : IOssService
     /// <param name="logger"></param>
     /// <param name="dbContext"></param>
     public MinioOssServiceImpl(IOptions<MinioOptions> options, ILogger<MinioOssServiceImpl> logger,
-        ResourceServiceDbContext dbContext)
+        ResourceServiceDbContext dbContext, ContextSession contextSession)
     {
         _options = options;
         _logger = logger;
         _dbContext = dbContext;
+        _contextSession = contextSession;
 
         try
         {
@@ -168,19 +172,29 @@ public class MinioOssServiceImpl : IOssService
 
         string bucket = "";
         string objectName = file.ObjectName;
+        var currentUserId = _contextSession.UserId;
+        if (!file.IsPublic)
+        {
+            if (currentUserId <= 0 || file.CreateUserId != currentUserId)
+            {
+                throw new ForbiddenException("禁止访问其他用户的私有文件");
+            }
+        }
+
         if (file.IsPublic)
         {
             bucket = _options.Value.PublicBucket;
             // 公开桶：返回直链
             var baseUrl = _options.Value.PublicBaseUrl?.TrimEnd('/');
+            var encodedObjectPath = EncodePathPreservingSlashes(objectName);
             if (!string.IsNullOrWhiteSpace(baseUrl))
             {
-                return $"{baseUrl}/{bucket}/{Uri.EscapeDataString(objectName)}";
+                return $"{baseUrl}/{bucket}/{encodedObjectPath}";
             }
 
             // 若未配置 PublicBaseUrl，则退回到 MinIO 原始地址
             var scheme = _options.Value.WithSSL ? "https" : "http";
-            return $"{scheme}://{_options.Value.Endpoint.TrimEnd('/')}/{bucket}/{Uri.EscapeDataString(objectName)}";
+            return $"{scheme}://{_options.Value.Endpoint.TrimEnd('/')}/{bucket}/{encodedObjectPath}";
         }
         else
         {
@@ -208,6 +222,12 @@ public class MinioOssServiceImpl : IOssService
         if (fileInfo == null)
         {
             throw new NotFoundException("文件不存在");
+        }
+
+        var currentUserId = _contextSession.UserId;
+        if (currentUserId <= 0 || fileInfo.CreateUserId != currentUserId)
+        {
+            throw new ForbiddenException("禁止删除其他用户文件");
         }
 
         var bucket = fileInfo.IsPublic ? _options.Value.PublicBucket : _options.Value.PrivateBucket;
@@ -260,6 +280,16 @@ public class MinioOssServiceImpl : IOssService
     /// <returns></returns>
     public async Task<long> ConfirmUploadAsync(ConfirmUploadRequest request, CancellationToken ct = default)
     {
+        if (string.IsNullOrWhiteSpace(request.ObjectName) || !IsValidObjectName(request.ObjectName))
+        {
+            throw new BadRequestException("ObjectName 格式非法");
+        }
+
+        if (string.IsNullOrWhiteSpace(request.OriginalFileName))
+        {
+            throw new BadRequestException("OriginalFileName 不能为空");
+        }
+
         // 验证文件是否真的存在于 MinIO 中
         var bucket = request.IsPublic ? _options.Value.PublicBucket : _options.Value.PrivateBucket;
         try
@@ -275,8 +305,10 @@ public class MinioOssServiceImpl : IOssService
             {
                 ObjectName = request.ObjectName,
                 IsPublic = request.IsPublic,
-                Size = request.FileSize,
-                ContentType = request.ContentType,
+                Size = objectStat.Size,
+                ContentType = string.IsNullOrWhiteSpace(objectStat.ContentType)
+                    ? request.ContentType
+                    : objectStat.ContentType,
                 OriginalName = request.OriginalFileName
             };
 
@@ -291,6 +323,19 @@ public class MinioOssServiceImpl : IOssService
             _logger.LogError(ex, "无法确认文件上传:{ObjectName}", sanitizedObjectName);
             throw new BadRequestException($"无法确认文件上传: {request.ObjectName}");
         }
+    }
+
+    private static bool IsValidObjectName(string objectName)
+    {
+        const string pattern = @"^\d{4}/\d{2}/\d{2}/[a-fA-F0-9]{32}(\.[A-Za-z0-9._-]+)?$";
+        return Regex.IsMatch(objectName, pattern);
+    }
+
+    private static string EncodePathPreservingSlashes(string objectName)
+    {
+        var segments = objectName.Split('/', StringSplitOptions.RemoveEmptyEntries)
+            .Select(Uri.EscapeDataString);
+        return string.Join("/", segments);
     }
 
     /// <summary>

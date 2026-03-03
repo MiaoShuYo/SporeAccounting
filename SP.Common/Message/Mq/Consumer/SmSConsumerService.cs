@@ -85,6 +85,6 @@ public class SmSConsumerService : BackgroundService
             }
 
             await Task.CompletedTask;
-        });
+        }, stoppingToken);
     }
 }

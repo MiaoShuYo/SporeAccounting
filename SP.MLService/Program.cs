@@ -113,6 +113,7 @@ if (app.Environment.IsDevelopment() || app.Environment.EnvironmentName == "Local
 app.UseHttpsRedirection();
 app.UseStaticFiles(); 
 app.UseCors("AllowAll");
+app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
 

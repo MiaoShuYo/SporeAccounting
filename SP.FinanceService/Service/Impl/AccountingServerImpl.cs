@@ -139,7 +139,7 @@ public class AccountingServerImpl : IAccountingServer
             MqExchange.BudgetExchange,
             MqRoutingKey.BudgetRoutingKey,
             MqQueue.BudgetQueue, MessageType.BudgetDeduct, ExchangeType.Direct);
-        _rabbitMqMessage.SendAsync(mqPublisher).Start();
+        await _rabbitMqMessage.SendAsync(mqPublisher);
 
         // 返回新增的记账ID
         return accounting.Id;
@@ -155,7 +155,7 @@ public class AccountingServerImpl : IAccountingServer
         // 检查账本是否存在
         AccountBookExist(accountBookId);
         // 查询要删除的记账记录
-        Accounting accounting = QueryById(id);
+        Accounting accounting = QueryAccountingById(id, accountBookId);
         if (accounting == null)
         {
             throw new NotFoundException($"记账记录不存在，ID: {id}");
@@ -181,7 +181,7 @@ public class AccountingServerImpl : IAccountingServer
             MqExchange.BudgetExchange,
             MqRoutingKey.BudgetRoutingKey,
             MqQueue.BudgetQueue, MessageType.BudgetAdd, ExchangeType.Direct);
-        _rabbitMqMessage.SendAsync(mqPublisher).Start();
+        _rabbitMqMessage.SendAsync(mqPublisher).GetAwaiter().GetResult();
     }
 
     /// <summary>
@@ -195,7 +195,7 @@ public class AccountingServerImpl : IAccountingServer
         AccountBookExist(accountBookId);
 
         // 查询要修改的记账记录
-        Accounting existingAccounting = QueryById(request.Id);
+        Accounting existingAccounting = QueryAccountingById(request.Id, accountBookId);
         if (existingAccounting == null)
         {
             throw new NotFoundException($"记账记录不存在，ID: {request.Id}");
@@ -232,7 +232,7 @@ public class AccountingServerImpl : IAccountingServer
             MqExchange.BudgetExchange,
             MqRoutingKey.BudgetRoutingKey,
             MqQueue.BudgetQueue, MessageType.BudgetUpdate, ExchangeType.Direct);
-        _rabbitMqMessage.SendAsync(mqPublisher).Start();
+        await _rabbitMqMessage.SendAsync(mqPublisher);
     }
 
     /// <summary>
@@ -247,7 +247,7 @@ public class AccountingServerImpl : IAccountingServer
         AccountBookExist(accountBookId);
 
         // 查询记账记录
-        Accounting accounting = QueryById(id);
+        Accounting accounting = QueryAccountingById(id, accountBookId);
         if (accounting == null)
         {
             throw new NotFoundException($"记账记录不存在，ID: {id}");
@@ -315,10 +315,11 @@ public class AccountingServerImpl : IAccountingServer
     /// </summary>
     /// <param name="id">记账ID</param>
     /// <returns>返回记账记录</returns>
-    private Accounting QueryById(long id)
+    private Accounting QueryAccountingById(long id, long accountBookId)
     {
         // 查询记账记录
-        var accounting = _dbContext.Accountings.FirstOrDefault(p => p.IsDeleted == false && p.Id == id);
+        var accounting = _dbContext.Accountings.FirstOrDefault(p =>
+            p.IsDeleted == false && p.Id == id && p.AccountBookId == accountBookId);
         if (accounting == null)
         {
             throw new NotFoundException($"记账记录不存在，ID: {id}");

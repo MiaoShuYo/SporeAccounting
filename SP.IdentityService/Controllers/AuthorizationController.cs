@@ -1,13 +1,16 @@
 using System.IdentityModel.Tokens.Jwt;
+using System.Collections.Immutable;
 using System.Security.Claims;
 using System.Security.Cryptography;
 using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Identity.Data;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.IdentityModel.Tokens;
 using OpenIddict.Abstractions;
 using OpenIddict.Server.AspNetCore;
 using SP.Common;
+using SP.Common.ConfigService;
 using SP.Common.ExceptionHandling.Exceptions;
 using SP.Common.Message.SmS.Model;
 using SP.Common.Message.SmS.Services;
@@ -29,6 +32,7 @@ public class AuthorizationController : ControllerBase
     private readonly ILogger<AuthorizationController> _logger;
     private readonly IRedisService _redisService;
     private readonly ContextSession _contextSession;
+    private readonly JwtConfigService _jwtConfigService;
 
     /// <summary>
     /// 授权控制器构造函数
@@ -40,12 +44,13 @@ public class AuthorizationController : ControllerBase
     /// <param name="smSService"></param>
     public AuthorizationController(IAuthorizationService authorizationService,
         ILogger<AuthorizationController> logger, IRedisService redisService, ContextSession contextSession,
-        ISmSService smSService)
+        ISmSService smSService, JwtConfigService jwtConfigService)
     {
         _logger = logger;
         _authorizationService = authorizationService;
         _redisService = redisService;
         _contextSession = contextSession;
+        _jwtConfigService = jwtConfigService;
     }
 
     /// <summary>
@@ -241,6 +246,12 @@ public class AuthorizationController : ControllerBase
     [HttpPost("smsVerificationCode")]
     public async Task<ActionResult> SmsVerificationCode([FromBody] SmSRequest smSRequest)
     {
+        if (smSRequest.PhoneNumbers == null || smSRequest.PhoneNumbers.Count == 0 ||
+            string.IsNullOrWhiteSpace(smSRequest.PhoneNumbers[0]))
+        {
+            throw new BadRequestException("手机号不能为空");
+        }
+
         await _authorizationService.SendVerificationCodeAsync(smSRequest.PhoneNumbers[0], smSRequest.Purpose);
         return Ok();
     }
@@ -282,6 +293,7 @@ public class AuthorizationController : ControllerBase
     /// 退出登录
     /// </summary>
     [HttpPost("logout")]
+    [Microsoft.AspNetCore.Authorization.Authorize]
     public async Task<ActionResult> Logout()
     {
         try
@@ -289,6 +301,15 @@ public class AuthorizationController : ControllerBase
             // 获取当前用户ID
             var userId = _contextSession.UserId;
             var username = _contextSession.UserName;
+
+            if (userId <= 0)
+            {
+                return Unauthorized(new
+                {
+                    error = OpenIddictConstants.Errors.InvalidToken,
+                    error_description = "无效的用户身份"
+                });
+            }
 
             // 1. 清除 Redis 中的 token
             string tokenKey = string.Format(SPRedisKey.Token, userId);
@@ -326,6 +347,7 @@ public class AuthorizationController : ControllerBase
     /// 符合 OpenID Connect 规范的退出端点
     /// </remarks>
     [HttpPost("connect/logout")]
+    [Microsoft.AspNetCore.Authorization.Authorize]
     public async Task<ActionResult> OpenIddictLogout()
     {
         try
@@ -344,6 +366,15 @@ public class AuthorizationController : ControllerBase
             // 获取当前用户信息
             var userId = _contextSession.UserId;
             var username = _contextSession.UserName;
+
+            if (userId <= 0)
+            {
+                return Unauthorized(new
+                {
+                    error = OpenIddictConstants.Errors.InvalidToken,
+                    error_description = "无效的用户身份"
+                });
+            }
 
             // 1. 清除访问令牌
             string tokenKey = string.Format(SPRedisKey.Token, userId);
@@ -377,6 +408,7 @@ public class AuthorizationController : ControllerBase
     /// 用于撤销访问令牌和刷新令牌，符合 OpenID Connect 规范
     /// </remarks>
     [HttpPost("revoke")]
+    [Microsoft.AspNetCore.Authorization.Authorize]
     public async Task<ActionResult> RevokeToken()
     {
         try
@@ -394,6 +426,15 @@ public class AuthorizationController : ControllerBase
             // 获取当前用户信息
             var userId = _contextSession.UserId;
             var username = _contextSession.UserName;
+
+            if (userId <= 0)
+            {
+                return Unauthorized(new
+                {
+                    error = OpenIddictConstants.Errors.InvalidToken,
+                    error_description = "无效的用户身份"
+                });
+            }
 
             // 1. 清除访问令牌
             string tokenKey = string.Format(SPRedisKey.Token, userId);
@@ -439,14 +480,21 @@ public class AuthorizationController : ControllerBase
     /// 符合 OpenID Connect 规范的用户信息端点
     /// </remarks>
     [HttpGet("userinfo")]
+    [Microsoft.AspNetCore.Authorization.Authorize]
     public async Task<ActionResult> GetUserInfo()
     {
         try
         {
             // 获取当前用户信息
-            var userId = User.FindFirstValue("userid");
-            var username = User.FindFirstValue("username");
-            var email = User.FindFirstValue("email");
+            var userId = User.FindFirstValue(OpenIddictConstants.Claims.Subject)
+                         ?? User.FindFirstValue("userid")
+                         ?? User.FindFirstValue("UserId");
+            var username = User.FindFirstValue(OpenIddictConstants.Claims.Name)
+                           ?? User.FindFirstValue("username")
+                           ?? User.FindFirstValue("UserName");
+            var email = User.FindFirstValue(OpenIddictConstants.Claims.Email)
+                        ?? User.FindFirstValue("email")
+                        ?? User.FindFirstValue("Email");
 
             if (string.IsNullOrEmpty(userId))
             {
@@ -491,6 +539,20 @@ public class AuthorizationController : ControllerBase
     {
         try
         {
+            var clientId = Request.Form["client_id"].FirstOrDefault();
+            var clientSecret = Request.Form["client_secret"].FirstOrDefault();
+
+            if (string.IsNullOrWhiteSpace(clientId) || string.IsNullOrWhiteSpace(clientSecret))
+            {
+                return Unauthorized(new
+                {
+                    error = OpenIddictConstants.Errors.InvalidClient,
+                    error_description = "client_id 或 client_secret 不能为空"
+                });
+            }
+
+            await _authorizationService.HandleClientCredentialsAsync(clientId, clientSecret, ImmutableArray<string>.Empty);
+
             // 直接从表单数据中获取token
             var token = Request.Form["token"].FirstOrDefault();
             if (string.IsNullOrEmpty(token))
@@ -578,15 +640,45 @@ public class AuthorizationController : ControllerBase
 
             _logger.LogDebug("JWT令牌解析成功");
 
-            var jwtToken = tokenHandler.ReadJwtToken(token);
-
-            if (!await ValidateTokenSignatureAsync(jwtToken))
+            var signingKey = _jwtConfigService.GetJwtSecret();
+            if (string.IsNullOrWhiteSpace(signingKey))
             {
-                _logger.LogWarning("令牌签名验证失败");
+                _logger.LogWarning("签名密钥未配置，无法执行内省验签");
                 return null;
             }
 
-            _logger.LogDebug("令牌签名验证通过");
+            var validationParameters = new TokenValidationParameters
+            {
+                ValidateIssuerSigningKey = true,
+                IssuerSigningKey = new SymmetricSecurityKey(Convert.FromBase64String(signingKey)),
+                ValidateIssuer = false,
+                ValidateAudience = false,
+                ValidateLifetime = true,
+                RequireSignedTokens = true,
+                ClockSkew = TimeSpan.FromMinutes(1)
+            };
+
+            ClaimsPrincipal claimsPrincipal;
+            SecurityToken validatedToken;
+
+            try
+            {
+                claimsPrincipal = tokenHandler.ValidateToken(token, validationParameters, out validatedToken);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "令牌验签或生命周期验证失败");
+                return null;
+            }
+
+            var jwtToken = validatedToken as JwtSecurityToken;
+            if (jwtToken == null)
+            {
+                _logger.LogWarning("验证后的令牌类型无效");
+                return null;
+            }
+
+            _logger.LogDebug("令牌签名与生命周期验证通过");
 
             var now = DateTime.UtcNow;
             if (jwtToken.ValidFrom > now)
@@ -603,16 +695,9 @@ public class AuthorizationController : ControllerBase
 
             _logger.LogDebug("令牌时间验证通过，当前时间: {Now}, 过期时间: {ValidTo}", now, jwtToken.ValidTo);
 
-            // 调试：记录所有claims
-            _logger.LogDebug("JWT Token中的所有Claims:");
-            foreach (var claim in jwtToken.Claims)
-            {
-                _logger.LogDebug("Claim Type: {Type}, Value: {Value}", claim.Type, claim.Value);
-            }
-
-            // 调试：提取username
-            var nameClaim = jwtToken.Claims.FirstOrDefault(c => c.Type == "name")?.Value;
-            var usernameClaim = jwtToken.Claims.FirstOrDefault(c => c.Type == "username")?.Value;
+            var nameClaim = claimsPrincipal.FindFirstValue(OpenIddictConstants.Claims.Name)
+                            ?? claimsPrincipal.FindFirstValue("name");
+            var usernameClaim = claimsPrincipal.FindFirstValue("username");
             var finalUsername = nameClaim ?? usernameClaim;
 
             _logger.LogDebug(
@@ -624,9 +709,12 @@ public class AuthorizationController : ControllerBase
                 IsValid = true,
                 Subject = jwtToken.Subject,
                 Username = finalUsername,
-                Email = jwtToken.Claims.FirstOrDefault(c => c.Type == "email")?.Value,
-                Scope = jwtToken.Claims.FirstOrDefault(c => c.Type == "scope")?.Value,
-                ClientId = jwtToken.Claims.FirstOrDefault(c => c.Type == "client_id")?.Value,
+                Email = claimsPrincipal.FindFirstValue(OpenIddictConstants.Claims.Email)
+                    ?? claimsPrincipal.FindFirstValue("email"),
+                Scope = claimsPrincipal.FindFirstValue(OpenIddictConstants.Claims.Scope)
+                    ?? claimsPrincipal.FindFirstValue("scope"),
+                ClientId = claimsPrincipal.FindFirstValue(OpenIddictConstants.Claims.ClientId)
+                       ?? claimsPrincipal.FindFirstValue("client_id"),
                 TokenType = "Bearer",
                 IssuedAt = jwtToken.IssuedAt.ToUniversalTime().Subtract(DateTime.UnixEpoch).TotalSeconds is double iat
                     ? (long)iat
@@ -642,12 +730,12 @@ public class AuthorizationController : ControllerBase
                 JwtId = jwtToken.Id
             };
 
-            result.Roles = jwtToken.Claims
+            result.Roles = claimsPrincipal.Claims
                 .Where(c => c.Type == "role")
                 .Select(c => c.Value)
                 .ToList();
 
-            result.Permissions = jwtToken.Claims
+            result.Permissions = claimsPrincipal.Claims
                 .Where(c => c.Type == "permission")
                 .Select(c => c.Value)
                 .ToList();
@@ -693,38 +781,4 @@ public class AuthorizationController : ControllerBase
         }
     }
 
-    /// <summary>
-    /// 验证令牌签名
-    /// </summary>
-    /// <param name="jwtToken">JWT令牌</param>
-    /// <returns>签名是否有效</returns>
-    private async Task<bool> ValidateTokenSignatureAsync(JwtSecurityToken jwtToken)
-    {
-        try
-        {
-            if (jwtToken.SignatureAlgorithm == null)
-            {
-                _logger.LogWarning("令牌没有签名算法");
-                return false;
-            }
-
-            var supportedAlgorithms = new[] { "HS256", "RS256" };
-            if (!supportedAlgorithms.Contains(jwtToken.SignatureAlgorithm))
-            {
-                _logger.LogWarning("不支持的签名算法: {Algorithm}", jwtToken.SignatureAlgorithm);
-                return false;
-            }
-
-            // 对于内省端点，我们暂时跳过实际的签名验证
-            // 因为OpenIddict已经验证了令牌的有效性
-            // 这里主要检查令牌的基本格式和算法
-            _logger.LogDebug("令牌签名算法验证通过: {Algorithm}", jwtToken.SignatureAlgorithm);
-            return true;
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "验证令牌签名时发生错误");
-            return false;
-        }
-    }
 }

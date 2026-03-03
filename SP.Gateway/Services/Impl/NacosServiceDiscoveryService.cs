@@ -1,4 +1,5 @@
 ﻿using SP.Common.Nacos;
+using System.Security.Cryptography;
 
 namespace SP.Gateway.Services.Impl;
 
@@ -185,8 +186,16 @@ public class NacosServiceDiscoveryService : INacosServiceDiscoveryService
     private string GenerateGatewaySignature()
     {
         var timestamp = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
-        var secret = _configuration["GatewaySecret"] ?? "SP_Gateway_Secret_2024";
-        var signature = $"{timestamp}.{secret}";
-        return Convert.ToBase64String(System.Text.Encoding.UTF8.GetBytes(signature));
+        var secret = _configuration["GatewaySecret"];
+        if (string.IsNullOrWhiteSpace(secret))
+        {
+            throw new InvalidOperationException("GatewaySecret 未配置，无法生成网关签名");
+        }
+
+        var nonce = Guid.NewGuid().ToString("N");
+        var payload = $"{timestamp}.{nonce}";
+        using var hmac = new HMACSHA256(System.Text.Encoding.UTF8.GetBytes(secret));
+        var mac = Convert.ToHexString(hmac.ComputeHash(System.Text.Encoding.UTF8.GetBytes(payload))).ToLowerInvariant();
+        return $"{payload}.{mac}";
     }
 }

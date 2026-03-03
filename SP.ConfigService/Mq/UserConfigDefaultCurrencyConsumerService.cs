@@ -92,6 +92,6 @@ public class UserConfigDefaultCurrencyConsumerService : BackgroundService
             }
             // 调用币种服务设置用户默认币种
             await _configServer.SetUserDefaultCurrencyAsync(parsedUserId, defaultCurrencyId);
-        });
+        }, stoppingToken);
     }
 }

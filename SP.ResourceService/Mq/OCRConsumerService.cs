@@ -180,7 +180,7 @@ public class OCRConsumerService : BackgroundService
             {
                 await Task.CompletedTask;
             }
-        });
+        }, stoppingToken);
     }
 
     /// <summary>

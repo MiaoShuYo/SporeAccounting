@@ -1,5 +1,6 @@
 ﻿using System.Text;
 using System.Text.Json;
+using System.Security.Cryptography;
 using SP.Gateway.Models;
 
 namespace SP.Gateway.Services.Impl;
@@ -53,12 +54,24 @@ public class TokenIntrospectionService : ITokenIntrospectionService
             // 获取身份服务配置
             var config = await _configService.GetIdentityServiceConfigAsync();
 
+            var introspectionClientId = _configuration["IdentityService:Introspection:ClientId"]
+                                        ?? Environment.GetEnvironmentVariable("IDENTITY_INTROSPECTION_CLIENT_ID");
+            var introspectionClientSecret = _configuration["IdentityService:Introspection:ClientSecret"]
+                                            ?? Environment.GetEnvironmentVariable("IDENTITY_INTROSPECTION_CLIENT_SECRET");
+            if (string.IsNullOrWhiteSpace(introspectionClientId) || string.IsNullOrWhiteSpace(introspectionClientSecret))
+            {
+                _logger.LogError("未配置内省客户端凭据（IdentityService:Introspection:ClientId/ClientSecret）");
+                return null;
+            }
+
             // 构造内省接口地址
             var introspectionUrl = $"{identityServiceUrl.TrimEnd('/')}/api/auth/introspect";
             // 构造请求体
             var requestData = new FormUrlEncodedContent(new[]
             {
-                new KeyValuePair<string, string>("token", token)
+                new KeyValuePair<string, string>("token", token),
+                new KeyValuePair<string, string>("client_id", introspectionClientId),
+                new KeyValuePair<string, string>("client_secret", introspectionClientSecret)
             });
 
             // 发送 POST 请求，确保 Content-Type 为 application/x-www-form-urlencoded
@@ -166,8 +179,16 @@ public class TokenIntrospectionService : ITokenIntrospectionService
     private string GenerateGatewaySignature()
     {
         var timestamp = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
-        var secret = _configuration["GatewaySecret"] ?? "SP_Gateway_Secret_2024";
-        var signature = $"{timestamp}.{secret}";
-        return Convert.ToBase64String(System.Text.Encoding.UTF8.GetBytes(signature));
+        var secret = _configuration["GatewaySecret"];
+        if (string.IsNullOrWhiteSpace(secret))
+        {
+            throw new InvalidOperationException("GatewaySecret 未配置，无法生成网关签名");
+        }
+
+        var nonce = Guid.NewGuid().ToString("N");
+        var payload = $"{timestamp}.{nonce}";
+        using var hmac = new HMACSHA256(System.Text.Encoding.UTF8.GetBytes(secret));
+        var mac = Convert.ToHexString(hmac.ComputeHash(System.Text.Encoding.UTF8.GetBytes(payload))).ToLowerInvariant();
+        return $"{payload}.{mac}";
     }
 }

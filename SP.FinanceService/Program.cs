@@ -125,6 +125,10 @@ builder.Services.AddScoped<IAccountingServer, AccountingServerImpl>();
 builder.Services.AddScoped<IBudgetServer, BudgetServerImpl>();
 builder.Services.AddScoped<ICurrencyService, CurrencyServiceImpl>();
 builder.Services.AddScoped<IBudgetRecordServer, BudgetRecordServerImpl>();
+builder.Services.AddScoped<ISharedExpenseSettlementServer, SharedExpenseSettlementServerImpl>();
+builder.Services.AddScoped<ISharedExpenseServer, SharedExpenseServerImpl>();
+builder.Services.AddScoped<ISharedExpenseReminderServer, SharedExpenseReminderServerImpl>();
+builder.Services.AddScoped<ISharedExpenseServer, SharedExpenseServerImpl>();
 
 // 注册 IHttpContextAccessor
 builder.Services.AddHttpContextAccessor();
@@ -184,6 +188,18 @@ builder.Services.AddQuartz(q =>
         .StartNow()
         .WithCronSchedule("0 0 0 * * ?")); // 每天午夜12点执行
 });
+// 添加分摊提醒任务
+builder.Services.AddQuartz(q =>
+{
+    var sharedExpenseReminderJobKey = new JobKey("SharedExpenseReminderWatcherJob");
+    q.AddJob<SP.FinanceService.Task.SharedExpense.SharedExpenseReminderWatcher>(opts =>
+        opts.WithIdentity(sharedExpenseReminderJobKey));
+    q.AddTrigger(opts => opts
+        .ForJob(sharedExpenseReminderJobKey)
+        .WithIdentity("SharedExpenseReminderWatcherTrigger")
+        .StartNow()
+        .WithCronSchedule("0 0/30 * * * ?")); // 每30分钟执行
+});
 builder.Services.AddQuartzHostedService(options =>
 {
     //启用 Quartz 的托管服务，`WaitForJobsToComplete = true` 表示在应用程序停止时等待任务完成后再关闭。
@@ -202,10 +218,10 @@ if (app.Environment.IsDevelopment() || app.Environment.EnvironmentName == "Local
     app.UseSwaggerUI();
 }
 
-app.UseMiddleware<ApplicationMiddleware>();
-
 app.UseHttpsRedirection();
 
+app.UseAuthentication();
+app.UseMiddleware<ApplicationMiddleware>();
 app.UseAuthorization();
 
 app.MapControllers();

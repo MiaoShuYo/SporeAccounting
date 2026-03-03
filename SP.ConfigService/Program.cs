@@ -9,8 +9,10 @@ using SP.Common.ConfigService;
 using SP.Common.Nacos;
 using SP.Common.Nacos.Configuration;
 using SP.Common.Logger;
+using SP.Common.Message.Mq;
 using SP.Common.Redis;
 using SP.Common.ExceptionHandling;
+using SP.ConfigService.Mq;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -96,6 +98,18 @@ builder.Services.AddRedisService(builder.Configuration);
 // 注入loki日志服务
 builder.Services.AddLoggerService(builder.Configuration);
 
+// 注册RabbitMQ配置和消息服务
+builder.Services.AddSingleton<RabbitMqConfigService>();
+builder.Services.AddSingleton<RabbitMqMessage>(provider =>
+{
+    var configService = provider.GetRequiredService<RabbitMqConfigService>();
+    var logger = provider.GetRequiredService<ILogger<RabbitMqMessage>>();
+    return new RabbitMqMessage(logger, configService.GetRabbitMqConfig());
+});
+
+// 注册默认币种消费者
+builder.Services.AddHostedService<UserConfigDefaultCurrencyConsumerService>();
+
 var app = builder.Build();
 
 // 设置静态服务提供者
@@ -108,12 +122,10 @@ if (app.Environment.IsDevelopment() || app.Environment.EnvironmentName == "Local
     app.UseSwaggerUI();
 }
 
-app.UseMiddleware<ApplicationMiddleware>();
-
 app.UseHttpsRedirection();
 
-// 添加认证中间件
 app.UseAuthentication();
+app.UseMiddleware<ApplicationMiddleware>();
 app.UseAuthorization();
 
 app.MapControllers();

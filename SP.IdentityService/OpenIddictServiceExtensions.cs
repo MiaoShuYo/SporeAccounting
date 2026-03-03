@@ -16,7 +16,8 @@ public static class OpenIddictServiceExtensions
     /// <param name="services"></param>
     /// <param name="configuration"></param>
     /// <returns></returns>
-    public static IServiceCollection AddOpenIddict(this IServiceCollection services, IConfiguration configuration)
+    public static IServiceCollection AddOpenIddict(this IServiceCollection services, IConfiguration configuration,
+        IHostEnvironment environment)
     {
         string signingKey = configuration["Jwt:SigningKey"];
         string encryptionKey = configuration["Jwt:EncryptionKey"];
@@ -45,8 +46,11 @@ public static class OpenIddictServiceExtensions
 
                 // 注册授权范围
                 options.RegisterScopes("api", OpenIddictConstants.Scopes.OfflineAccess);
-                // 允许匿名客户端
-                options.AcceptAnonymousClients();
+                // 仅在开发/本地环境允许匿名客户端
+                if (environment.IsDevelopment() || environment.EnvironmentName == "Local")
+                {
+                    options.AcceptAnonymousClients();
+                }
                 // 注册所有资源
                 options.RegisterClaims(
                     OpenIddictConstants.Claims.Name,
@@ -73,9 +77,13 @@ public static class OpenIddictServiceExtensions
                 options.DisableAccessTokenEncryption();
 
                 // 集成 ASP.NET Core
-                options.UseAspNetCore()
-                    .EnableTokenEndpointPassthrough()
-                    .DisableTransportSecurityRequirement(); // 开发模式下禁用HTTPS
+                var aspNetCoreBuilder = options.UseAspNetCore()
+                    .EnableTokenEndpointPassthrough();
+
+                if (environment.IsDevelopment() || environment.EnvironmentName == "Local")
+                {
+                    aspNetCoreBuilder.DisableTransportSecurityRequirement();
+                }
             })
             .AddValidation(options =>
             {

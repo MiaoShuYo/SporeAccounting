@@ -49,6 +49,26 @@ public class FinanceServiceDbContext : DbContext
     public DbSet<RecurringExpenseRuleExecutionRecord> RecurringExpenseRuleExecutionRecords { get; set; }
 
     /// <summary>
+    /// 分摊账目
+    /// </summary>
+    public DbSet<SharedExpense> SharedExpenses { get; set; }
+
+    /// <summary>
+    /// 分摊参与者
+    /// </summary>
+    public DbSet<SharedExpenseParticipant> SharedExpenseParticipants { get; set; }
+
+    /// <summary>
+    /// 分摊提醒记录
+    /// </summary>
+    public DbSet<SharedExpenseReminder> SharedExpenseReminders { get; set; }
+
+    /// <summary>
+    /// 分摊结算流水
+    /// </summary>
+    public DbSet<SharedExpenseSettlement> SharedExpenseSettlements { get; set; }
+
+    /// <summary>
     /// 数据库连接配置
     /// </summary>
     private readonly IConfiguration _dbConfig;

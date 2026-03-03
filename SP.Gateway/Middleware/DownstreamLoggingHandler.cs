@@ -1,7 +1,6 @@
 using System.Net;
 using System.Text;
 using System.Text.Json;
-using System.Text.RegularExpressions;
 using SP.Common.Logger;
 
 namespace SP.Gateway.Middleware;
@@ -88,12 +87,8 @@ public class DownstreamLoggingHandler : DelegatingHandler
 
                 _loggerService.LogError("下游服务返回错误: {Details}", json);
 
-                // 统一包装下游错误响应
-                var errorMessage = await ExtractErrorMessageAsync(response).ConfigureAwait(false);
-                if (string.IsNullOrWhiteSpace(errorMessage))
-                {
-                    errorMessage = MapDefaultMessage(response.StatusCode);
-                }
+                // 统一包装下游错误响应：不透传下游详细错误，避免信息泄露
+                var errorMessage = MapDefaultMessage(response.StatusCode);
                 var unified = SerializeUnifiedError(response.StatusCode, errorMessage);
                 response.Content = new StringContent(unified, Encoding.UTF8, "application/json");
             }
@@ -152,116 +147,6 @@ public class DownstreamLoggingHandler : DelegatingHandler
             HttpStatusCode.BadGateway => "下游服务不可用",
             _ => "下游服务返回错误"
         };
-    }
-
-    private static async Task<string> ExtractErrorMessageAsync(HttpResponseMessage response)
-    {
-        try
-        {
-            if (response.Content == null)
-            {
-                return string.Empty;
-            }
-
-            var content = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
-            if (string.IsNullOrWhiteSpace(content))
-            {
-                return string.Empty;
-            }
-
-            // 如果是 JSON，尝试从常见字段提取错误信息
-            if (IsLikelyJson(content))
-            {
-                using var doc = JsonDocument.Parse(content);
-                var root = doc.RootElement;
-                if (TryGetString(root, "errorMessage", out var msg) ||
-                    TryGetString(root, "message", out msg) ||
-                    TryGetString(root, "error_description", out msg) ||
-                    TryGetString(root, "error", out msg) ||
-                    TryGetString(root, "title", out msg))
-                {
-                    return string.IsNullOrWhiteSpace(msg) ? content : msg!;
-                }
-            }
-
-            // 否则从纯文本堆栈中提取首行错误消息（如：BusinessException: 用户名或密码错误。）
-            var plain = ExtractPlainTextErrorMessage(content);
-            if (!string.IsNullOrWhiteSpace(plain))
-            {
-                return plain;
-            }
-
-            // 退化为原始文本
-            return content;
-        }
-        catch
-        {
-            return string.Empty;
-        }
-    }
-
-    private static bool TryGetString(JsonElement root, string propertyName, out string? value)
-    {
-        if (root.ValueKind == JsonValueKind.Object && root.TryGetProperty(propertyName, out var prop))
-        {
-            if (prop.ValueKind == JsonValueKind.String)
-            {
-                value = prop.GetString();
-                return true;
-            }
-
-            value = prop.ToString();
-            return true;
-        }
-
-        value = null;
-        return false;
-    }
-
-    private static bool IsLikelyJson(string content)
-    {
-        var trimmed = content.TrimStart();
-        return trimmed.StartsWith("{") || trimmed.StartsWith("[");
-    }
-
-    private static string ExtractPlainTextErrorMessage(string content)
-    {
-        if (string.IsNullOrWhiteSpace(content)) return string.Empty;
-
-        var normalized = content.Replace("\r\n", "\n");
-
-        // 1) 优先匹配 “...Exception: 消息” 的首行
-        var match = Regex.Match(normalized, @"^.+Exception\s*:\s*(.+)$", RegexOptions.Multiline);
-        if (match.Success)
-        {
-            var msg = match.Groups[1].Value;
-            return TrimEndPunctuation(msg.Trim());
-        }
-
-        // 2) 取首个非空且不是堆栈/头部标记的行
-        foreach (var line in normalized.Split('\n'))
-        {
-            var l = line.Trim();
-            if (string.IsNullOrWhiteSpace(l)) continue;
-            if (l.StartsWith("at ", StringComparison.OrdinalIgnoreCase)) continue;
-            if (l.StartsWith("HEADERS", StringComparison.OrdinalIgnoreCase)) break;
-
-            var idx = l.IndexOf(':');
-            var candidate = idx >= 0 ? l[(idx + 1)..] : l;
-            candidate = candidate.Trim();
-            if (!string.IsNullOrWhiteSpace(candidate))
-            {
-                return TrimEndPunctuation(candidate);
-            }
-        }
-
-        return string.Empty;
-    }
-
-    private static string TrimEndPunctuation(string text)
-    {
-        if (string.IsNullOrEmpty(text)) return text;
-        return text.Trim().TrimEnd('.', '。');
     }
 
     private static string SerializeUnifiedError(HttpStatusCode statusCode, string message, Exception? ex = null)

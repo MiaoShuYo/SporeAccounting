@@ -41,12 +41,13 @@ public class AccountingController : ControllerBase
     /// <summary>
     /// 删除记账记录
     /// </summary>
+    /// <param name="accountBookId">账本ID</param>
     /// <param name="id">记账ID</param>
     /// <returns>返回删除结果</returns>
     [HttpDelete("{id}")]
-    public ActionResult<bool> DeleteAccounting([FromRoute] long id)
+    public ActionResult<bool> DeleteAccounting([FromQuery] long accountBookId, [FromRoute] long id)
     {
-        _accountingServer.Delete(id, id);
+        _accountingServer.Delete(accountBookId, id);
         return Ok(true);
     }
 
@@ -76,12 +77,13 @@ public class AccountingController : ControllerBase
     /// <summary>
     /// 获取记账记录详细信息
     /// </summary>
+    /// <param name="accountBookId">账本ID</param>
     /// <param name="id">记账ID</param>
     /// <returns>返回记账记录详细信息</returns>
     [HttpGet("{id}")]
-    public ActionResult<AccountingResponse> GetAccounting([FromRoute] long id)
+    public ActionResult<AccountingResponse> GetAccounting([FromQuery] long accountBookId, [FromRoute] long id)
     {
-        AccountingResponse accountingRecord = _accountingServer.QueryById(id, id);
+        AccountingResponse accountingRecord = _accountingServer.QueryById(accountBookId, id);
         return Ok(accountingRecord);
     }
 

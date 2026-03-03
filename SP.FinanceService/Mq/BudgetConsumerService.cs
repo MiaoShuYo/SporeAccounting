@@ -100,7 +100,7 @@ public class BudgetConsumerService : BackgroundService
             }
 
             await System.Threading.Tasks.Task.CompletedTask;
-        });
+        }, stoppingToken);
     }
 
     /// <summary>

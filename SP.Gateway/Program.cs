@@ -12,6 +12,12 @@ using SP.Gateway.ServiceDiscovery;
 
 var builder = WebApplication.CreateBuilder(args);
 
+var gatewaySecret = builder.Configuration["GatewaySecret"];
+if (string.IsNullOrWhiteSpace(gatewaySecret))
+{
+    throw new InvalidOperationException("GatewaySecret 未配置，网关拒绝启动");
+}
+
 
 // 基础服务
 builder.Services.AddControllers();

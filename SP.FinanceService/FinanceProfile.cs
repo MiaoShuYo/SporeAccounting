@@ -51,5 +51,20 @@ public class FinanceProfile : Profile
         CreateMap<RecurringExpenseRuleAddRequest, RecurringExpenseRule>();
         CreateMap<RecurringExpenseRuleEditRequest, RecurringExpenseRule>();
         CreateMap<RecurringExpenseRule, RecurringExpenseRuleResponse>();
+
+        // 分摊结算映射
+        CreateMap<SharedExpenseSettlementAddRequest, SharedExpenseSettlement>();
+        CreateMap<SharedExpenseSettlement, SharedExpenseSettlementResponse>();
+
+        // 分摊账目映射
+        CreateMap<SharedExpenseAddRequest, SharedExpense>();
+        CreateMap<SharedExpenseEditRequest, SharedExpense>();
+        CreateMap<SharedExpenseParticipantAddRequest, SharedExpenseParticipant>();
+        CreateMap<SharedExpense, SharedExpenseResponse>();
+        CreateMap<SharedExpenseParticipant, SharedExpenseParticipantResponse>();
+
+        // 分摊提醒映射
+        CreateMap<SharedExpenseReminderAddRequest, SharedExpenseReminder>();
+        CreateMap<SharedExpenseReminder, SharedExpenseReminderResponse>();
     }
 }

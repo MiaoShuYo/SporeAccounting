@@ -91,6 +91,6 @@ public class EmailConsumerService : BackgroundService
                 subject,
                 $"您的验证码是：{code} 五分钟内有效，请勿泄露给他人。");
             await Task.CompletedTask;
-        });
+        }, stoppingToken);
     }
 }

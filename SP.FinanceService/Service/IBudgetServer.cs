@@ -44,6 +44,14 @@ public interface IBudgetServer
     BudgetResponse QueryById(long id);
 
     /// <summary>
+    /// 按用户获取预算信息
+    /// </summary>
+    /// <param name="id">预算id</param>
+    /// <param name="userId">用户id</param>
+    /// <returns>预算信息</returns>
+    BudgetResponse QueryById(long id, long userId);
+
+    /// <summary>
     /// 查询当前在用的预算列表
     /// </summary>
     /// <returns>预算列表</returns>

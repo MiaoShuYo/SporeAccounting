@@ -112,8 +112,9 @@ if (app.Environment.IsDevelopment() || app.Environment.EnvironmentName == "Local
 
 app.UseHttpsRedirection();
 
-app.UseAuthorization();
+app.UseAuthentication();
 app.UseMiddleware<ApplicationMiddleware>();
+app.UseAuthorization();
 
 app.MapControllers();
 

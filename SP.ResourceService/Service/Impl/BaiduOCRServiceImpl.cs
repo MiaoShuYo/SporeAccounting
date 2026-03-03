@@ -4,6 +4,7 @@ using SP.Common.ExceptionHandling.Exceptions;
 using SP.Common.Message.Model;
 using SP.Common.Message.Mq;
 using SP.Common.Message.Mq.Model;
+using SP.Common;
 using SP.ResourceService.DB;
 using SP.ResourceService.Models.Entity;
 
@@ -28,6 +29,7 @@ public class BaiduOCRServiceImpl : IOCRService
     /// RabbitMQ消息服务
     /// </summary>
     private readonly RabbitMqMessage _rabbitMqMessage;
+    private readonly ContextSession _contextSession;
 
     /// <summary>
     /// 构造函数
@@ -36,11 +38,12 @@ public class BaiduOCRServiceImpl : IOCRService
     /// <param name="dbContext"></param>
     /// <param name="rabbitMqMessage"></param>
     public BaiduOCRServiceImpl(ILogger<BaiduOCRServiceImpl> logger,
-        ResourceServiceDbContext dbContext, RabbitMqMessage rabbitMqMessage)
+        ResourceServiceDbContext dbContext, RabbitMqMessage rabbitMqMessage, ContextSession contextSession)
     {
         _logger = logger;
         _dbContext = dbContext;
         _rabbitMqMessage = rabbitMqMessage;
+        _contextSession = contextSession;
     }
 
     /// <summary>
@@ -51,7 +54,8 @@ public class BaiduOCRServiceImpl : IOCRService
     public async Task RecognizeTextAsync(long fileId)
     {
         // 校验图片是否存在
-        Files? file = await _dbContext.Files.FirstOrDefaultAsync(p => !p.IsDeleted && p.Id == fileId);
+        var currentUserId = _contextSession.UserId;
+        Files? file = await _dbContext.Files.FirstOrDefaultAsync(p => !p.IsDeleted && p.Id == fileId && p.CreateUserId == currentUserId);
         if (file == null)
         {
             throw new NotFoundException("文件不存在");
@@ -76,8 +80,15 @@ public class BaiduOCRServiceImpl : IOCRService
     /// <returns></returns>
     public async Task<string?> GetRecognizedTextAsync(long fileId)
     {
-        string? text =await _dbContext.ImageTexts.Where(p => !p.IsDeleted && p.FileId == fileId)
-            .Select(p => p.RecognizedText).FirstOrDefaultAsync();
+        var currentUserId = _contextSession.UserId;
+        string? text = await _dbContext.ImageTexts
+            .Join(_dbContext.Files.Where(f => !f.IsDeleted && f.CreateUserId == currentUserId),
+                imageText => imageText.FileId,
+                file => file.Id,
+                (imageText, file) => imageText)
+            .Where(p => !p.IsDeleted && p.FileId == fileId)
+            .Select(p => p.RecognizedText)
+            .FirstOrDefaultAsync();
         if (text == null)
         {
             return "";

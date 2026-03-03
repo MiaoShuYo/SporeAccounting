@@ -82,7 +82,7 @@ builder.Services.AddIdentity<SpUser, SpRole>(options =>
 // 替换默认的 UserStore
 builder.Services.AddScoped<IUserStore<SpUser>, SPUserStore>();
 // 添加OpenIddict
-builder.Services.AddOpenIddict(builder.Configuration);
+builder.Services.AddOpenIddict(builder.Configuration, builder.Environment);
 
 // 注册短信mq
 builder.Services.AddHostedService<SmSConsumerService>();
@@ -244,8 +244,8 @@ app.UseRouting();
 
 // 添加认证中间件
 app.UseAuthentication();
-app.UseAuthorization();
 app.UseMiddleware<ApplicationMiddleware>();
+app.UseAuthorization();
 
 // 添加 Token 存储中间件
 app.UseTokenStorage();

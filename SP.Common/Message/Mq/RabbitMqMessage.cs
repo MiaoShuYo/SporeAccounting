@@ -94,7 +94,8 @@ public class RabbitMqMessage
     /// <param name="onReceived"></param>
     /// <returns></returns>
     /// <remarks></remarks>
-    public async Task ReceiveAsync(MqSubscriber subscriber, Func<MqMessage, Task> onReceived)
+    public async Task ReceiveAsync(MqSubscriber subscriber, Func<MqMessage, Task> onReceived,
+        CancellationToken cancellationToken = default)
     {
         // 检查参数
         if (subscriber == null)
@@ -125,17 +126,18 @@ public class RabbitMqMessage
         var consumer = new AsyncEventingBasicConsumer(channel);
         consumer.ReceivedAsync += async (model, ea) =>
         {
-            var body = ea.Body.ToArray();
-            string message = Encoding.UTF8.GetString(body);
-            var mqMessage = System.Text.Json.JsonSerializer.Deserialize<MqMessage>(message);
-            if (mqMessage == null)
-            {
-                _logger.LogError("RabbitMQ消息反序列化失败");
-                throw new BusinessException("RabbitMQ消息反序列化失败");
-            }
-
             try
             {
+                var body = ea.Body.ToArray();
+                string message = Encoding.UTF8.GetString(body);
+                var mqMessage = System.Text.Json.JsonSerializer.Deserialize<MqMessage>(message);
+                if (mqMessage == null)
+                {
+                    _logger.LogError("RabbitMQ消息反序列化失败，消息将被丢弃，DeliveryTag={DeliveryTag}", ea.DeliveryTag);
+                    await channel.BasicNackAsync(deliveryTag: ea.DeliveryTag, multiple: false, requeue: false);
+                    return;
+                }
+
                 // 为防止敏感信息外泄，不记录 Exchange、Queue、RoutingKey 和消息体内容
                 _logger.LogInformation(
                     $"RabbitMQ消息接收开始：\r\n消息id：{mqMessage.Id}\r\n消息类型：{mqMessage.Type}");
@@ -154,18 +156,19 @@ public class RabbitMqMessage
             autoAck: false,
             consumer: consumer);
 
-        _ = Task.Run(async () =>
+        try
         {
-            try
-            {
-                // 阻塞当前任务，保持连接和通道存活
-                await Task.Delay(Timeout.Infinite);
-            }
-            finally
-            {
-                await channel.CloseAsync();
-                await connection.CloseAsync();
-            }
-        });
+            // 阻塞当前任务，保持连接和通道存活，直到宿主停止
+            await Task.Delay(Timeout.Infinite, cancellationToken);
+        }
+        catch (OperationCanceledException)
+        {
+            _logger.LogInformation("RabbitMQ消费者收到停止信号，正在关闭连接。Queue={Queue}", subscriber.Queue);
+        }
+        finally
+        {
+            await channel.CloseAsync();
+            await connection.CloseAsync();
+        }
     }
 }

@@ -339,17 +339,25 @@ public class AuthorizationServiceImpl : IAuthorizationService
                 throw new BusinessException($"客户端ID '{clientId}' 不存在");
             }
 
-            // 验证客户端密钥（如果提供了的话）
-            if (!string.IsNullOrEmpty(clientSecret))
+            // 客户端凭证模式必须校验机密客户端密钥
+            var clientType = await _applicationManager.GetClientTypeAsync(application);
+            if (clientType != OpenIddictConstants.ClientTypes.Confidential)
             {
-                // 在 OpenIddict 6.x 中，客户端密钥验证通常由 OpenIddict 内部处理
-                // 我们只需要确保客户端存在且类型正确
-                var clientType = await _applicationManager.GetClientTypeAsync(application);
-                if (clientType != OpenIddictConstants.ClientTypes.Confidential)
-                {
-                    _log.LogWarning("客户端凭证模式认证失败，客户端类型不支持: {ClientId}, 类型: {ClientType}", clientId, clientType);
-                    throw new BusinessException("客户端类型不支持客户端凭证模式");
-                }
+                _log.LogWarning("客户端凭证模式认证失败，客户端类型不支持: {ClientId}, 类型: {ClientType}", clientId, clientType);
+                throw new BusinessException("客户端类型不支持客户端凭证模式");
+            }
+
+            if (string.IsNullOrWhiteSpace(clientSecret))
+            {
+                _log.LogWarning("客户端凭证模式认证失败，缺少 client_secret: {ClientId}", clientId);
+                throw new BusinessException("client_secret不能为空");
+            }
+
+            var secretValid = await _applicationManager.ValidateClientSecretAsync(application, clientSecret);
+            if (!secretValid)
+            {
+                _log.LogWarning("客户端凭证模式认证失败，client_secret无效: {ClientId}", clientId);
+                throw new BusinessException("client_secret无效");
             }
 
             // 验证客户端权限

@@ -35,7 +35,7 @@ public interface IConfigServer
     /// </summary>
     /// <param name="type">类型</param>
     /// <returns>配置信息</returns>
-    ConfigResponse QueryByType(ConfigTypeEnum type);
+    Task<ConfigResponse> QueryByType(ConfigTypeEnum type);
 
     /// <summary>
     /// 根据类型和userId获取配置
@@ -43,5 +43,5 @@ public interface IConfigServer
     /// <param name="type">类型</param>
     /// <param name="userId">用户id</param>
     /// <returns>配置信息</returns>
-    ConfigResponse QueryByTypeAndUserId(ConfigTypeEnum type, long userId);
+    Task<ConfigResponse> QueryByTypeAndUserId(ConfigTypeEnum type, long userId);
 }

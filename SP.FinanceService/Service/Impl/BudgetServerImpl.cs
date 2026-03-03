@@ -59,12 +59,14 @@ public class BudgetServerImpl : IBudgetServer
     /// <returns>预算id</returns>
     public long Add(BudgetAddRequest budget)
     {
+        long userId = _contextSession.UserId;
         // 预算是否存在，需要结合预算周期和预算开始时间与结束时间判断
         var existingBudget = _dbContext.Budgets
             .FirstOrDefault(b => b.TransactionCategoryId == budget.TransactionCategoryId
                                  && b.Period == budget.Period
                                  && b.StartTime <= budget.EndTime
                                  && b.EndTime >= budget.StartTime
+                                 && b.CreateUserId == userId
                                  && !b.IsDeleted);
 
         if (existingBudget != null)
@@ -87,8 +89,9 @@ public class BudgetServerImpl : IBudgetServer
     /// <param name="id">预算id</param>
     public void Delete(long id)
     {
+        long userId = _contextSession.UserId;
         var budget = _dbContext.Budgets
-            .FirstOrDefault(b => b.Id == id && !b.IsDeleted);
+            .FirstOrDefault(b => b.Id == id && b.CreateUserId == userId && !b.IsDeleted);
 
         if (budget == null)
         {
@@ -118,8 +121,9 @@ public class BudgetServerImpl : IBudgetServer
     /// <param name="budget">修改预算</param>
     public void Edit(BudgetEditRequest budget)
     {
+        long userId = _contextSession.UserId;
         var existingBudget = _dbContext.Budgets
-            .FirstOrDefault(b => b.Id == budget.Id && !b.IsDeleted);
+            .FirstOrDefault(b => b.Id == budget.Id && b.CreateUserId == userId && !b.IsDeleted);
 
         if (existingBudget == null)
         {
@@ -133,6 +137,7 @@ public class BudgetServerImpl : IBudgetServer
                                  && b.Period == budget.Period
                                  && b.StartTime <= budget.EndTime
                                  && b.EndTime >= budget.StartTime
+                                 && b.CreateUserId == userId
                                  && !b.IsDeleted);
 
         if (conflictingBudget != null)
@@ -165,8 +170,9 @@ public class BudgetServerImpl : IBudgetServer
     /// <returns>预算列表</returns>
     public PageResponse<BudgetResponse> QueryPage(BudgetPageRequest request)
     {
+        long userId = _contextSession.UserId;
         var query = _dbContext.Budgets
-            .Where(b => !b.IsDeleted)
+            .Where(b => !b.IsDeleted && b.CreateUserId == userId)
             .AsQueryable();
 
         // 根据年份筛选
@@ -240,8 +246,19 @@ public class BudgetServerImpl : IBudgetServer
     /// <returns>预算信息</returns>
     public BudgetResponse QueryById(long id)
     {
+        return QueryById(id, _contextSession.UserId);
+    }
+
+    /// <summary>
+    /// 查询预算列表
+    /// </summary>
+    /// <param name="id">预算id</param>
+    /// <param name="userId">用户id</param>
+    /// <returns>预算信息</returns>
+    public BudgetResponse QueryById(long id, long userId)
+    {
         var budget = _dbContext.Budgets
-            .FirstOrDefault(b => b.Id == id && !b.IsDeleted);
+            .FirstOrDefault(b => b.Id == id && b.CreateUserId == userId && !b.IsDeleted);
 
         if (budget == null)
         {
