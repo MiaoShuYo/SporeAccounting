@@ -12,6 +12,9 @@ namespace SP.Common.Message.Mq;
 /// </summary>
 public class RabbitMqMessage
 {
+    private const string RetryCountHeader = "x-retry-count";
+    private const int MaxRetryCount = 5;
+
     private readonly ILogger<RabbitMqMessage> _logger;
     private readonly RabbitMqConfig _rabbitMqConfig;
 
@@ -80,10 +83,19 @@ public class RabbitMqMessage
         
         var body = Encoding.UTF8.GetBytes(System.Text.Json.JsonSerializer.Serialize(mqMessage));
 
+        var properties = new BasicProperties
+        {
+            Persistent = true,
+            Headers = new Dictionary<string, object?>()
+        };
+        properties.Headers[RetryCountHeader] = 0;
+
         // 发送消息
         await channel.BasicPublishAsync(
             exchange: publisher.Exchange ?? "",
             routingKey: publisher.RoutingKey ?? publisher.Queue,
+            mandatory: false,
+            basicProperties: properties,
             body: body);
     }
 
@@ -123,6 +135,8 @@ public class RabbitMqMessage
             autoDelete: false,
             arguments: null);
 
+        await channel.BasicQosAsync(prefetchSize: 0, prefetchCount: 10, global: false);
+
         var consumer = new AsyncEventingBasicConsumer(channel);
         consumer.ReceivedAsync += async (model, ea) =>
         {
@@ -147,7 +161,18 @@ public class RabbitMqMessage
             catch (Exception ex)
             {
                 _logger.LogError(ex.Source + " " + ex.Message);
-                await channel.BasicNackAsync(deliveryTag: ea.DeliveryTag, multiple: false, requeue: true);
+                var retryCount = GetRetryCount(ea);
+                if (retryCount >= MaxRetryCount)
+                {
+                    _logger.LogError("RabbitMQ消息处理失败已超最大重试次数，消息将被丢弃。DeliveryTag={DeliveryTag}, RetryCount={RetryCount}",
+                        ea.DeliveryTag, retryCount);
+                    await channel.BasicNackAsync(deliveryTag: ea.DeliveryTag, multiple: false, requeue: false);
+                    return;
+                }
+
+                var nextRetryCount = retryCount + 1;
+                await RepublishWithRetryCountAsync(channel, ea, nextRetryCount);
+                await channel.BasicAckAsync(deliveryTag: ea.DeliveryTag, multiple: false);
             }
         };
 
@@ -170,5 +195,45 @@ public class RabbitMqMessage
             await channel.CloseAsync();
             await connection.CloseAsync();
         }
+    }
+
+    private static int GetRetryCount(BasicDeliverEventArgs ea)
+    {
+        if (ea.BasicProperties?.Headers == null)
+        {
+            return 0;
+        }
+
+        if (!ea.BasicProperties.Headers.TryGetValue(RetryCountHeader, out var headerValue) || headerValue == null)
+        {
+            return 0;
+        }
+
+        return headerValue switch
+        {
+            byte[] bytes when int.TryParse(Encoding.UTF8.GetString(bytes), out var parsed) => parsed,
+            int intValue => intValue,
+            long longValue => (int)longValue,
+            _ => 0
+        };
+    }
+
+    private static async Task RepublishWithRetryCountAsync(IChannel channel, BasicDeliverEventArgs ea, int retryCount)
+    {
+        var republishProperties = new BasicProperties
+        {
+            Persistent = true,
+            Headers = new Dictionary<string, object?>
+            {
+                [RetryCountHeader] = retryCount
+            }
+        };
+
+        await channel.BasicPublishAsync(
+            exchange: ea.Exchange,
+            routingKey: ea.RoutingKey,
+            mandatory: false,
+            basicProperties: republishProperties,
+            body: ea.Body);
     }
 }
