@@ -2,10 +2,14 @@ using System.Reflection;
 using Microsoft.OpenApi.Models;
 using SP.Common;
 using SP.Common.Middleware;
+using SP.Common.Refit;
 using SP.Common.ServiceDiscovery;
 using SP.Common.Nacos;
 using SP.Common.Nacos.Configuration;
 using SP.NotificationService.DB;
+using SP.NotificationService.RefitClient;
+using SP.NotificationService.Service;
+using SP.NotificationService.Service.Impl;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -71,14 +75,25 @@ builder.Services.AddSpNacos(builder.Configuration);
 
 // 注册通用服务发现
 builder.Services.AddSingleton<IServiceDiscovery, NacosOpenApiServiceDiscovery>();
+
+// 注册 Refit 客户端（基于 Nacos 服务发现）
+var nacosSection = builder.Configuration.GetSection("nacos");
+var groupName = nacosSection.GetValue<string>("GroupName") ?? "DEFAULT_GROUP";
+var clusterName = nacosSection.GetValue<string>("ClusterName") ?? "DEFAULT";
+
+builder.Services.AddNacosRefitClient<IIdentityServiceApi>(
+    serviceName: "SPIdentityService",
+    groupName: groupName,
+    clusterName: clusterName,
+    scheme: "http");
 // 注册 IHttpContextAccessor
 builder.Services.AddHttpContextAccessor();
 // 注册ContextSession
 builder.Services.AddScoped<ContextSession>();
 
 // 注册 DbContext
-builder.Services.AddDbContext<NotificationServiceDBContext>(ServiceLifetime.Scoped);
-// 注册AutoMapper
+builder.Services.AddDbContext<NotificationServiceDBContext>(ServiceLifetime.Scoped);// 注册站内信服务
+builder.Services.AddScoped<IInSiteNotificationsServer, InSiteNotificationsServerImpl>();// 注册AutoMapper
 builder.Services.AddAutoMapper(Assembly.GetExecutingAssembly());
 
 

@@ -7,6 +7,7 @@ using SP.NotificationService.DB;
 using SP.NotificationService.Models.Entity;
 using SP.NotificationService.Models.Request;
 using SP.NotificationService.Models.Response;
+using SP.NotificationService.RefitClient;
 
 namespace SP.NotificationService.Service.Impl;
 
@@ -31,18 +32,25 @@ public class InSiteNotificationsServerImpl : IInSiteNotificationsServer
     private readonly long _userId;
 
     /// <summary>
-    /// 构造函数
-    /// </summary>
-    /// <param name="notificationServiceDb"></param>
-    /// <param name="autoMapper"></param>
-    /// <param name="contextSession"></param>
-    public InSiteNotificationsServerImpl(NotificationServiceDBContext notificationServiceDb, IMapper autoMapper,
-        ContextSession contextSession)
-    {
-        _notificationServiceDb = notificationServiceDb;
-        _autoMapper = autoMapper;
-        _userId = contextSession.UserId;
-    }
+        /// 身份服务 Refit 客户端（用于获取全部用户列表）
+        /// </summary>
+        private readonly IIdentityServiceApi _identityServiceApi;
+
+        /// <summary>
+        /// 构造函数
+        /// </summary>
+        /// <param name="notificationServiceDb"></param>
+        /// <param name="autoMapper"></param>
+        /// <param name="contextSession"></param>
+        /// <param name="identityServiceApi"></param>
+        public InSiteNotificationsServerImpl(NotificationServiceDBContext notificationServiceDb, IMapper autoMapper,
+            ContextSession contextSession, IIdentityServiceApi identityServiceApi)
+        {
+            _notificationServiceDb = notificationServiceDb;
+            _autoMapper = autoMapper;
+            _userId = contextSession.UserId;
+            _identityServiceApi = identityServiceApi;
+        }
 
     /// <summary>
     /// 给指定用户发送站内通知
@@ -62,23 +70,41 @@ public class InSiteNotificationsServerImpl : IInSiteNotificationsServer
         return notification.Id;
     }
 
-    /// <summary>
     /// 给全部用户发送站内信
     /// </summary>
     /// <param name="sendInSiteNotification"></param>
     /// <returns></returns>
     public async Task SendInSiteNotificationToAllUserAsync(SendInSiteNotificationRequest sendInSiteNotification)
     {
-        // 这里不要一次性全部发送，可能用户量会很大，应该分批处理
-        var userIds = await _notificationServiceDb.InSiteNotifications
-            .Select(x => x.UserId)
-            .Distinct()
-            .ToListAsync();
-        var batchSize = 100;
-        for (int i = 0; i < userIds.Count; i += batchSize)
+        // 从身份服务获取全部用户 ID，分页拉取避免内存渢出
+        const int pageSize = 100;
+        var pageIndex = 1;
+        var allUserIds = new List<long>();
+
+        while (true)
         {
-            var batchUserIds = userIds.Skip(i).Take(batchSize).ToList();
-            // 批量发送站内信
+            var response = await _identityServiceApi.GetUsers(
+                new UserPageRequest { PageIndex = pageIndex, PageSize = pageSize });
+
+            if (!response.IsSuccessStatusCode || response.Content == null)
+            {
+                throw new BusinessException("获取用户列表失败，无法发送站内信广播");
+            }
+
+            var page = response.Content;
+            allUserIds.AddRange(page.Data.Select(u => u.Id));
+
+            if (pageIndex >= page.TotalPage)
+                break;
+
+            pageIndex++;
+        }
+
+        // 分批发送站内信
+        const int batchSize = 100;
+        for (int i = 0; i < allUserIds.Count; i += batchSize)
+        {
+            var batchUserIds = allUserIds.Skip(i).Take(batchSize).ToList();
             await BatchSendInSiteNotificationAsync(batchUserIds, sendInSiteNotification.Title,
                 sendInSiteNotification.Content);
         }
