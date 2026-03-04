@@ -38,11 +38,11 @@ public class SharedExpenseServerImpl : ISharedExpenseServer
     /// </summary>
     /// <param name="request">��̯��Ŀ����</param>
     /// <returns>��̯��ĿId</returns>
-    public long Add(SharedExpenseAddRequest request)
+    public async System.Threading.Tasks.Task<long> Add(SharedExpenseAddRequest request)
     {
         var entity = _autoMapper.Map<SharedExpense>(request);
         entity.PayerId = _contextSession.UserId;
-        entity.AccountingId = CreateAccountingRecord(request);
+        entity.AccountingId = await CreateAccountingRecordAsync(request);
         SettingCommProperty.Create(entity);
         _dbContext.SharedExpenses.Add(entity);
         _dbContext.SaveChanges();
@@ -64,7 +64,7 @@ public class SharedExpenseServerImpl : ISharedExpenseServer
         return entity.Id;
     }
 
-    private long CreateAccountingRecord(SharedExpenseAddRequest request)
+    private async Task<long> CreateAccountingRecordAsync(SharedExpenseAddRequest request)
     {
         var accountingRequest = new AccountingAddRequest
         {
@@ -76,7 +76,7 @@ public class SharedExpenseServerImpl : ISharedExpenseServer
             Remark = request.Title
         };
 
-        return _accountingServer.Add(request.AccountBookId, accountingRequest).GetAwaiter().GetResult();
+        return await _accountingServer.Add(request.AccountBookId, accountingRequest);
     }
 
     /// <summary>
@@ -155,7 +155,7 @@ public class SharedExpenseServerImpl : ISharedExpenseServer
     /// �޸ķ�̯��Ŀ
     /// </summary>
     /// <param name="request">��̯��Ŀ�༭����</param>
-    public void Edit(SharedExpenseEditRequest request)
+    public async System.Threading.Tasks.Task Edit(SharedExpenseEditRequest request)
     {
         long currentUserId = _contextSession.UserId;
         var entity = _dbContext.SharedExpenses
@@ -177,8 +177,8 @@ public class SharedExpenseServerImpl : ISharedExpenseServer
         SettingCommProperty.Edit(entity);
         _dbContext.SharedExpenses.Update(entity);
 
-        UpdateAccountingRecord(entity, request);
-        RefreshParticipants(entity.Id, request.AccountBookId, request.Participants);
+        await UpdateAccountingRecordAsync(entity, request);
+        await RefreshParticipantsAsync(entity.Id, request.AccountBookId, request.Participants);
 
         _dbContext.SaveChanges();
     }
@@ -187,7 +187,7 @@ public class SharedExpenseServerImpl : ISharedExpenseServer
     /// ɾ����̯��Ŀ
     /// </summary>
     /// <param name="id">��̯��ĿId</param>
-    public void Delete(long id)
+    public async System.Threading.Tasks.Task Delete(long id)
     {
         long currentUserId = _contextSession.UserId;
         var entity = _dbContext.SharedExpenses
@@ -209,7 +209,7 @@ public class SharedExpenseServerImpl : ISharedExpenseServer
 
         if (entity.AccountingId > 0)
         {
-            _accountingServer.Delete(entity.AccountBookId, entity.AccountingId);
+            await _accountingServer.Delete(entity.AccountBookId, entity.AccountingId);
         }
 
         SettingCommProperty.Delete(entity);
@@ -218,7 +218,7 @@ public class SharedExpenseServerImpl : ISharedExpenseServer
         _dbContext.SaveChanges();
     }
 
-    private void UpdateAccountingRecord(SharedExpense entity, SharedExpenseEditRequest request)
+    private async Task UpdateAccountingRecordAsync(SharedExpense entity, SharedExpenseEditRequest request)
     {
         if (entity.AccountingId <= 0)
         {
@@ -236,10 +236,10 @@ public class SharedExpenseServerImpl : ISharedExpenseServer
             Remark = request.Title
         };
 
-        _accountingServer.Edit(request.AccountBookId, accountingRequest).GetAwaiter().GetResult();
+        await _accountingServer.Edit(request.AccountBookId, accountingRequest);
     }
 
-    private void RefreshParticipants(
+    private async Task RefreshParticipantsAsync(
         long sharedExpenseId,
         long accountBookId,
         List<SharedExpenseParticipantAddRequest> participants)
@@ -258,7 +258,7 @@ public class SharedExpenseServerImpl : ISharedExpenseServer
             {
                 if (participant.AccountingId.HasValue && participant.AccountingId.Value > 0)
                 {
-                    _accountingServer.Delete(accountBookId, participant.AccountingId.Value);
+                    await _accountingServer.Delete(accountBookId, participant.AccountingId.Value);
                 }
 
                 SettingCommProperty.Delete(participant);
