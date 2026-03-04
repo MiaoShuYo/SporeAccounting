@@ -88,6 +88,7 @@ builder.Services.AddOpenIddict(builder.Configuration, builder.Environment);
 builder.Services.AddHostedService<SmSConsumerService>();
 // 注册邮箱mq
 builder.Services.AddHostedService<EmailConsumerService>();
+builder.Services.AddHostedService<DeadLetterConsumerService>();
 
 builder.Services.AddSwaggerGen();
 builder.Services.AddSwaggerGen(c =>

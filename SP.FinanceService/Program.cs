@@ -10,6 +10,7 @@ using SP.Common.ConfigService;
 using SP.Common.Logger;
 using SP.Common.Message.Email;
 using SP.Common.Message.Mq;
+using SP.Common.Message.Mq.Consumer;
 using SP.Common.Middleware;
 using SP.Common.Redis;
 using SP.FinanceService.DB;
@@ -161,6 +162,7 @@ builder.Services.AddSingleton<RabbitMqMessage>(provider =>
 // 注册后台服务（MQ消费者）
 builder.Services.AddHostedService<BudgetConsumerService>();
 builder.Services.AddHostedService<BudgetNotificationConsumerService>();
+builder.Services.AddHostedService<DeadLetterConsumerService>();
 
 builder.Services.AddRedisService(builder.Configuration);
 // 注入loki日志服务

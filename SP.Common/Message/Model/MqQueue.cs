@@ -32,4 +32,9 @@ public static class MqQueue
     /// </summary>
     public const string AccountBookShareQueue = "account_book_share_queue";
 
+    /// <summary>
+    /// 死信消息队列
+    /// </summary>
+    public const string DeadLetterQueue = "dead_letter_queue";
+
 }

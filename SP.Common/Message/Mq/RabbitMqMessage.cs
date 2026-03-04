@@ -3,6 +3,7 @@ using Microsoft.Extensions.Logging;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 using SP.Common.ExceptionHandling.Exceptions;
+using SP.Common.Message.Model;
 using SP.Common.Message.Mq.Model;
 
 namespace SP.Common.Message.Mq;
@@ -166,7 +167,8 @@ public class RabbitMqMessage
                 {
                     _logger.LogError("RabbitMQ消息处理失败已超最大重试次数，消息将被丢弃。DeliveryTag={DeliveryTag}, RetryCount={RetryCount}",
                         ea.DeliveryTag, retryCount);
-                    await channel.BasicNackAsync(deliveryTag: ea.DeliveryTag, multiple: false, requeue: false);
+                    await PublishToDeadLetterAsync(channel, ea, retryCount);
+                    await channel.BasicAckAsync(deliveryTag: ea.DeliveryTag, multiple: false);
                     return;
                 }
 
@@ -234,6 +236,46 @@ public class RabbitMqMessage
             routingKey: ea.RoutingKey,
             mandatory: false,
             basicProperties: republishProperties,
+            body: ea.Body);
+    }
+
+    private static async Task PublishToDeadLetterAsync(IChannel channel, BasicDeliverEventArgs ea, int retryCount)
+    {
+        await channel.QueueDeclareAsync(
+            queue: MqQueue.DeadLetterQueue,
+            durable: true,
+            exclusive: false,
+            autoDelete: false,
+            arguments: null);
+
+        await channel.ExchangeDeclareAsync(
+            exchange: MqExchange.DeadLetterExchange,
+            type: RabbitMQ.Client.ExchangeType.Direct,
+            durable: true,
+            autoDelete: false,
+            arguments: null);
+
+        await channel.QueueBindAsync(
+            queue: MqQueue.DeadLetterQueue,
+            exchange: MqExchange.DeadLetterExchange,
+            routingKey: MqRoutingKey.DeadLetterRoutingKey);
+
+        var deadLetterProperties = new BasicProperties
+        {
+            Persistent = true,
+            Headers = new Dictionary<string, object?>
+            {
+                [RetryCountHeader] = retryCount,
+                ["x-original-exchange"] = ea.Exchange,
+                ["x-original-routing-key"] = ea.RoutingKey
+            }
+        };
+
+        await channel.BasicPublishAsync(
+            exchange: MqExchange.DeadLetterExchange,
+            routingKey: MqRoutingKey.DeadLetterRoutingKey,
+            mandatory: false,
+            basicProperties: deadLetterProperties,
             body: ea.Body);
     }
 }

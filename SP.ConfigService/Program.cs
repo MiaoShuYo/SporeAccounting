@@ -10,6 +10,7 @@ using SP.Common.Nacos;
 using SP.Common.Nacos.Configuration;
 using SP.Common.Logger;
 using SP.Common.Message.Mq;
+using SP.Common.Message.Mq.Consumer;
 using SP.Common.Redis;
 using SP.Common.ExceptionHandling;
 using SP.ConfigService.Mq;
@@ -109,6 +110,7 @@ builder.Services.AddSingleton<RabbitMqMessage>(provider =>
 
 // 注册默认币种消费者
 builder.Services.AddHostedService<UserConfigDefaultCurrencyConsumerService>();
+builder.Services.AddHostedService<DeadLetterConsumerService>();
 
 var app = builder.Build();
 

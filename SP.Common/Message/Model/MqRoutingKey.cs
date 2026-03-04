@@ -34,4 +34,9 @@ public static class MqRoutingKey
     /// 账本分享
     /// </summary>
     public const string AccountBookShareRoutingKey = "account_book_share_routing_key";
+
+    /// <summary>
+    /// 死信消息路由键
+    /// </summary>
+    public const string DeadLetterRoutingKey = "dead_letter_routing_key";
 }

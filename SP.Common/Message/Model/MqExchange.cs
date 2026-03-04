@@ -24,4 +24,9 @@ public class MqExchange
     /// 账本分享交换机
     /// </summary>
     public const string AccountBookShareExchange = "account_book_share_exchange";
+
+    /// <summary>
+    /// 死信交换机
+    /// </summary>
+    public const string DeadLetterExchange = "dead_letter_exchange";
 }

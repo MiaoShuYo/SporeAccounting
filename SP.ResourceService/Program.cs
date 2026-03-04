@@ -7,6 +7,7 @@ using SP.ResourceService;
 using SP.ResourceService.DB;
 using SP.Common.ExceptionHandling;
 using SP.Common.Message.Mq;
+using SP.Common.Message.Mq.Consumer;
 using SP.ResourceService.Mq;
 using SP.Common.Nacos;
 using SP.Common.Nacos.Configuration;
@@ -90,6 +91,7 @@ builder.Services.AddDeepSeekService(builder.Configuration);
 builder.Services.AddLoggerService(builder.Configuration);
 // 注册消息队列OCR消费者服务
 builder.Services.AddHostedService<OCRConsumerService>();
+builder.Services.AddHostedService<DeadLetterConsumerService>();
 // 注册 RabbitMqConfigService
 builder.Services.AddSingleton<RabbitMqConfigService>();
 builder.Services.AddSingleton<RabbitMqMessage>(provider =>
