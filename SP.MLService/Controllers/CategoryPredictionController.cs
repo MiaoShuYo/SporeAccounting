@@ -1,4 +1,6 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using SP.Common;
 using SP.MLService.Domain;
 using SP.MLService.Models;
 using SP.MLService.Models.Dto;
@@ -20,6 +22,7 @@ namespace SP.MLService.Controllers
     /// 4. 提供学习统计信息
     /// </remarks>
     [ApiController]
+    [Authorize]
     [Route("api/[controller]")]
     public class CategoryPredictionController : ControllerBase
     {
@@ -29,12 +32,19 @@ namespace SP.MLService.Controllers
         private readonly ProgressiveLearningManager _learningManager;
 
         /// <summary>
-        /// 构造函数，通过依赖注入获取渐进式学习管理器
+        /// 当前请求的用户会话（从网关转发的 X-User-Id 等请求头中提取）
+        /// </summary>
+        private readonly ContextSession _contextSession;
+
+        /// <summary>
+        /// 构造函数，通过依赖注入获取渐进式学习管理器和用户会话
         /// </summary>
         /// <param name="learningManager">渐进式学习管理器实例</param>
-        public CategoryPredictionController(ProgressiveLearningManager learningManager)
+        /// <param name="contextSession">当前请求用户会话</param>
+        public CategoryPredictionController(ProgressiveLearningManager learningManager, ContextSession contextSession)
         {
             _learningManager = learningManager;
+            _contextSession = contextSession;
         }
 
         /// <summary>
@@ -61,7 +71,7 @@ namespace SP.MLService.Controllers
                 var prediction = _learningManager.SmartPredict(
                     request.Query, // 查询文本（如"星巴克咖啡"）
                     categories, // 用户的全部类目列表
-                    request.UserId, // 用户ID（用于个性化）
+                    _contextSession.UserId.ToString(), // 用户ID（从 JWT/网关转发的请求头中获取）
                     request.Merchant, // 商户信息（可选）
                     request.AmountBucket, // 金额分箱（0-4）
                     request.HourOfDay // 消费时间（0-23小时）
@@ -110,7 +120,7 @@ namespace SP.MLService.Controllers
                     request.Query, // 原始查询文本
                     selectedCategory, // 用户选择的类目（正样本）
                     availableCategories, // 当时可选的全部类目（用于生成负样本）
-                    request.UserId, // 用户标识
+                    _contextSession.UserId.ToString(), // 用户标识（从 JWT/网关转发的请求头中获取）
                     request.Merchant, // 商户信息
                     request.AmountBucket, // 金额分箱
                     request.HourOfDay // 消费时间
@@ -151,7 +161,7 @@ namespace SP.MLService.Controllers
                     wrongCategory, // 模型错误预测的类目（负样本）
                     correctCategory, // 用户纠正的正确类目（正样本）
                     availableCategories, // 当时可选的全部类目
-                    request.UserId, // 用户标识
+                    _contextSession.UserId.ToString(), // 用户标识（从 JWT/网关转发的请求头中获取）
                     request.Merchant, // 商户信息
                     request.AmountBucket, // 金额分箱
                     request.HourOfDay // 消费时间
@@ -204,6 +214,7 @@ namespace SP.MLService.Controllers
         /// - 测试和调试场景
         /// </remarks>
         [HttpPost("retrain")]
+        [Authorize(Roles = "admin")]
         public async Task<ActionResult> TriggerRetraining()
         {
             try

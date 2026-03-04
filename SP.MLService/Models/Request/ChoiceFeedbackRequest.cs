@@ -26,11 +26,6 @@ public class ChoiceFeedbackRequest
     public List<CategoryDto> AvailableCategories { get; set; } = new();
 
     /// <summary>
-    /// 用户标识
-    /// </summary>
-    public string UserId { get; set; } = string.Empty;
-
-    /// <summary>
     /// 商户信息
     /// </summary>
     public string Merchant { get; set; } = string.Empty;

@@ -21,11 +21,6 @@ public class PredictionRequest
     public List<CategoryDto> Categories { get; set; } = new();
 
     /// <summary>
-    /// 用户标识（用于个性化预测）
-    /// </summary>
-    public string UserId { get; set; } = string.Empty;
-
-    /// <summary>
     /// 商户信息（可选，如"美团外卖"、"支付宝"）
     /// </summary>
     public string Merchant { get; set; } = string.Empty;
