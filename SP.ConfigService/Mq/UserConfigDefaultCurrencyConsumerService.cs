@@ -19,7 +19,7 @@ public class UserConfigDefaultCurrencyConsumerService : BackgroundService
     /// <summary>
     /// 用户配置服务
     /// </summary>
-    private readonly IConfigServer _configServer;
+    private readonly IServiceScopeFactory _serviceScopeFactory;
     
     /// <summary>
     /// 日志记录器
@@ -41,12 +41,12 @@ public class UserConfigDefaultCurrencyConsumerService : BackgroundService
     /// <param name="configuration"></param>
     public UserConfigDefaultCurrencyConsumerService(
         RabbitMqMessage rabbitMqMessage,
-        IConfigServer configServer,
+        IServiceScopeFactory serviceScopeFactory,
         ILogger<UserConfigDefaultCurrencyConsumerService> logger,
         IConfiguration configuration)
     {
         _rabbitMqMessage = rabbitMqMessage;
-        _configServer = configServer;
+        _serviceScopeFactory = serviceScopeFactory;
         _logger = logger;
         _configuration = configuration;
     }
@@ -91,7 +91,9 @@ public class UserConfigDefaultCurrencyConsumerService : BackgroundService
                 throw new BusinessException("默认币种ID不能为空");
             }
             // 调用币种服务设置用户默认币种
-            await _configServer.SetUserDefaultCurrencyAsync(parsedUserId, defaultCurrencyId);
+            using var scope = _serviceScopeFactory.CreateScope();
+            var configServer = scope.ServiceProvider.GetRequiredService<IConfigServer>();
+            await configServer.SetUserDefaultCurrencyAsync(parsedUserId, defaultCurrencyId);
         }, stoppingToken);
     }
 }

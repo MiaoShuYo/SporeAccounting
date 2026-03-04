@@ -87,14 +87,14 @@ public class BudgetReportServerImpl : IBudgetReportServer
     /// 2. 各类别预算消耗趋势
     /// 年预算消耗趋势报表按月展示，月预算消耗趋势报表按日展示，季度预算消耗趋势报表按周展示
     /// </returns>
-    public async Task<List<BudgetProgressReportResponse>> GetBudgetConsumptionTrend()
+    public async Task<List<BudgetConsumptionTrendReportResponse>> GetBudgetConsumptionTrend()
     {
         // 1. 获取预算记录
         var result = await _budgetRecordServiceApi.GetBudgetRecordsByBudgetIdsAsync();
         if (result.IsSuccessStatusCode && result.Content != null)
         {
             var budgetRecords = result.Content;
-            List<BudgetProgressReportResponse> trendReports = new List<BudgetProgressReportResponse>();
+            List<BudgetConsumptionTrendReportResponse> trendReports = new List<BudgetConsumptionTrendReportResponse>();
 
             // 2. 获取当前预算信息
             var budgetResponse = await _budgetServiceApi.GetCurrentBudgetsAsync();
@@ -114,7 +114,7 @@ public class BudgetReportServerImpl : IBudgetReportServer
             return trendReports;
         }
 
-        return new List<BudgetProgressReportResponse>();
+        return new List<BudgetConsumptionTrendReportResponse>();
     }
 
     /// <summary>
@@ -123,11 +123,11 @@ public class BudgetReportServerImpl : IBudgetReportServer
     /// <param name="budgetRecords">预算记录</param>
     /// <param name="budgets">预算信息</param>
     /// <returns>综合预算消耗趋势报表</returns>
-    private List<BudgetProgressReportResponse> CalculateComprehensiveTrend(
+    private List<BudgetConsumptionTrendReportResponse> CalculateComprehensiveTrend(
         Dictionary<long, List<BudgetRecordResponse>> budgetRecords,
         List<BudgetResponse> budgets)
     {
-        var trendReports = new List<BudgetProgressReportResponse>();
+        var trendReports = new List<BudgetConsumptionTrendReportResponse>();
 
         // 按预算周期分组
         var budgetsByPeriod = budgets.GroupBy(b => b.Period);
@@ -154,18 +154,13 @@ public class BudgetReportServerImpl : IBudgetReportServer
             foreach (var group in groupedRecords)
             {
                 var totalUsedAmount = group.Sum(r => r.UsedAmount);
-                var totalBudgetAmount = periodBudgets.Sum(b => b.Amount);
-                var totalRemaining = periodBudgets.Sum(b => b.Remaining);
-
-                trendReports.Add(new BudgetProgressReportResponse
+                trendReports.Add(new BudgetConsumptionTrendReportResponse
                 {
                     Period = period,
                     IsComprehensive = true,
                     CategoryName = "综合预算",
-                    TotalAmount = totalBudgetAmount,
-                    UsedAmount = totalUsedAmount,
-                    Remaining = totalRemaining,
-                    ReportDate = group.Key
+                    TimePoint = group.Key,
+                    ConsumedAmount = totalUsedAmount
                 });
             }
         }
@@ -179,11 +174,11 @@ public class BudgetReportServerImpl : IBudgetReportServer
     /// <param name="budgetRecords">预算记录</param>
     /// <param name="budgets">预算信息</param>
     /// <returns>各类别预算消耗趋势报表</returns>
-    private List<BudgetProgressReportResponse> CalculateCategoryTrends(
+    private List<BudgetConsumptionTrendReportResponse> CalculateCategoryTrends(
         Dictionary<long, List<BudgetRecordResponse>> budgetRecords,
         List<BudgetResponse> budgets)
     {
-        var trendReports = new List<BudgetProgressReportResponse>();
+        var trendReports = new List<BudgetConsumptionTrendReportResponse>();
 
         // 按预算周期和类别分组
         var budgetsByPeriodAndCategory =
@@ -213,18 +208,13 @@ public class BudgetReportServerImpl : IBudgetReportServer
             foreach (var recordGroup in groupedRecords)
             {
                 var totalUsedAmount = recordGroup.Sum(r => r.UsedAmount);
-                var totalBudgetAmount = periodBudgets.Sum(b => b.Amount);
-                var totalRemaining = periodBudgets.Sum(b => b.Remaining);
-
-                trendReports.Add(new BudgetProgressReportResponse
+                trendReports.Add(new BudgetConsumptionTrendReportResponse
                 {
                     Period = period,
                     IsComprehensive = false,
                     CategoryName = categoryName,
-                    TotalAmount = totalBudgetAmount,
-                    UsedAmount = totalUsedAmount,
-                    Remaining = totalRemaining,
-                    ReportDate = recordGroup.Key
+                    TimePoint = recordGroup.Key,
+                    ConsumedAmount = totalUsedAmount
                 });
             }
         }

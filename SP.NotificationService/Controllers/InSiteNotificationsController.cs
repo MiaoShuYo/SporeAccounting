@@ -33,9 +33,9 @@ public class InSiteNotificationsController : ControllerBase
     /// <param name="request">站内通知请求</param>
     /// <returns>返回站内通知ID</returns>
     [HttpPost]
-    public ActionResult<long> SendInSiteNotification([FromBody] SendInSiteNotificationRequest request)
+    public async Task<ActionResult<long>> SendInSiteNotification([FromBody] SendInSiteNotificationRequest request)
     {
-        long notificationId = _inSiteNotificationsServer.SendInSiteNotificationAsync(request);
+        long notificationId = await _inSiteNotificationsServer.SendInSiteNotificationAsync(request);
         return Ok(notificationId);
     }
 
@@ -45,9 +45,9 @@ public class InSiteNotificationsController : ControllerBase
     /// <param name="request">站内通知请求</param>
     /// <returns>返回站内通知ID</returns>
     [HttpPost("all")]
-    public ActionResult<long> SendInSiteNotificationToAllUser([FromBody] SendInSiteNotificationRequest request)
+    public async Task<ActionResult<long>> SendInSiteNotificationToAllUser([FromBody] SendInSiteNotificationRequest request)
     {
-        _inSiteNotificationsServer.SendInSiteNotificationToAllUserAsync(request);
+        await _inSiteNotificationsServer.SendInSiteNotificationToAllUserAsync(request);
         return Ok();
     }
 
@@ -57,9 +57,9 @@ public class InSiteNotificationsController : ControllerBase
     /// <param name="notificationId">站内通知ID</param>
     /// <returns>返回标记结果</returns>
     [HttpPut("{notificationId}/read")]
-    public ActionResult<bool> MarkNotificationAsRead([FromRoute] long notificationId)
+    public async Task<ActionResult<bool>> MarkNotificationAsRead([FromRoute] long notificationId)
     {
-        _inSiteNotificationsServer.MarkNotificationAsReadAsync(notificationId);
+        await _inSiteNotificationsServer.MarkNotificationAsReadAsync(notificationId);
         return Ok();
     }
 
@@ -69,10 +69,10 @@ public class InSiteNotificationsController : ControllerBase
     /// <param name="pageRequest">分页请求</param>
     /// <returns>返回站内通知列表</returns>
     [HttpGet]
-    public ActionResult<PageResponse<InSiteNotificationRequest>> GetUserInSiteNotifications(
+    public async Task<ActionResult<PageResponse<InSiteNotificationRequest>>> GetUserInSiteNotifications(
         [FromQuery] InSiteNotificationPageRequest pageRequest)
     {
-        var result = _inSiteNotificationsServer.GetUserInSiteNotificationsAsync(pageRequest);
+        var result = await _inSiteNotificationsServer.GetUserInSiteNotificationsAsync(pageRequest);
         return Ok(result);
     }
 
@@ -81,9 +81,9 @@ public class InSiteNotificationsController : ControllerBase
     /// </summary>
     /// <returns>返回未读站内通知数量</returns>
     [HttpGet("unread-count")]
-    public ActionResult<int> GetUnreadNotificationCount()
+    public async Task<ActionResult<int>> GetUnreadNotificationCount()
     {
-        int unreadCount = _inSiteNotificationsServer.GetUnreadNotificationCountAsync();
+        int unreadCount = await _inSiteNotificationsServer.GetUnreadNotificationCountAsync();
         return Ok(unreadCount);
     }
 
@@ -93,9 +93,9 @@ public class InSiteNotificationsController : ControllerBase
     /// <param name="notificationIds">站内通知ID集合</param>
     /// <returns>返回删除结果</returns>
     [HttpDelete]
-    public ActionResult<bool> DeleteInSiteNotifications([FromBody] List<long> notificationIds)
+    public async Task<ActionResult<bool>> DeleteInSiteNotifications([FromBody] List<long> notificationIds)
     {
-        _inSiteNotificationsServer.DeleteInSiteNotificationsAsync(notificationIds);
+        await _inSiteNotificationsServer.DeleteInSiteNotificationsAsync(notificationIds);
         return Ok();
     }
 
@@ -105,9 +105,9 @@ public class InSiteNotificationsController : ControllerBase
     /// <param name="request">站内通知修改请求</param>
     /// <returns>返回修改结果</returns>
     [HttpPut]
-    public ActionResult<bool> EditInSiteNotification([FromBody] EditInSiteNotificationRequest request)
+    public async Task<ActionResult<bool>> EditInSiteNotification([FromBody] EditInSiteNotificationRequest request)
     {
-        _inSiteNotificationsServer.EditInSiteNotificationAsync(request);
+        await _inSiteNotificationsServer.EditInSiteNotificationAsync(request);
         return Ok();
     }
 
@@ -117,9 +117,9 @@ public class InSiteNotificationsController : ControllerBase
     /// <param name="notificationId">站内通知ID</param>
     /// <returns>返回站内通知详情</returns>
     [HttpGet("{notificationId}")]
-    public ActionResult<InSiteNotificationRequest> GetInSiteNotificationDetail([FromRoute] long notificationId)
+    public async Task<ActionResult<InSiteNotificationRequest>> GetInSiteNotificationDetail([FromRoute] long notificationId)
     {
-        var result = _inSiteNotificationsServer.GetInSiteNotificationDetailAsync(notificationId);
+        var result = await _inSiteNotificationsServer.GetInSiteNotificationDetailAsync(notificationId);
         return Ok(result);
     }
 }

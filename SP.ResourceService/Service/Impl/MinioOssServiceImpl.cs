@@ -11,6 +11,7 @@ using SP.ResourceService.Models.Config;
 using SP.ResourceService.Models.Request;
 using SP.ResourceService.Models.Response;
 using SP.Common;
+using SP.Common.Redis;
 using System.Text.RegularExpressions;
 
 namespace SP.ResourceService.Service.Impl;
@@ -40,6 +41,7 @@ public class MinioOssServiceImpl : IOssService
     /// </summary>
     private readonly ResourceServiceDbContext _dbContext;
     private readonly ContextSession _contextSession;
+    private readonly IRedisService _redisService;
 
     /// <summary>
     /// 构造函数
@@ -48,12 +50,13 @@ public class MinioOssServiceImpl : IOssService
     /// <param name="logger"></param>
     /// <param name="dbContext"></param>
     public MinioOssServiceImpl(IOptions<MinioOptions> options, ILogger<MinioOssServiceImpl> logger,
-        ResourceServiceDbContext dbContext, ContextSession contextSession)
+        ResourceServiceDbContext dbContext, ContextSession contextSession, IRedisService redisService)
     {
         _options = options;
         _logger = logger;
         _dbContext = dbContext;
         _contextSession = contextSession;
+        _redisService = redisService;
 
         try
         {
@@ -252,6 +255,12 @@ public class MinioOssServiceImpl : IOssService
     public async Task<PresignedURLResponse> GetPresignedPutUrlAsync(string fileName, bool isPublic,
         CancellationToken ct = default)
     {
+        var currentUserId = _contextSession.UserId;
+        if (currentUserId <= 0)
+        {
+            throw new ForbiddenException("未授权上传");
+        }
+
         // 拼接日期路径和唯一标识
         string objectName = $"{DateTime.UtcNow:yyyy/MM/dd}/{Guid.NewGuid():N}{Path.GetExtension(fileName)}";
         var bucket = isPublic ? _options.Value.PublicBucket : _options.Value.PrivateBucket;
@@ -264,6 +273,16 @@ public class MinioOssServiceImpl : IOssService
             .WithExpiry(expirySeconds);
 
         string uploadUrl = await _client.PresignedPutObjectAsync(preArgs);
+
+        var ticket = new UploadConfirmTicket
+        {
+            UserId = currentUserId,
+            IsPublic = isPublic,
+            OriginalFileName = fileName
+        };
+        var ticketKey = BuildUploadTicketKey(objectName);
+        await _redisService.SetStringAsync(ticketKey, JsonSerializer.Serialize(ticket), expirySeconds);
+
         PresignedURLResponse presignedUrlResponse = new PresignedURLResponse()
         {
             UploadUrl = uploadUrl,
@@ -280,6 +299,12 @@ public class MinioOssServiceImpl : IOssService
     /// <returns></returns>
     public async Task<long> ConfirmUploadAsync(ConfirmUploadRequest request, CancellationToken ct = default)
     {
+        var currentUserId = _contextSession.UserId;
+        if (currentUserId <= 0)
+        {
+            throw new ForbiddenException("未授权确认上传");
+        }
+
         if (string.IsNullOrWhiteSpace(request.ObjectName) || !IsValidObjectName(request.ObjectName))
         {
             throw new BadRequestException("ObjectName 格式非法");
@@ -288,6 +313,35 @@ public class MinioOssServiceImpl : IOssService
         if (string.IsNullOrWhiteSpace(request.OriginalFileName))
         {
             throw new BadRequestException("OriginalFileName 不能为空");
+        }
+
+        var ticketKey = BuildUploadTicketKey(request.ObjectName);
+        var rawTicket = await _redisService.GetStringAsync(ticketKey);
+        if (string.IsNullOrWhiteSpace(rawTicket))
+        {
+            throw new BadRequestException("上传凭证不存在或已过期");
+        }
+
+        UploadConfirmTicket? ticket = JsonSerializer.Deserialize<UploadConfirmTicket>(rawTicket);
+        if (ticket == null)
+        {
+            throw new BadRequestException("上传凭证无效");
+        }
+
+        if (ticket.UserId != currentUserId || ticket.IsPublic != request.IsPublic)
+        {
+            throw new ForbiddenException("上传凭证与当前用户不匹配");
+        }
+
+        if (!string.Equals(ticket.OriginalFileName, request.OriginalFileName, StringComparison.Ordinal))
+        {
+            throw new BadRequestException("上传凭证与文件名不匹配");
+        }
+
+        var removed = await _redisService.RemoveAsync(ticketKey);
+        if (!removed)
+        {
+            throw new BadRequestException("上传凭证已被使用或不存在");
         }
 
         // 验证文件是否真的存在于 MinIO 中
@@ -336,6 +390,18 @@ public class MinioOssServiceImpl : IOssService
         var segments = objectName.Split('/', StringSplitOptions.RemoveEmptyEntries)
             .Select(Uri.EscapeDataString);
         return string.Join("/", segments);
+    }
+
+    private static string BuildUploadTicketKey(string objectName)
+    {
+        return $"resource:upload:ticket:{objectName}";
+    }
+
+    private class UploadConfirmTicket
+    {
+        public long UserId { get; set; }
+        public bool IsPublic { get; set; }
+        public string OriginalFileName { get; set; } = string.Empty;
     }
 
     /// <summary>

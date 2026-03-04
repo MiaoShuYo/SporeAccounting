@@ -233,21 +233,61 @@ namespace SP.Common.Redis
         /// <summary>
         /// 获取所有匹配的键
         /// </summary>
-        public async Task<IEnumerable<string>> GetKeysAsync(string pattern)
+        public async Task<IEnumerable<string>> GetKeysAsync(string pattern, int maxCount = 1000, int pageSize = 100,
+            CancellationToken cancellationToken = default)
         {
             try
             {
-                var keys = new List<string>();
-                var endpoints = Connection.GetEndPoints();
-
-                foreach (var endpoint in endpoints)
+                if (string.IsNullOrWhiteSpace(pattern))
                 {
-                    var server = Connection.GetServer(endpoint);
-                    var serverKeys = server.Keys(pattern: pattern).Select(k => (string)k).ToList();
-                    keys.AddRange(serverKeys);
+                    return Enumerable.Empty<string>();
                 }
 
-                return await Task.FromResult(keys);
+                maxCount = maxCount <= 0 ? 1000 : maxCount;
+                pageSize = pageSize <= 0 ? 100 : pageSize;
+
+                var keys = await Task.Run(() =>
+                {
+                    var result = new HashSet<string>(StringComparer.Ordinal);
+                    var endpoints = Connection.GetEndPoints();
+
+                    foreach (var endpoint in endpoints)
+                    {
+                        cancellationToken.ThrowIfCancellationRequested();
+
+                        var server = Connection.GetServer(endpoint);
+                        if (!server.IsConnected)
+                        {
+                            continue;
+                        }
+
+                        foreach (var key in server.Keys(pattern: pattern, pageSize: pageSize))
+                        {
+                            cancellationToken.ThrowIfCancellationRequested();
+                            result.Add(key.ToString());
+
+                            if (result.Count >= maxCount)
+                            {
+                                return result;
+                            }
+                        }
+                    }
+
+                    return result;
+                }, cancellationToken);
+
+                if (keys.Count >= maxCount)
+                {
+                    _logger.LogWarning("Redis键扫描达到最大返回限制，Pattern: {Pattern}, MaxCount: {MaxCount}",
+                        pattern, maxCount);
+                }
+
+                return keys;
+            }
+            catch (OperationCanceledException)
+            {
+                _logger.LogWarning("Redis获取匹配键被取消，Pattern: {Pattern}", pattern);
+                return Enumerable.Empty<string>();
             }
             catch (Exception ex)
             {

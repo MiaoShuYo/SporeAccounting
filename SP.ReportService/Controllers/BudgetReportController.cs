@@ -55,7 +55,7 @@ public class BudgetReportController : ControllerBase
     [Route("budget-consumption-trend")]
     public async Task<ActionResult<List<BudgetConsumptionTrendReportResponse>>> GetBudgetConsumptionTrend()
     {
-        List<BudgetProgressReportResponse> budgetProgressReports
+        List<BudgetConsumptionTrendReportResponse> budgetProgressReports
             = await _budgetReportServer.GetBudgetConsumptionTrend();
         return Ok(budgetProgressReports);
     }

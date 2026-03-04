@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using Microsoft.EntityFrameworkCore;
 using SP.Common.Redis;
 using SP.CurrencyService.DB;
 using SP.CurrencyService.Models.Entity;
@@ -37,8 +38,14 @@ public class CurrencyServerImpl : ICurrencyServer
         {
             return cachedCurrencies;
         }
-        List<Currency> crCurrencies = _dbContext.Currencies.ToList();
+
+        List<Currency> crCurrencies = await _dbContext.Currencies
+            .AsNoTracking()
+            .ToListAsync();
         List<CurrencyResponse> currencyResponses = _mapper.Map<List<CurrencyResponse>>(crCurrencies);
+
+        await _redisService.SetAsync(_spRedisKey, currencyResponses, 60 * 60 * 24);
+
         return currencyResponses;
     }
 }

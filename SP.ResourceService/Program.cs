@@ -8,6 +8,7 @@ using SP.ResourceService.DB;
 using SP.Common.ExceptionHandling;
 using SP.Common.Message.Mq;
 using SP.Common.Message.Mq.Consumer;
+using SP.Common.Redis;
 using SP.ResourceService.Mq;
 using SP.Common.Nacos;
 using SP.Common.Nacos.Configuration;
@@ -89,6 +90,8 @@ builder.Services.AddPromptsService(builder.Configuration);
 builder.Services.AddDeepSeekService(builder.Configuration);
 // 注入loki日志服务
 builder.Services.AddLoggerService(builder.Configuration);
+// 注入Redis服务（上传凭证绑定）
+builder.Services.AddRedisService(builder.Configuration);
 // 注册消息队列OCR消费者服务
 builder.Services.AddHostedService<OCRConsumerService>();
 builder.Services.AddHostedService<DeadLetterConsumerService>();

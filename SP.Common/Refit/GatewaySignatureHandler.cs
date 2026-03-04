@@ -34,9 +34,15 @@ public class GatewaySignatureHandler : DelegatingHandler
         var user = httpContext?.User;
         if (user?.Identity?.IsAuthenticated == true)
         {
-            var userId = user.FindFirstValue("UserId");
-            var userName = user.FindFirstValue("UserName");
-            var email = user.FindFirstValue("Email");
+            var userId = user.FindFirstValue("UserId")
+                                                 ?? user.FindFirstValue("sub")
+                         ?? user.FindFirstValue(ClaimTypes.NameIdentifier);
+            var userName = user.FindFirstValue("UserName")
+                                                     ?? user.FindFirstValue("name")
+                           ?? user.FindFirstValue(ClaimTypes.Name);
+            var email = user.FindFirstValue("Email")
+                                                ?? user.FindFirstValue("email")
+                        ?? user.FindFirstValue(ClaimTypes.Email);
 
             if (!string.IsNullOrEmpty(userId))
                 request.Headers.TryAddWithoutValidation("X-User-Id", userId);

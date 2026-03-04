@@ -26,5 +26,5 @@ public interface IBudgetReportServer
     /// 2. 各类别预算消耗趋势
     /// 年预算消耗趋势报表按月展示，月预算消耗趋势报表按日展示，季度预算消耗趋势报表按周展示
     /// </returns>
-    Task<List<BudgetProgressReportResponse>> GetBudgetConsumptionTrend();
+    Task<List<BudgetConsumptionTrendReportResponse>> GetBudgetConsumptionTrend();
 }

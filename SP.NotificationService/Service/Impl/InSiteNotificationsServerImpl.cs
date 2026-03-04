@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using Microsoft.EntityFrameworkCore;
 using SP.Common;
 using SP.Common.ExceptionHandling.Exceptions;
 using SP.Common.Model;
@@ -48,11 +49,11 @@ public class InSiteNotificationsServerImpl : IInSiteNotificationsServer
     /// </summary>
     /// <param name="sendInSiteNotification"></param>
     /// <returns></returns>
-    public long SendInSiteNotificationAsync(SendInSiteNotificationRequest sendInSiteNotification)
+    public async Task<long> SendInSiteNotificationAsync(SendInSiteNotificationRequest sendInSiteNotification)
     {
         InSiteNotification notification = _autoMapper.Map<InSiteNotification>(sendInSiteNotification);
-        _notificationServiceDb.InSiteNotifications.Add(notification);
-        _notificationServiceDb.SaveChanges();
+        await _notificationServiceDb.InSiteNotifications.AddAsync(notification);
+        await _notificationServiceDb.SaveChangesAsync();
         return notification.Id;
     }
 
@@ -61,23 +62,21 @@ public class InSiteNotificationsServerImpl : IInSiteNotificationsServer
     /// </summary>
     /// <param name="sendInSiteNotification"></param>
     /// <returns></returns>
-    public void SendInSiteNotificationToAllUserAsync(SendInSiteNotificationRequest sendInSiteNotification)
+    public async Task SendInSiteNotificationToAllUserAsync(SendInSiteNotificationRequest sendInSiteNotification)
     {
         // 这里不要一次性全部发送，可能用户量会很大，应该分批处理
-        // 启用后台任务处理
-        Task.Run(() =>
+        var userIds = await _notificationServiceDb.InSiteNotifications
+            .Select(x => x.UserId)
+            .Distinct()
+            .ToListAsync();
+        var batchSize = 100;
+        for (int i = 0; i < userIds.Count; i += batchSize)
         {
-            // 分批处理（根据用户量分批）
-            var userIds = _notificationServiceDb.InSiteNotifications.Select(x => x.UserId).Distinct().ToList();
-            var batchSize = 100;
-            for (int i = 0; i < userIds.Count; i += batchSize)
-            {
-                var batchUserIds = userIds.Skip(i).Take(batchSize).ToList();
-                // 批量发送站内信
-                BatchSendInSiteNotificationAsync(batchUserIds, sendInSiteNotification.Title,
-                    sendInSiteNotification.Content);
-            }
-        });
+            var batchUserIds = userIds.Skip(i).Take(batchSize).ToList();
+            // 批量发送站内信
+            await BatchSendInSiteNotificationAsync(batchUserIds, sendInSiteNotification.Title,
+                sendInSiteNotification.Content);
+        }
     }
 
     /// <summary>
@@ -85,16 +84,17 @@ public class InSiteNotificationsServerImpl : IInSiteNotificationsServer
     /// </summary>
     /// <param name="notificationId">通知ID</param>
     /// <returns></returns>
-    public void MarkNotificationAsReadAsync(long notificationId)
+    public async Task MarkNotificationAsReadAsync(long notificationId)
     {
-        var notification = _notificationServiceDb.InSiteNotifications.FirstOrDefault(x => x.Id == notificationId);
+        var notification = await _notificationServiceDb.InSiteNotifications
+            .FirstOrDefaultAsync(x => x.Id == notificationId);
         if (notification == null)
         {
             throw new NotFoundException("通知不存在");
         }
 
         notification.IsRead = true;
-        _notificationServiceDb.SaveChanges();
+        await _notificationServiceDb.SaveChangesAsync();
     }
 
     /// <summary>
@@ -102,15 +102,17 @@ public class InSiteNotificationsServerImpl : IInSiteNotificationsServer
     /// </summary>
     /// <param name="pageRequest"></param>
     /// <returns></returns>
-    public PageResponse<InSiteNotificationRequest> GetUserInSiteNotificationsAsync(
+    public async Task<PageResponse<InSiteNotificationRequest>> GetUserInSiteNotificationsAsync(
         InSiteNotificationPageRequest pageRequest)
     {
-        var notifications = _notificationServiceDb.InSiteNotifications
+        var notifications = await _notificationServiceDb.InSiteNotifications
             .Where(x => x.UserId == _userId && x.IsDeleted == false)
             .OrderByDescending(x => x.CreateDateTime).Skip((pageRequest.PageIndex - 1) * pageRequest.PageSize)
-            .Take(pageRequest.PageSize).ToList();
-        var totalCount = _notificationServiceDb.InSiteNotifications
-            .Where(x => x.UserId == _userId && x.IsDeleted == false).Count();
+            .Take(pageRequest.PageSize)
+            .ToListAsync();
+        var totalCount = await _notificationServiceDb.InSiteNotifications
+            .Where(x => x.UserId == _userId && x.IsDeleted == false)
+            .CountAsync();
         return new PageResponse<InSiteNotificationRequest>
         {
             TotalCount = totalCount,
@@ -125,10 +127,11 @@ public class InSiteNotificationsServerImpl : IInSiteNotificationsServer
     /// 获取未读站内通知数量
     /// </summary>
     /// <returns></returns>
-    public int GetUnreadNotificationCountAsync()
+    public async Task<int> GetUnreadNotificationCountAsync()
     {
-        return _notificationServiceDb.InSiteNotifications
-            .Where(x => x.UserId == _userId && x.IsDeleted == false && x.IsRead == false).Count();
+        return await _notificationServiceDb.InSiteNotifications
+            .Where(x => x.UserId == _userId && x.IsDeleted == false && x.IsRead == false)
+            .CountAsync();
     }
 
     /// <summary>
@@ -136,16 +139,17 @@ public class InSiteNotificationsServerImpl : IInSiteNotificationsServer
     /// </summary>
     /// <param name="notificationIds">通知集合</param>
     /// <returns></returns>
-    public void DeleteInSiteNotificationsAsync(List<long> notificationIds)
+    public async Task DeleteInSiteNotificationsAsync(List<long> notificationIds)
     {
-        var notifications = _notificationServiceDb.InSiteNotifications.Where(x => notificationIds.Contains(x.Id))
-            .ToList();
+        var notifications = await _notificationServiceDb.InSiteNotifications
+            .Where(x => notificationIds.Contains(x.Id))
+            .ToListAsync();
         foreach (var notification in notifications)
         {
             SettingCommProperty.Delete(notification);
         }
 
-        _notificationServiceDb.SaveChanges();
+        await _notificationServiceDb.SaveChangesAsync();
     }
 
     /// <summary>
@@ -153,10 +157,10 @@ public class InSiteNotificationsServerImpl : IInSiteNotificationsServer
     /// </summary>
     /// <param name="editInSiteNotificationRequest">通知请求</param>
     /// <returns></returns>
-    public void EditInSiteNotificationAsync(EditInSiteNotificationRequest editInSiteNotificationRequest)
+    public async Task EditInSiteNotificationAsync(EditInSiteNotificationRequest editInSiteNotificationRequest)
     {
-        var notification =
-            _notificationServiceDb.InSiteNotifications.FirstOrDefault(x => x.Id == editInSiteNotificationRequest.Id);
+        var notification = await _notificationServiceDb.InSiteNotifications
+            .FirstOrDefaultAsync(x => x.Id == editInSiteNotificationRequest.Id);
         if (notification == null)
         {
             throw new NotFoundException("通知不存在");
@@ -164,7 +168,7 @@ public class InSiteNotificationsServerImpl : IInSiteNotificationsServer
 
         notification = _autoMapper.Map<InSiteNotification>(editInSiteNotificationRequest);
         SettingCommProperty.Edit(notification);
-        _notificationServiceDb.SaveChanges();
+        await _notificationServiceDb.SaveChangesAsync();
     }
 
     /// <summary>
@@ -172,9 +176,10 @@ public class InSiteNotificationsServerImpl : IInSiteNotificationsServer
     /// </summary>
     /// <param name="notificationId">通知ID</param>
     /// <returns></returns>
-    public InSiteNotificationRequest GetInSiteNotificationDetailAsync(long notificationId)
+    public async Task<InSiteNotificationRequest> GetInSiteNotificationDetailAsync(long notificationId)
     {
-        var notification = _notificationServiceDb.InSiteNotifications.FirstOrDefault(x => x.Id == notificationId);
+        var notification = await _notificationServiceDb.InSiteNotifications
+            .FirstOrDefaultAsync(x => x.Id == notificationId);
         if (notification == null)
         {
             throw new NotFoundException("通知不存在");
@@ -189,7 +194,7 @@ public class InSiteNotificationsServerImpl : IInSiteNotificationsServer
     /// <param name="title">通知标题</param>
     /// <param name="content">通知内容</param>
     /// <returns></returns>
-    private void BatchSendInSiteNotificationAsync(List<long> userIds, string title, string content)
+    private async Task BatchSendInSiteNotificationAsync(List<long> userIds, string title, string content)
     {
         List<InSiteNotification> notifications = new List<InSiteNotification>();
         foreach (var userId in userIds)
@@ -202,7 +207,7 @@ public class InSiteNotificationsServerImpl : IInSiteNotificationsServer
             });
         }
 
-        _notificationServiceDb.InSiteNotifications.AddRange(notifications);
-        _notificationServiceDb.SaveChanges();
+        await _notificationServiceDb.InSiteNotifications.AddRangeAsync(notifications);
+        await _notificationServiceDb.SaveChangesAsync();
     }
 }

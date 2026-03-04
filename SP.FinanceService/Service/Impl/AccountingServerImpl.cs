@@ -12,6 +12,7 @@ using SP.Common.Model;
 using SP.Common.Model.Enumeration;
 using SP.FinanceService.DB;
 using SP.FinanceService.Models.Entity;
+using SP.FinanceService.Models.Enumeration;
 using SP.FinanceService.Models.Request;
 using SP.FinanceService.Models.Response;
 using SP.FinanceService.Mq.Models;
@@ -102,7 +103,7 @@ public class AccountingServerImpl : IAccountingServer
     /// <returns></returns>
     public async System.Threading.Tasks.Task<long> Add(long accountBookId, AccountingAddRequest request)
     {
-        AccountBookExist(accountBookId);
+        AccountBookExist(accountBookId, true);
 
         // 将请求映射到实体
         var accounting = _autoMapper.Map<Accounting>(request);
@@ -153,7 +154,7 @@ public class AccountingServerImpl : IAccountingServer
     public void Delete(long accountBookId, long id)
     {
         // 检查账本是否存在
-        AccountBookExist(accountBookId);
+        AccountBookExist(accountBookId, true);
         // 查询要删除的记账记录
         Accounting accounting = QueryAccountingById(id, accountBookId);
         if (accounting == null)
@@ -192,7 +193,7 @@ public class AccountingServerImpl : IAccountingServer
     public async System.Threading.Tasks.Task Edit(long accountBookId, AccountingEditRequest request)
     {
         // 检查账本是否存在
-        AccountBookExist(accountBookId);
+        AccountBookExist(accountBookId, true);
 
         // 查询要修改的记账记录
         Accounting existingAccounting = QueryAccountingById(request.Id, accountBookId);
@@ -244,7 +245,7 @@ public class AccountingServerImpl : IAccountingServer
     public AccountingResponse QueryById(long accountBookId, long id)
     {
         // 检查账本是否存在
-        AccountBookExist(accountBookId);
+        AccountBookExist(accountBookId, false);
 
         // 查询记账记录
         Accounting accounting = QueryAccountingById(id, accountBookId);
@@ -266,7 +267,7 @@ public class AccountingServerImpl : IAccountingServer
     public PageResponse<AccountingResponse> QueryPage(long accountBookId, AccountingPageRequest page)
     {
         // 检查账本是否存在
-        AccountBookExist(accountBookId);
+        AccountBookExist(accountBookId, false);
 
         // 查询记账记录分页
         var query = _dbContext.Accountings
@@ -300,13 +301,37 @@ public class AccountingServerImpl : IAccountingServer
     /// </summary>
     /// <param name="accountBookId"></param>
     /// <returns></returns>
-    private void AccountBookExist(long accountBookId)
+    private void AccountBookExist(long accountBookId, bool requireWritePermission)
     {
-        // 检查账本是否存在
-        bool exist = _accountBookServer.Exist(accountBookId);
-        if (!exist)
+        var accountBook = _dbContext.AccountBooks
+            .FirstOrDefault(p => p.Id == accountBookId && !p.IsDeleted);
+        if (accountBook == null)
         {
             throw new NotFoundException("账本不存在");
+        }
+
+        bool isOwner = accountBook.CreateUserId == _contextSession.UserId;
+        if (isOwner)
+        {
+            return;
+        }
+
+        var sharePermission = _dbContext.AccountBookShares
+            .Where(p => !p.IsDeleted
+                        && p.AccountBookId == accountBookId
+                        && p.UserId == _contextSession.UserId)
+            .Select(p => p.PermissionType)
+            .FirstOrDefault();
+
+        bool hasReadPermission = sharePermission == PermissionTypeEnum.ReadOnly
+                                 || sharePermission == PermissionTypeEnum.ReadWrite
+                                 || sharePermission == PermissionTypeEnum.Admin;
+        bool hasWritePermission = sharePermission == PermissionTypeEnum.ReadWrite
+                                  || sharePermission == PermissionTypeEnum.Admin;
+
+        if (!hasReadPermission || (requireWritePermission && !hasWritePermission))
+        {
+            throw new ForbiddenException("无权访问账本");
         }
     }
 
