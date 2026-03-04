@@ -164,6 +164,7 @@ builder.Services.AddLoggerService(builder.Configuration);
 var app = builder.Build();
 
 // 启动时迁移数据库并进行幂等初始化（角色与管理员用户）
+// 仅在 Development/Local 环境上执行默认用户名/密码初始化
 using (var scope = app.Services.CreateScope())
 {
     var services = scope.ServiceProvider;
@@ -193,36 +194,47 @@ using (var scope = app.Services.CreateScope())
             }
         }
 
-        var userManager = services.GetRequiredService<UserManager<SpUser>>();
-        var adminUser = await userManager.FindByNameAsync("admin");
-        if (adminUser == null)
+        // 管理员初始化仅在 Development/Local 环境执行，且密码从配置读取
+        if (app.Environment.IsDevelopment() || app.Environment.EnvironmentName == "Local")
         {
-            var newAdminUser = new SpUser { UserName = "admin", Email = "494324190@qq.com", EmailConfirmed = true };
-            var createAdmin = await userManager.CreateAsync(newAdminUser, "123*asdasd");
-            if (!createAdmin.Succeeded)
+            var userManager = services.GetRequiredService<UserManager<SpUser>>();
+            var adminUser = await userManager.FindByNameAsync("admin");
+            if (adminUser == null)
             {
-                logger.LogWarning("创建管理员用户失败：{Errors}",
-                    string.Join(",", createAdmin.Errors.Select(e => e.Description)));
+                // 管理员账号和密码从配置读取，禁止硬编码
+                var adminEmail = builder.Configuration["AdminInit:Email"]
+                    ?? throw new InvalidOperationException("缺少管理员考配置：AdminInit:Email");
+                var adminPassword = builder.Configuration["AdminInit:Password"]
+                    ?? throw new InvalidOperationException("缺少管理员考配置：AdminInit:Password");
+
+                logger.LogWarning("开发环境：正在初始化 admin 用户，请确保生产环境不运行此初始化逻辑");
+                var newAdminUser = new SpUser { UserName = "admin", Email = adminEmail, EmailConfirmed = true };
+                var createAdmin = await userManager.CreateAsync(newAdminUser, adminPassword);
+                if (!createAdmin.Succeeded)
+                {
+                    logger.LogWarning("创建管理员用户失败：{Errors}",
+                        string.Join(",", createAdmin.Errors.Select(e => e.Description)));
+                    return;
+                }
+                adminUser = await userManager.FindByNameAsync("admin");
+            }
+
+            if (adminUser == null)
+            {
+                logger.LogWarning("管理员用户初始化失败：未能读取 admin 用户");
                 return;
             }
-            adminUser = await userManager.FindByNameAsync("admin");
-        }
 
-        if (adminUser == null)
-        {
-            logger.LogWarning("管理员用户初始化失败：未能读取 admin 用户");
-            return;
-        }
-
-        // 确保管理员在 Admin 角色中
-        var inRole = await userManager.IsInRoleAsync(adminUser, "Admin");
-        if (!inRole)
-        {
-            var addToRole = await userManager.AddToRoleAsync(adminUser, "Admin");
-            if (!addToRole.Succeeded)
+            // 确保管理员在 Admin 角色中
+            var inRole = await userManager.IsInRoleAsync(adminUser, "Admin");
+            if (!inRole)
             {
-                logger.LogWarning("将管理员加入 Admin 角色失败：{Errors}",
-                    string.Join(",", addToRole.Errors.Select(e => e.Description)));
+                var addToRole = await userManager.AddToRoleAsync(adminUser, "Admin");
+                if (!addToRole.Succeeded)
+                {
+                    logger.LogWarning("将管理员加入 Admin 角色失败：{Errors}",
+                        string.Join(",", addToRole.Errors.Select(e => e.Description)));
+                }
             }
         }
     }

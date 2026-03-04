@@ -78,6 +78,14 @@ public class AccountBookShareServerImpl : IAccountBookShareServer
             throw new NotFoundException("账本不存在");
         }
 
+        // 校验当前用户是否为账本创建者（只有账本创建者才能分享）
+        var accountBookOwner = _dbContext.AccountBooks
+            .FirstOrDefault(ab => ab.Id == request.AccountBookId && !ab.IsDeleted && ab.CreateUserId == _contextSession.UserId);
+        if (accountBookOwner == null)
+        {
+            throw new ForbiddenException("无权分享此账本，仅账本创建者可进行分享");
+        }
+
         // 存储共享账本
         var accountBookShares = _automapper.Map<List<AccountBookShare>>(request);
         foreach (var accountBookShare in accountBookShares)
@@ -168,6 +176,14 @@ public class AccountBookShareServerImpl : IAccountBookShareServer
     /// <param name="request"></param>
     public async System.Threading.Tasks.Task Revoke(AccountBookRevokeSharingRequest request)
     {
+        // 校验当前用户是否为账本创建者
+        var accountBookOwner = _dbContext.AccountBooks
+            .FirstOrDefault(ab => ab.Id == request.AccountBookId && !ab.IsDeleted && ab.CreateUserId == _contextSession.UserId);
+        if (accountBookOwner == null)
+        {
+            throw new ForbiddenException("无权撤销此账本的分享，仅账本创建者可撤销");
+        }
+
         var shares = _dbContext.AccountBookShares
             .Where(p => p.AccountBookId == request.AccountBookId && request.UserIds.Contains(p.UserId) && !p.IsDeleted)
             .ToList();
@@ -200,6 +216,14 @@ public class AccountBookShareServerImpl : IAccountBookShareServer
     /// <param name="request"></param>
     public async System.Threading.Tasks.Task Edit(AccountBookShareEditRequest request) 
     {
+        // 校验当前用户是否为账本创建者
+        var accountBookOwner = _dbContext.AccountBooks
+            .FirstOrDefault(ab => ab.Id == request.AccountBookId && !ab.IsDeleted && ab.CreateUserId == _contextSession.UserId);
+        if (accountBookOwner == null)
+        {
+            throw new ForbiddenException("无权修改此账本的分享权限，仅账本创建者可修改");
+        }
+
         var shares = _dbContext.AccountBookShares
             .Where(p => p.AccountBookId == request.AccountBookId && request.UserIds.Contains(p.UserId) && !p.IsDeleted)
             .ToList();

@@ -48,6 +48,12 @@ public class UserServiceImpl : IUserService
     /// <returns></returns>
     public async Task<UserResponse?> GetUserInfo(long id)
     {
+        // 属为安全校验：只能查矢自身的信息
+        if (id != _contextSession.UserId)
+        {
+            throw new ForbiddenException("不能查看其他用户的信息");
+        }
+
         // 尝试从缓存获取
         string cacheKey = $"user:{id}";
         var cachedUser = await _redis.GetStringAsync(cacheKey);
@@ -135,6 +141,12 @@ public class UserServiceImpl : IUserService
     /// <returns></returns>
     public async Task DeleteUser(long id)
     {
+        // 属为安全校验：只能删除自身的账号
+        if (id != _contextSession.UserId)
+        {
+            throw new ForbiddenException("不能删除其他用户的账号");
+        }
+
         var user = await _userManager.FindByIdAsync(id.ToString());
         if (user == null)
         {
@@ -158,6 +170,12 @@ public class UserServiceImpl : IUserService
     /// <returns></returns>
     public async Task DisableUser(long id, bool isDisabled)
     {
+        // 属为安全校验：只能操作自身的账号状态
+        if (id != _contextSession.UserId)
+        {
+            throw new ForbiddenException("不能操作其他用户的账号状态");
+        }
+
         var user = await _userManager.FindByIdAsync(id.ToString());
         if (user == null)
         {
@@ -190,6 +208,12 @@ public class UserServiceImpl : IUserService
     /// <exception cref="NotImplementedException"></exception>
     public async Task UpdateUser(long id, UserUpdateRequest user)
     {
+        // 属为安全校验：只能修改自身的信息
+        if (id != _contextSession.UserId)
+        {
+            throw new ForbiddenException("不能修改其他用户的信息");
+        }
+
         var spUser = await _userManager.FindByIdAsync(id.ToString());
         if (spUser == null)
         {
