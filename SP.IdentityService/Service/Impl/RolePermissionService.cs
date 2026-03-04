@@ -1,5 +1,6 @@
 ﻿using System.Security.Claims;
 using Microsoft.AspNetCore.Identity;
+using SP.Common.ExceptionHandling.Exceptions;
 using SP.IdentityService.Models.Entity;
 
 namespace SP.IdentityService.Impl;
@@ -18,17 +19,17 @@ public class RolePermissionService : IRolePermissionService
     public async Task AddPermissionToRole(long roleId, string permission)
     {
         var role = await _roleManager.FindByIdAsync(roleId.ToString());
-        if (role == null) throw new Exception("角色不存在");
+        if (role == null) throw new NotFoundException("角色不存在");
 
         var claim = new Claim("Permission", permission);
         var result = await _roleManager.AddClaimAsync(role, claim);
-        if (!result.Succeeded) throw new Exception("添加权限失败");
+        if (!result.Succeeded) throw new BusinessException("添加权限失败");
     }
 
     public async Task<List<string>> GetPermissionsByRole(long roleId)
     {
         var role = await _roleManager.FindByIdAsync(roleId.ToString());
-        if (role == null) throw new Exception("角色不存在");
+        if (role == null) throw new NotFoundException("角色不存在");
 
         var claims = await _roleManager.GetClaimsAsync(role);
         return claims.Where(c => c.Type == "Permission").Select(c => c.Value).ToList();
@@ -37,17 +38,17 @@ public class RolePermissionService : IRolePermissionService
     public async Task RemovePermissionFromRole(long roleId, string permission)
     {
         var role = await _roleManager.FindByIdAsync(roleId.ToString());
-        if (role == null) throw new Exception("角色不存在");
+        if (role == null) throw new NotFoundException("角色不存在");
 
         var claim = new Claim("Permission", permission);
         var result = await _roleManager.RemoveClaimAsync(role, claim);
-        if (!result.Succeeded) throw new Exception("删除权限失败");
+        if (!result.Succeeded) throw new BusinessException("删除权限失败");
     }
 
     public async Task<List<string>> GetUserPermissions(long userId)
     {
         var user = await _userManager.FindByIdAsync(userId.ToString());
-        if (user == null) throw new Exception("用户不存在");
+        if (user == null) throw new NotFoundException("用户不存在");
 
         var roles = await _userManager.GetRolesAsync(user);
         var permissions = new List<string>();

@@ -30,7 +30,7 @@ public interface IAccountingServer
     /// </summary>
     /// <param name="accountBookId">账本ID</param>
     /// <param name="id">记账ID</param>
-    void Delete(long accountBookId, long id);
+    System.Threading.Tasks.Task Delete(long accountBookId, long id);
 
     /// <summary>
     /// 修改记账

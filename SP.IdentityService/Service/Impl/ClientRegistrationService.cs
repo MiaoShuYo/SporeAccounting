@@ -1,3 +1,4 @@
+using Microsoft.Extensions.Configuration;
 using OpenIddict.Abstractions;
 using SP.Common.ExceptionHandling.Exceptions;
 
@@ -10,13 +11,16 @@ public class ClientRegistrationService : IClientRegistrationService
 {
     private readonly IOpenIddictApplicationManager _applicationManager;
     private readonly ILogger<ClientRegistrationService> _logger;
+    private readonly IConfiguration _configuration;
 
     public ClientRegistrationService(
         IOpenIddictApplicationManager applicationManager,
-        ILogger<ClientRegistrationService> logger)
+        ILogger<ClientRegistrationService> logger,
+        IConfiguration configuration)
     {
         _applicationManager = applicationManager;
         _logger = logger;
+        _configuration = configuration;
     }
 
     /// <summary>
@@ -202,10 +206,12 @@ public class ClientRegistrationService : IClientRegistrationService
             }
 
             // 创建默认客户端
+            var defaultClientSecret = _configuration["DefaultClient:Secret"]
+                ?? throw new InvalidOperationException("DefaultClient:Secret configuration is required.");
             var defaultClientDescriptor = new OpenIddictApplicationDescriptor
             {
                 ClientId = "default-client",
-                ClientSecret = "default-secret",
+                ClientSecret = defaultClientSecret,
                 DisplayName = "默认客户端",
                 ClientType = OpenIddictConstants.ClientTypes.Confidential,
                 Permissions =

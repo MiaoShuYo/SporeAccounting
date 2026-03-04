@@ -151,7 +151,7 @@ public class AccountingServerImpl : IAccountingServer
     /// </summary>
     /// <param name="accountBookId">账本ID</param>
     /// <param name="id">记账ID</param>
-    public void Delete(long accountBookId, long id)
+    public async System.Threading.Tasks.Task Delete(long accountBookId, long id)
     {
         // 检查账本是否存在
         AccountBookExist(accountBookId, true);
@@ -182,7 +182,7 @@ public class AccountingServerImpl : IAccountingServer
             MqExchange.BudgetExchange,
             MqRoutingKey.BudgetRoutingKey,
             MqQueue.BudgetQueue, MessageType.BudgetAdd, ExchangeType.Direct);
-        _rabbitMqMessage.SendAsync(mqPublisher).GetAwaiter().GetResult();
+        await _rabbitMqMessage.SendAsync(mqPublisher);
     }
 
     /// <summary>
@@ -202,11 +202,11 @@ public class AccountingServerImpl : IAccountingServer
             throw new NotFoundException($"记账记录不存在，ID: {request.Id}");
         }
 
-        // 将请求模型映射到实体
-        existingAccounting = _autoMapper.Map<Accounting>(request);
-        long targetCurrencyId = await GetUserTargetCurrencyId();
-        // 计算原金额与现金额的差额，用于更新预算
+        // 保存原始金额，用于后续计算差额
         decimal originalAmount = existingAccounting.AfterAmount;
+        // 将请求模型映射到已追踪实体（不替换整个对象）
+        _autoMapper.Map(request, existingAccounting);
+        long targetCurrencyId = await GetUserTargetCurrencyId();
         // 如果修改的货币与目标货币相同，直接使用原金额，否则进行转换
         if (request.CurrencyId == targetCurrencyId)
         {
@@ -229,7 +229,13 @@ public class AccountingServerImpl : IAccountingServer
         _dbContext.SaveChanges();
 
         // 通过MQ发送修改记账数据到消息队列，更新预算中的金额
-        MqPublisher mqPublisher = new MqPublisher(amountDifference.ToString("F2", CultureInfo.InvariantCulture),
+        BudgetChangeMQ budgetUpdateChange = new BudgetChangeMQ
+        {
+            ChangeAmount = amountDifference,
+            TransactionCategoryId = request.TransactionCategoryId,
+            UserId = _contextSession.UserId
+        };
+        MqPublisher mqPublisher = new MqPublisher(JsonSerializer.Serialize(budgetUpdateChange),
             MqExchange.BudgetExchange,
             MqRoutingKey.BudgetRoutingKey,
             MqQueue.BudgetQueue, MessageType.BudgetUpdate, ExchangeType.Direct);

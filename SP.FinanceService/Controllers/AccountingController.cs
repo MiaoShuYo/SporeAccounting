@@ -45,9 +45,9 @@ public class AccountingController : ControllerBase
     /// <param name="id">记账ID</param>
     /// <returns>返回删除结果</returns>
     [HttpDelete("{id}")]
-    public ActionResult<bool> DeleteAccounting([FromQuery] long accountBookId, [FromRoute] long id)
+    public async Task<ActionResult<bool>> DeleteAccounting([FromQuery] long accountBookId, [FromRoute] long id)
     {
-        _accountingServer.Delete(accountBookId, id);
+        await _accountingServer.Delete(accountBookId, id);
         return Ok(true);
     }
 

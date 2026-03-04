@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SP.IdentityService.Services;
 
@@ -8,17 +9,21 @@ namespace SP.IdentityService.Controllers;
 /// </summary>
 [Route("api/clients")]
 [ApiController]
+[Authorize]
 public class ClientController : ControllerBase
 {
     private readonly IClientRegistrationService _clientRegistrationService;
     private readonly ILogger<ClientController> _logger;
+    private readonly IWebHostEnvironment _env;
 
     public ClientController(
         IClientRegistrationService clientRegistrationService,
-        ILogger<ClientController> logger)
+        ILogger<ClientController> logger,
+        IWebHostEnvironment env)
     {
         _clientRegistrationService = clientRegistrationService;
         _logger = logger;
+        _env = env;
     }
 
     /// <summary>
@@ -174,6 +179,12 @@ public class ClientController : ControllerBase
     [HttpPost("initialize")]
     public async Task<ActionResult> InitializeDefaultClients()
     {
+        // 严格限制为开发/测试环境，生产环境返回 404
+        if (!_env.IsDevelopment() && _env.EnvironmentName != "Local")
+        {
+            return NotFound();
+        }
+
         try
         {
             var result = await _clientRegistrationService.InitializeDefaultClientsAsync();

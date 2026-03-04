@@ -75,7 +75,7 @@ public class UserServiceImpl : IUserService
             Id = user.Id,
             UserName = user.UserName,
             Email = user.Email,
-            IsLocked = user.LockoutEnabled
+            IsLocked = user.LockoutEnd.HasValue && user.LockoutEnd.Value > DateTimeOffset.UtcNow
         };
         // 缓存结果，设置适当的过期时间
         await _redis.SetStringAsync(cacheKey, JsonSerializer.Serialize(response), 60 * 10);
@@ -124,7 +124,7 @@ public class UserServiceImpl : IUserService
                 Id = x.Id,
                 UserName = x.UserName,
                 Email = x.Email,
-                IsLocked = x.LockoutEnabled,
+                IsLocked = x.LockoutEnd.HasValue && x.LockoutEnd.Value > DateTimeOffset.UtcNow,
                 PhoneNumber = x.PhoneNumber
             }).ToList(),
             PageSize= page.PageSize,
@@ -191,7 +191,7 @@ public class UserServiceImpl : IUserService
             user.LockoutEnd = null; // 解除锁定
         }
 
-        user.LockoutEnabled = isDisabled;
+        user.LockoutEnabled = true; // 确保用户始终允许被锁定
         var result = await _userManager.UpdateAsync(user);
         if (!result.Succeeded)
         {

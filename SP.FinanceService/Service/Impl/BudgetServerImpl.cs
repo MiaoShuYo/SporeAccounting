@@ -344,6 +344,7 @@ public class BudgetServerImpl : IBudgetServer
             throw new ArgumentNullException(nameof(budgets), "预算列表不能为空");
         }
 
+        var existingBudgets = new List<Budget>();
         foreach (var budget in budgets)
         {
             var existingBudget = _dbContext.Budgets
@@ -362,9 +363,10 @@ public class BudgetServerImpl : IBudgetServer
             existingBudget.EndTime = budget.EndTime;
 
             SettingCommProperty.Edit(existingBudget);
+            existingBudgets.Add(existingBudget);
         }
 
-        _dbContext.Budgets.UpdateRange(budgets);
+        _dbContext.Budgets.UpdateRange(existingBudgets);
         _dbContext.SaveChanges();
     }
 
