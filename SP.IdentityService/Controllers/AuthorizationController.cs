@@ -761,18 +761,42 @@ public class AuthorizationController : ControllerBase
     {
         try
         {
+            // 1. 黑名单检查：revoked_token:{hash}
             using var sha256 = SHA256.Create();
             var tokenHash = Convert.ToBase64String(sha256.ComputeHash(System.Text.Encoding.UTF8.GetBytes(token)));
             var revocationKey = $"revoked_token:{tokenHash}";
 
             var isRevoked = await _redisService.ExistsAsync(revocationKey);
-
             if (isRevoked)
             {
-                _logger.LogDebug("令牌在Redis中被标记为撤销");
+                _logger.LogDebug("令牌在Redis黑名单中被标记为撤销");
+                return true;
             }
 
-            return isRevoked;
+            // 2. 白名单检查：Token:{userId} 必须存在且与当前令牌一致
+            var tokenHandler = new JwtSecurityTokenHandler();
+            if (tokenHandler.CanReadToken(token))
+            {
+                var jwtToken = tokenHandler.ReadJwtToken(token);
+                var sub = jwtToken.Subject;
+                if (!string.IsNullOrEmpty(sub) && long.TryParse(sub, out var userId))
+                {
+                    var allowlistKey = string.Format(SPRedisKey.Token, userId);
+                    var storedToken = await _redisService.GetStringAsync(allowlistKey);
+                    if (string.IsNullOrEmpty(storedToken))
+                    {
+                        _logger.LogDebug("令牌对应的登录会话已不在白名单（用户已登出），将其标记为撤销");
+                        return true;
+                    }
+                    if (storedToken != token)
+                    {
+                        _logger.LogDebug("白名单中存储的令牌与当前令牌不一致（可能已换session），将其标记为撤销");
+                        return true;
+                    }
+                }
+            }
+
+            return false;
         }
         catch (Exception ex)
         {

@@ -286,14 +286,12 @@ public class BudgetServerImpl : IBudgetServer
     public List<Budget> QueryCurrentBudgets()
     {
         long userId = _contextSession.UserId;
-        // 查询当前用户当月或者当季度或者当年的预算列表
-        var currentMonth = DateTime.Now.Month;
-        var currentQuarter = (currentMonth - 1) / 3 + 1;
-        var currentYear = DateTime.Now.Year;
+        // 使用时间范围查询当前在用的预算，兼容月度/季度/年度预算
+        var now = DateTime.Now;
         var budgets = _dbContext.Budgets
             .Where(b => !b.IsDeleted
-                        && b.StartTime.Year == currentYear
-                        && (b.StartTime.Month == currentMonth || b.StartTime.Month / 3 + 1 == currentQuarter)
+                        && b.StartTime <= now
+                        && b.EndTime >= now
                         && b.CreateUserId == userId)
             .ToList();
 
@@ -313,14 +311,12 @@ public class BudgetServerImpl : IBudgetServer
     /// <returns>预算列表</returns>
     public List<Budget> QueryCurrentBudgetsByExpenseCategoryId(long transactionCategoryId, long userId)
     {
-        // 查询当前用户当月或者当季度或者当年的预算列表
-        var currentMonth = DateTime.Now.Month;
-        var currentQuarter = (currentMonth - 1) / 3 + 1;
-        var currentYear = DateTime.Now.Year;
+        // 使用时间范围查询当前在用的预算，兼容月度/季度/年度预算
+        var now = DateTime.Now;
         var budgets = _dbContext.Budgets
             .Where(b => !b.IsDeleted
-                        && b.StartTime.Year == currentYear
-                        && (b.StartTime.Month == currentMonth || b.StartTime.Month / 3 + 1 == currentQuarter)
+                        && b.StartTime <= now
+                        && b.EndTime >= now
                         && b.TransactionCategoryId == transactionCategoryId
                         && b.CreateUserId == userId)
             .ToList();

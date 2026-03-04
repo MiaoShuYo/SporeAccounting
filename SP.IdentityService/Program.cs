@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.EntityFrameworkCore;
 using SP.Common.Redis;
 using SP.IdentityService.DB;
@@ -161,6 +162,16 @@ builder.Services.AddSingleton<JwtConfigService>();
 // 注入loki日志服务
 builder.Services.AddLoggerService(builder.Configuration);
 
+// 配置转发头中间件，用于获取反向代理后的真实客户端 IP
+builder.Services.Configure<ForwardedHeadersOptions>(options =>
+{
+    options.ForwardedHeaders = ForwardedHeaders.XForwardedFor
+        | ForwardedHeaders.XForwardedProto;
+    // 生产环境建议配置 KnownProxies/KnownNetworks 降低信任范围
+    options.KnownNetworks.Clear();
+    options.KnownProxies.Clear();
+});
+
 var app = builder.Build();
 
 // 启动时迁移数据库并进行幂等初始化（角色与管理员用户）
@@ -252,6 +263,7 @@ if (app.Environment.IsDevelopment() || app.Environment.EnvironmentName == "Local
     app.UseDeveloperExceptionPage();
 }
 
+app.UseForwardedHeaders();
 app.UseHttpsRedirection();
 app.UseRouting();
 

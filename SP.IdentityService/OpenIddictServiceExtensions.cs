@@ -34,7 +34,8 @@ public static class OpenIddictServiceExtensions
                 options.SetTokenEndpointUris("api/auth/token");
 
                 // 设置撤销端点
-                options.SetRevocationEndpointUris("api/auth/revoke");
+                // 自定义 MVC action 处理 revoke 端点，不在此配置 SetRevocationEndpointUris
+                // （配置了但没有 passthrough 会导致 OpenIddict 拦截，自定义 Redis 清理逻辑失效）
 
                 // 启用密码模式
                 options.AllowPasswordFlow() // 开启密码模式

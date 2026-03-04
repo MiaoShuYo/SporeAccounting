@@ -61,14 +61,14 @@ public class BudgetConsumerService : BackgroundService
             if (string.IsNullOrEmpty(message.Body))
             {
                 _logger.LogError("消息体为空，无法处理预算");
-                return;
+                throw new InvalidOperationException("消息体为空");  // 抛出异常以触发 Nack/重试
             }
 
             BudgetChangeMQ? bugChange = JsonSerializer.Deserialize<BudgetChangeMQ>(message.Body);
             if (bugChange == null)
             {
                 _logger.LogError("消息体反序列化失败，无法处理预算");
-                return;
+                throw new InvalidOperationException("消息体反序列化失败");  // 抛出异常以触发 Nack/重试
             }
 
             // 使用服务作用域工厂创建作用域并获取预算服务
