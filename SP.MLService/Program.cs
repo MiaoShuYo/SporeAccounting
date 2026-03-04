@@ -4,6 +4,8 @@ using SP.MLService.Domain;
 using SP.Common.Nacos;
 using SP.Common.Nacos.Configuration;
 using SP.Common.Nacos;
+using SP.Common;
+using SP.Common.Middleware;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -64,16 +66,30 @@ builder.Configuration.AddSpNacosConfiguration(builder.Configuration.GetSection("
 // 注册 SP.Common Nacos OpenAPI 封装
 builder.Services.AddSpNacos(builder.Configuration);
 
-// 配置 CORS（允许前端调用）
+// 配置 CORS — 允许来源从配置读取，禁止使用通配符 AllowAnyOrigin
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("AllowAll", policy =>
+    options.AddPolicy("AllowConfigured", policy =>
     {
-        policy.AllowAnyOrigin()
-              .AllowAnyMethod()
-              .AllowAnyHeader();
+        var allowedOrigins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>();
+        if (allowedOrigins != null && allowedOrigins.Length > 0)
+        {
+            policy.WithOrigins(allowedOrigins)
+                  .AllowAnyMethod()
+                  .AllowAnyHeader()
+                  .AllowCredentials();
+        }
+        else
+        {
+            // 未配置来源时拒绝所有跨域请求（fail‑secure）
+            policy.SetIsOriginAllowed(_ => false);
+        }
     });
 });
+
+// 注册 IHttpContextAccessor 和 ContextSession（从网关转发的用户信息）
+builder.Services.AddHttpContextAccessor();
+builder.Services.AddScoped<ContextSession>();
 
 // 注册渐进式学习管理器（MongoDB版本）
 builder.Services.AddSingleton<ProgressiveLearningManager>(provider =>
@@ -111,9 +127,10 @@ if (app.Environment.IsDevelopment() || app.Environment.EnvironmentName == "Local
 }
 
 app.UseHttpsRedirection();
-app.UseStaticFiles(); 
-app.UseCors("AllowAll");
+app.UseStaticFiles();
+app.UseCors("AllowConfigured");
 app.UseAuthentication();
+app.UseMiddleware<ApplicationMiddleware>();
 app.UseAuthorization();
 app.MapControllers();
 

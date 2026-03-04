@@ -66,6 +66,16 @@ public class ApplicationMiddleware
         if (!string.IsNullOrEmpty(email))
             claims.Add(new Claim("Email", email));
 
+        // 提取角色声明（由网关通过 X-User-Roles 头转发，逗号分隔）
+        var rolesHeader = context.Request.Headers["X-User-Roles"].FirstOrDefault();
+        if (!string.IsNullOrEmpty(rolesHeader))
+        {
+            foreach (var role in rolesHeader.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
+            {
+                claims.Add(new Claim(ClaimTypes.Role, role));
+            }
+        }
+
         var identity = new ClaimsIdentity(claims, "header");
         context.User = new ClaimsPrincipal(identity);
 

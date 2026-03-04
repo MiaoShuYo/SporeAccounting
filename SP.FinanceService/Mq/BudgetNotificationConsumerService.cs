@@ -90,7 +90,7 @@ public class BudgetNotificationConsumerService : BackgroundService
             if (string.IsNullOrEmpty(mqMessage.Body))
             {
                 _logger.LogError("消息体为空，无法处理预算通知");
-                return;
+                throw new InvalidOperationException("预算通知消息体为空");
             }
 
             // 反序列化消息
@@ -98,7 +98,7 @@ public class BudgetNotificationConsumerService : BackgroundService
             if (notification == null)
             {
                 _logger.LogError("消息体反序列化失败，无法处理预算通知");
-                return;
+                throw new InvalidOperationException("预算通知消息体反序列化失败");
             }
 
             try
@@ -123,6 +123,7 @@ public class BudgetNotificationConsumerService : BackgroundService
             {
                 _logger.LogError(ex,
                     $"处理预算通知消息失败: {mqMessage.Type}, 用户ID: {notification.UserId}, 预算ID: {notification.BudgetId}");
+                throw;
             }
         }, stoppingToken);
     }

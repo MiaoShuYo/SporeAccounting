@@ -195,6 +195,8 @@ public class SPAuthenticationMiddleware
             userInfo["X-User-Name"] = username;
         if (!string.IsNullOrEmpty(email))
             userInfo["X-User-Email"] = email;
+        if (roles.Any())
+            userInfo["X-User-Roles"] = string.Join(",", roles);
             
         return userInfo;
     }

@@ -55,8 +55,7 @@ public class SmSConsumerService : BackgroundService
             if (smSMessage == null)
             {
                 _logger.LogError("消息体解析失败");
-                await Task.CompletedTask;
-                return;
+                throw new InvalidOperationException("短信消息体反序列化失败");
             }
 
             try
@@ -79,9 +78,8 @@ public class SmSConsumerService : BackgroundService
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "短信发送失败，消息将被确认以避免无限重试。MessageId={MessageId}, Phone={Phone}", mqMessage.Id, smSMessage.PhoneNumber);
-                await Task.CompletedTask;
-                return;
+                _logger.LogError(ex, "短信发送失败，将触发重试机制。MessageId={MessageId}, Phone={Phone}", mqMessage.Id, smSMessage.PhoneNumber);
+                throw;
             }
 
             await Task.CompletedTask;

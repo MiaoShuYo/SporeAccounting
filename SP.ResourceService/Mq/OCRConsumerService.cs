@@ -175,6 +175,7 @@ public class OCRConsumerService : BackgroundService
             catch (Exception ex)
             {
                 _logger.LogError(ex, "OCR识别失败，文件id：" + fileId);
+                throw;
             }
             finally
             {
