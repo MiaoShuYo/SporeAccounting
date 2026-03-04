@@ -64,7 +64,7 @@ public class SharedExpenseServerImpl : ISharedExpenseServer
         return entity.Id;
     }
 
-    private async Task<long> CreateAccountingRecordAsync(SharedExpenseAddRequest request)
+    private async System.Threading.Tasks.Task<long> CreateAccountingRecordAsync(SharedExpenseAddRequest request)
     {
         var accountingRequest = new AccountingAddRequest
         {
@@ -218,7 +218,7 @@ public class SharedExpenseServerImpl : ISharedExpenseServer
         _dbContext.SaveChanges();
     }
 
-    private async Task UpdateAccountingRecordAsync(SharedExpense entity, SharedExpenseEditRequest request)
+    private async System.Threading.Tasks.Task UpdateAccountingRecordAsync(SharedExpense entity, SharedExpenseEditRequest request)
     {
         if (entity.AccountingId <= 0)
         {
@@ -239,7 +239,7 @@ public class SharedExpenseServerImpl : ISharedExpenseServer
         await _accountingServer.Edit(request.AccountBookId, accountingRequest);
     }
 
-    private async Task RefreshParticipantsAsync(
+    private async System.Threading.Tasks.Task RefreshParticipantsAsync(
         long sharedExpenseId,
         long accountBookId,
         List<SharedExpenseParticipantAddRequest> participants)
