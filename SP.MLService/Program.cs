@@ -111,7 +111,8 @@ builder.Services.AddSingleton<ProgressiveLearningManager>(provider =>
         ConfidenceThreshold = config.GetValue<float>("ML:ConfidenceThreshold", 0.4f),
         MinTrainingDataSize = config.GetValue<int>("ML:MinTrainingDataSize", 10),
         RetrainingFrequency = config.GetValue<int>("ML:RetrainingFrequency", 5),
-        IncrementalBatchSize = config.GetValue<int>("ML:IncrementalBatchSize", 10)
+        IncrementalBatchSize = config.GetValue<int>("ML:IncrementalBatchSize", 10),
+        MaxTrainingRecords = config.GetValue<int>("ML:MaxTrainingRecords", 50_000)
     };
     
     return new ProgressiveLearningManager(modelPath, connectionString, databaseName, collectionName, options);

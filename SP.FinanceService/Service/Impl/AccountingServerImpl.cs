@@ -111,12 +111,12 @@ public class AccountingServerImpl : IAccountingServer
 
         if (request.CurrencyId == targetCurrencyId)
         {
-            accounting.AfterAmount = request.Amount;
+            accounting.AfterAmount = request.Amount!.Value;
         }
         else
         {
             accounting.AfterAmount = await CalculateConvertedAmount(
-                request.CurrencyId, targetCurrencyId, request.Amount);
+                request.CurrencyId!.Value, targetCurrencyId, request.Amount!.Value);
         }
 
         SettingCommProperty.Create(accounting);
@@ -129,7 +129,7 @@ public class AccountingServerImpl : IAccountingServer
         BudgetChangeMQ budgetChange = new BudgetChangeMQ
         {
             ChangeAmount = accounting.AfterAmount,
-            TransactionCategoryId = request.TransactionCategoryId,
+            TransactionCategoryId = request.TransactionCategoryId!.Value,
             UserId = _contextSession.UserId
         };
         string budgetChangeJson = JsonSerializer.Serialize(budgetChange);
@@ -196,7 +196,7 @@ public class AccountingServerImpl : IAccountingServer
         AccountBookExist(accountBookId, true);
 
         // 查询要修改的记账记录
-        Accounting existingAccounting = QueryAccountingById(request.Id, accountBookId);
+        Accounting existingAccounting = QueryAccountingById(request.Id!.Value, accountBookId);
         if (existingAccounting == null)
         {
             throw new NotFoundException($"记账记录不存在，ID: {request.Id}");
@@ -210,12 +210,12 @@ public class AccountingServerImpl : IAccountingServer
         // 如果修改的货币与目标货币相同，直接使用原金额，否则进行转换
         if (request.CurrencyId == targetCurrencyId)
         {
-            existingAccounting.AfterAmount = request.Amount;
+            existingAccounting.AfterAmount = request.Amount!.Value;
         }
         else
         {
             existingAccounting.AfterAmount = await CalculateConvertedAmount(
-                request.CurrencyId, targetCurrencyId, request.Amount);
+                request.CurrencyId!.Value, targetCurrencyId, request.Amount!.Value);
         }
 
         // 计算金额差额
@@ -232,7 +232,7 @@ public class AccountingServerImpl : IAccountingServer
         BudgetChangeMQ budgetUpdateChange = new BudgetChangeMQ
         {
             ChangeAmount = amountDifference,
-            TransactionCategoryId = request.TransactionCategoryId,
+            TransactionCategoryId = request.TransactionCategoryId!.Value,
             UserId = _contextSession.UserId
         };
         MqPublisher mqPublisher = new MqPublisher(JsonSerializer.Serialize(budgetUpdateChange),

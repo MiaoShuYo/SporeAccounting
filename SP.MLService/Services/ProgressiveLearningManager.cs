@@ -192,7 +192,7 @@ namespace SP.MLService.Services
         {
             try
             {
-                var trainingData = _feedbackStorage.ToTrainingData().ToList();
+                var trainingData = _feedbackStorage.ToTrainingData(_options.MaxTrainingRecords).ToList();
                 
                 if (trainingData.Count < _options.MinTrainingDataSize)
                 {
@@ -600,6 +600,9 @@ namespace SP.MLService.Services
         
         /// <summary>增量学习批次大小</summary>
         public int IncrementalBatchSize { get; set; } = 10;
+        
+        /// <summary>单次训练最多加载的反馈记录数，防止全量加载导致 OOM</summary>
+        public int MaxTrainingRecords { get; set; } = 50_000;
     }
 
     /// <summary>

@@ -222,14 +222,18 @@ namespace SP.MLService.Services
         /// - 支持大规模数据的高效处理
         /// </summary>
         /// <returns>LTR训练数据集合，每行包含查询、候选、标签和特征</returns>
-        public IEnumerable<LtrRow> ToTrainingData()
+        public IEnumerable<LtrRow> ToTrainingData(int maxRecords = int.MaxValue)
         {
             var rows = new List<LtrRow>();
             
             try
             {
-                // 从MongoDB获取所有反馈记录（可考虑添加分页处理大数据集）
-                var feedbacks = _feedbackCollection.Find(FilterDefinition<UserFeedback>.Empty).ToList();
+                // 分页加载反馈记录，按时间戳降序取最新的 maxRecords 条，防止全表扫描导致 OOM
+                var feedbacks = _feedbackCollection
+                    .Find(FilterDefinition<UserFeedback>.Empty)
+                    .SortByDescending(f => f.Timestamp)
+                    .Limit(maxRecords == int.MaxValue ? (int?)null : maxRecords)
+                    .ToList();
                 
                 // 遍历所有反馈记录，转换为训练样本
                 foreach (var feedback in feedbacks)

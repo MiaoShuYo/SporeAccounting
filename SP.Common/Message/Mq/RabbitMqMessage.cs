@@ -58,7 +58,7 @@ public class RabbitMqMessage
         // 声明队列，防止队列不存在
         await channel.QueueDeclareAsync(
             queue: publisher.Queue,
-            durable: false,
+            durable: true,
             exclusive: false,
             autoDelete: false,
             arguments: null);
@@ -69,7 +69,7 @@ public class RabbitMqMessage
             await channel.ExchangeDeclareAsync(
                 exchange: publisher.Exchange,
                 type: string.IsNullOrEmpty(publisher.ExchangeType) ? "direct" : publisher.ExchangeType,
-                durable: false,
+                durable: true,
                 autoDelete: false,
                 arguments: null);
 
@@ -131,7 +131,7 @@ public class RabbitMqMessage
 
         await channel.QueueDeclareAsync(
             queue: subscriber.Queue,
-            durable: false,
+            durable: true,
             exclusive: false,
             autoDelete: false,
             arguments: null);

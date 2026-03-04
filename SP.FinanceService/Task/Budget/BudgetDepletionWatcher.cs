@@ -94,13 +94,18 @@ public class BudgetDepletionWatcher : IJob
                 ApiResponse<ConfigResponse> silentPeriodResponse = await _configService.QueryByTypeAndUserId(ConfigTypeEnum.SilentPeriod, budget.CreateUserId);
                 if (silentPeriodResponse != null && silentPeriodResponse.StatusCode == HttpStatusCode.OK && silentPeriodResponse.Content != null && silentPeriodResponse.Content.Value != null)
                 {
-                    // 判断是否处于静音时段，如果处于静音时段，则不发送通知。格式为startTime%endTime
+                    // 判断是否处于静音时段，如果处于静音时段，则不发送通知。格式为startTime%endTime（时间格式如 "22:00" 或 "HH:mm"）
                     string[] silentPeriod = silentPeriodResponse.Content.Value.Split('%');
-                    if (silentPeriod.Length == 2)
+                    if (silentPeriod.Length == 2
+                        && TimeSpan.TryParse(silentPeriod[0].Trim(), out var silentStart)
+                        && TimeSpan.TryParse(silentPeriod[1].Trim(), out var silentEnd))
                     {
-                        DateTime startTime = DateTime.Parse(silentPeriod[0]);
-                        DateTime endTime = DateTime.Parse(silentPeriod[1]);
-                        if (now >= startTime && now <= endTime)
+                        var currentTime = now.TimeOfDay;
+                        // 处理跨午夜静音时段（如 22:00 ~ 06:00）
+                        bool inSilentPeriod = silentEnd >= silentStart
+                            ? currentTime >= silentStart && currentTime <= silentEnd     // 不跨午夜
+                            : currentTime >= silentStart || currentTime <= silentEnd;    // 跨午夜
+                        if (inSilentPeriod)
                         {
                             continue;
                         }

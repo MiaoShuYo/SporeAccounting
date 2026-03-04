@@ -34,7 +34,7 @@ public class AccountingController : ControllerBase
     [HttpPost]
     public async Task<ActionResult<long>> CreateAccounting([FromBody] AccountingAddRequest request)
     {
-        long accountingId = await _accountingServer.Add(request.AccountBookId, request);
+        long accountingId = await _accountingServer.Add(request.AccountBookId!.Value, request);
         return Ok(accountingId);
     }
 
@@ -70,7 +70,7 @@ public class AccountingController : ControllerBase
             return BadRequest("Route id does not match request.Id.");
         }
 
-        await _accountingServer.Edit(request.AccountBookId, request);
+        await _accountingServer.Edit(request.AccountBookId!.Value, request);
         return Ok(true);
     }
 
