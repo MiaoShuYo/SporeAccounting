@@ -111,11 +111,10 @@ public class AccountBookServerImpl : IAccountBookServer
             throw new NotFoundException($"账本不存在，ID: {request.Id}");
         }
 
-        // 将请求模型映射到实体
-        existingAccountBook = _automapper.Map<AccountBook>(request);
+        // 仅修改允许的字段，避免覆盖 CreateUserId/CreateDateTime 等元数据
+        existingAccountBook.Name = request.Name;
+        existingAccountBook.Remarks = request.Remarks;
         SettingCommProperty.Edit(existingAccountBook);
-        // 更新账本信息
-        _dbContext.AccountBooks.Update(existingAccountBook);
         // 保存更改到数据库
         _dbContext.SaveChanges();
     }
@@ -269,8 +268,42 @@ public class AccountBookServerImpl : IAccountBookServer
         return ids.Where(id => !accountBooks.Any(p => p.Id == id)).ToList();
     }
 
+    /// <summary>
+    /// 按ID获取账本（当前用户为创建者或被分享用户才可访问）
+    /// </summary>
+    /// <param name="requestAccountBookId">账本ID</param>
+    /// <returns>账本响应</returns>
     public AccountBookResponse Get(long requestAccountBookId)
     {
-        throw new NotImplementedException();
+        var contextSession = _serviceProvider.GetService<ContextSession>();
+        long currentUserId = contextSession?.UserId ?? 0;
+
+        var accountBook = _dbContext.AccountBooks.FirstOrDefault(ab =>
+            ab.Id == requestAccountBookId &&
+            !ab.IsDeleted &&
+            (ab.CreateUserId == currentUserId ||
+             _dbContext.AccountBookShares.Any(sh =>
+                 !sh.IsDeleted && sh.AccountBookId == ab.Id && sh.UserId == currentUserId)));
+
+        if (accountBook == null)
+        {
+            throw new NotFoundException($"账本不存在或无访问权限，ID: {requestAccountBookId}");
+        }
+
+        var response = _automapper.Map<AccountBookResponse>(accountBook);
+
+        // 设置权限类型
+        if (accountBook.CreateUserId == currentUserId)
+        {
+            response.PermissionType = PermissionTypeEnum.Admin;
+        }
+        else
+        {
+            var share = _dbContext.AccountBookShares.FirstOrDefault(sh =>
+                !sh.IsDeleted && sh.AccountBookId == requestAccountBookId && sh.UserId == currentUserId);
+            response.PermissionType = share?.PermissionType ?? PermissionTypeEnum.ReadOnly;
+        }
+
+        return response;
     }
 }

@@ -51,6 +51,11 @@ public class InSiteNotificationsServerImpl : IInSiteNotificationsServer
     /// <returns></returns>
     public async Task<long> SendInSiteNotificationAsync(SendInSiteNotificationRequest sendInSiteNotification)
     {
+        if (sendInSiteNotification.UserId == null)
+        {
+            throw new BusinessException("单个用户通知的 UserId 不能为空，全员发送请使用全员发送接口");
+        }
+
         InSiteNotification notification = _autoMapper.Map<InSiteNotification>(sendInSiteNotification);
         await _notificationServiceDb.InSiteNotifications.AddAsync(notification);
         await _notificationServiceDb.SaveChangesAsync();
@@ -87,7 +92,7 @@ public class InSiteNotificationsServerImpl : IInSiteNotificationsServer
     public async Task MarkNotificationAsReadAsync(long notificationId)
     {
         var notification = await _notificationServiceDb.InSiteNotifications
-            .FirstOrDefaultAsync(x => x.Id == notificationId);
+            .FirstOrDefaultAsync(x => x.Id == notificationId && x.UserId == _userId && !x.IsDeleted);
         if (notification == null)
         {
             throw new NotFoundException("通知不存在");
@@ -142,7 +147,7 @@ public class InSiteNotificationsServerImpl : IInSiteNotificationsServer
     public async Task DeleteInSiteNotificationsAsync(List<long> notificationIds)
     {
         var notifications = await _notificationServiceDb.InSiteNotifications
-            .Where(x => notificationIds.Contains(x.Id))
+            .Where(x => notificationIds.Contains(x.Id) && x.UserId == _userId && !x.IsDeleted)
             .ToListAsync();
         foreach (var notification in notifications)
         {
@@ -160,13 +165,14 @@ public class InSiteNotificationsServerImpl : IInSiteNotificationsServer
     public async Task EditInSiteNotificationAsync(EditInSiteNotificationRequest editInSiteNotificationRequest)
     {
         var notification = await _notificationServiceDb.InSiteNotifications
-            .FirstOrDefaultAsync(x => x.Id == editInSiteNotificationRequest.Id);
+            .FirstOrDefaultAsync(x => x.Id == editInSiteNotificationRequest.Id && x.UserId == _userId && !x.IsDeleted);
         if (notification == null)
         {
             throw new NotFoundException("通知不存在");
         }
 
-        notification = _autoMapper.Map<InSiteNotification>(editInSiteNotificationRequest);
+        // 映射到已跟踪实体，避免替换对象导致更新不落库
+        _autoMapper.Map(editInSiteNotificationRequest, notification);
         SettingCommProperty.Edit(notification);
         await _notificationServiceDb.SaveChangesAsync();
     }
@@ -179,7 +185,7 @@ public class InSiteNotificationsServerImpl : IInSiteNotificationsServer
     public async Task<InSiteNotificationRequest> GetInSiteNotificationDetailAsync(long notificationId)
     {
         var notification = await _notificationServiceDb.InSiteNotifications
-            .FirstOrDefaultAsync(x => x.Id == notificationId);
+            .FirstOrDefaultAsync(x => x.Id == notificationId && x.UserId == _userId && !x.IsDeleted);
         if (notification == null)
         {
             throw new NotFoundException("通知不存在");

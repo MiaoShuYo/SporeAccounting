@@ -178,14 +178,14 @@ public class TransactionCategoryServerImpl : ITransactionCategoryServer
     }
 
     /// <summary>
-    /// 查询分类信息
+    /// 查询分类信息（仅返回当前用户名下的分类）
     /// </summary>
     /// <param name="categoryId">分类id</param>
     /// <returns>返回分类信息</returns>
     public TransactionCategory? QueryById(long categoryId)
     {
         return _dbContext.TransactionCategories
-            .FirstOrDefault(c => c.Id == categoryId && c.IsDeleted == false);
+            .FirstOrDefault(c => c.Id == categoryId && c.IsDeleted == false && c.CreateUserId == _userId);
     }
 
     public long Add(TransactionCategoryAddRequest category)
@@ -238,8 +238,8 @@ public class TransactionCategoryServerImpl : ITransactionCategoryServer
             return new List<TransactionCategory>();
         }
 
-        // 查询指定ID列表的收支分类
+        // 查询指定ID列表的收支分类（仅当前用户名下）
         return _dbContext.TransactionCategories
-            .Where(c => ids.Contains(c.Id) && c.IsDeleted == false).ToList();
+            .Where(c => ids.Contains(c.Id) && c.IsDeleted == false && c.CreateUserId == _userId).ToList();
     }
 }

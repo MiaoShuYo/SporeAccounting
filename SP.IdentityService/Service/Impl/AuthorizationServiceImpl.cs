@@ -231,8 +231,8 @@ public class AuthorizationServiceImpl : IAuthorizationService
             throw new BusinessException("用户不存在");
         }
 
-        // 如果用户被禁用或锁定，返回错误
-        if (!await _userManager.IsEmailConfirmedAsync(user) || await _userManager.IsLockedOutAsync(user))
+        // 如果用户已被软删除或锁定，返回错误
+        if (user.IsDeleted || await _userManager.IsLockedOutAsync(user))
         {
             throw new BusinessException("用户已被禁用或锁定");
         }
@@ -511,8 +511,23 @@ public class AuthorizationServiceImpl : IAuthorizationService
             throw new BusinessException("验证码错误");
         }
 
-        // 验证通过后，更新用户的邮箱验证状态
-        var user = await _userManager.FindByEmailAsync(verifyCode.Email);
+        // 验证通过后，将邮筱绑定到当前登录用户（而非按邮筱查找用户）
+        var currentUserSubject = _httpContextAccessor.HttpContext?.User?
+            .FindFirstValue(OpenIddictConstants.Claims.Subject)
+            ?? _httpContextAccessor.HttpContext?.User?.FindFirstValue("UserId");
+        if (string.IsNullOrEmpty(currentUserSubject))
+        {
+            throw new BusinessException("无法确认当前用户身份，请重新登录");
+        }
+
+        // 校验该邮筱未被其他用户占用
+        var existingEmailUser = await _userManager.FindByEmailAsync(verifyCode.Email);
+        if (existingEmailUser != null && existingEmailUser.Id.ToString() != currentUserSubject)
+        {
+            throw new BusinessException("该邮筱已被其他用户绑定");
+        }
+
+        var user = await _userManager.FindByIdAsync(currentUserSubject);
         if (user == null)
         {
             throw new BusinessException("用户不存在");
@@ -537,11 +552,22 @@ public class AuthorizationServiceImpl : IAuthorizationService
     /// <returns></returns>
     public async Task ResetPasswordAsync(PasswordResetRequest resetPasswordRequest)
     {
-        if ((string.IsNullOrEmpty(resetPasswordRequest.Email) ||
-             string.IsNullOrEmpty(resetPasswordRequest.PhoneNumber)) &&
-            string.IsNullOrEmpty(resetPasswordRequest.ResetCode))
+        // 按找回方式分别校验必需参数
+        if (resetPasswordRequest.ResetBy == ResetEnum.Phone)
         {
-            throw new BusinessException("参数错误");
+            if (string.IsNullOrEmpty(resetPasswordRequest.PhoneNumber) ||
+                string.IsNullOrEmpty(resetPasswordRequest.ResetCode))
+            {
+                throw new BusinessException("手机找回密码时，手机号和验证码不能为空");
+            }
+        }
+        else
+        {
+            if (string.IsNullOrEmpty(resetPasswordRequest.Email) ||
+                string.IsNullOrEmpty(resetPasswordRequest.ResetCode))
+            {
+                throw new BusinessException("邮筱找回密码时，邮筱和验证码不能为空");
+            }
         }
 
         SpUser? user = null;
@@ -607,8 +633,25 @@ public class AuthorizationServiceImpl : IAuthorizationService
             verifyCode.Code);
         if (isOk)
         {
-            // 验证通过后，更新用户的手机号验证状态
-            var user = await _userManager.Users.FirstOrDefaultAsync(u => u.PhoneNumber == verifyCode.PhoneNumber);
+            // 将手机号绑定到当前登录用户（而非按手机号查找用户）
+            var currentUserSubject = _httpContextAccessor.HttpContext?.User?
+                .FindFirstValue(OpenIddictConstants.Claims.Subject)
+                ?? _httpContextAccessor.HttpContext?.User?.FindFirstValue("UserId");
+            if (string.IsNullOrEmpty(currentUserSubject))
+            {
+                throw new BusinessException("无法确认当前用户身份，请重新登录");
+            }
+
+            // 校验手机号未被其他用户占用
+            var existingPhoneUser = await _userManager.Users
+                .FirstOrDefaultAsync(u => u.PhoneNumber == verifyCode.PhoneNumber);
+            if (existingPhoneUser != null && existingPhoneUser.Id.ToString() != currentUserSubject)
+            {
+                throw new BusinessException("该手机号已被其他用户绑定");
+            }
+
+            // 验证通过后，更新当前用户的手机号验证状态
+            var user = await _userManager.FindByIdAsync(currentUserSubject);
             if (user == null)
             {
                 throw new BusinessException("用户不存在");
