@@ -66,5 +66,10 @@ public class FinanceProfile : Profile
         // 分摊提醒映射
         CreateMap<SharedExpenseReminderAddRequest, SharedExpenseReminder>();
         CreateMap<SharedExpenseReminder, SharedExpenseReminderResponse>();
+
+        // 常用支付方式映射
+        CreateMap<PaymentMethodAddRequest, PaymentMethod>();
+        CreateMap<PaymentMethodEditRequest, PaymentMethod>();
+        CreateMap<PaymentMethod, PaymentMethodResponse>();
     }
 }

@@ -130,6 +130,7 @@ builder.Services.AddScoped<ISharedExpenseSettlementServer, SharedExpenseSettleme
 builder.Services.AddScoped<ISharedExpenseServer, SharedExpenseServerImpl>();
 builder.Services.AddScoped<ISharedExpenseReminderServer, SharedExpenseReminderServerImpl>();
 builder.Services.AddScoped<ISharedExpenseServer, SharedExpenseServerImpl>();
+builder.Services.AddScoped<IPaymentMethodServer, PaymentMethodServerImpl>();
 
 // 注册 IHttpContextAccessor
 builder.Services.AddHttpContextAccessor();

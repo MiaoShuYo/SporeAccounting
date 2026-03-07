@@ -69,6 +69,11 @@ public class FinanceServiceDbContext : DbContext
     public DbSet<SharedExpenseSettlement> SharedExpenseSettlements { get; set; }
 
     /// <summary>
+    /// 常用支付方式
+    /// </summary>
+    public DbSet<PaymentMethod> PaymentMethods { get; set; }
+
+    /// <summary>
     /// 数据库连接配置
     /// </summary>
     private readonly IConfiguration _dbConfig;
