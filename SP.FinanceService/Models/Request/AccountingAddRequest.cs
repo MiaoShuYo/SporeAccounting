@@ -42,4 +42,10 @@ public class AccountingAddRequest
     /// </summary>
     [MaxLength(100, ErrorMessage = "备注最大长度为100")]
     public string? Remark { get; set; }
+
+    /// <summary>
+    /// 支付方式Id
+    /// </summary>
+    [Required(ErrorMessage = "支付方式不能为空")]
+    public long? PaymentMethodId { get; set; }
 }

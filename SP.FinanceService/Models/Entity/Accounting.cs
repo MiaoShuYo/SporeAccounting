@@ -56,4 +56,11 @@ public class Accounting: BaseModel
     /// </summary>
     [Column(TypeName = "nvarchar(100)")]
     public string? Remark { get; set; }
+
+    /// <summary>
+    /// 支付方式Id
+    /// </summary>
+    [Column(TypeName = "bigint")]
+    [Required]
+    public long PaymentMethodId { get; set; }
 }

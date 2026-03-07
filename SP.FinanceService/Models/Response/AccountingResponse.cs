@@ -44,4 +44,14 @@ public class AccountingResponse
     /// 备注
     /// </summary>
     public string? Remark { get; set; }
+
+    /// <summary>
+    /// 支付方式Id
+    /// </summary>
+    public long PaymentMethodId { get; set; }
+
+    /// <summary>
+    /// 支付方式名称
+    /// </summary>
+    public string PaymentMethodName { get; set; }
 }

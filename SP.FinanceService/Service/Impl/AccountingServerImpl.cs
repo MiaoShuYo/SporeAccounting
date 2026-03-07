@@ -104,6 +104,7 @@ public class AccountingServerImpl : IAccountingServer
     public async System.Threading.Tasks.Task<long> Add(long accountBookId, AccountingAddRequest request)
     {
         AccountBookExist(accountBookId, true);
+        ValidatePaymentMethod(request.PaymentMethodId!.Value);
 
         // 将请求映射到实体
         var accounting = _autoMapper.Map<Accounting>(request);
@@ -194,6 +195,7 @@ public class AccountingServerImpl : IAccountingServer
     {
         // 检查账本是否存在
         AccountBookExist(accountBookId, true);
+        ValidatePaymentMethod(request.PaymentMethodId!.Value);
 
         // 查询要修改的记账记录
         Accounting existingAccounting = QueryAccountingById(request.Id!.Value, accountBookId);
@@ -261,7 +263,12 @@ public class AccountingServerImpl : IAccountingServer
         }
 
         // 将实体映射到响应模型
-        return _autoMapper.Map<AccountingResponse>(accounting);
+        var response = _autoMapper.Map<AccountingResponse>(accounting);
+        response.PaymentMethodName = _dbContext.PaymentMethods
+            .Where(p => p.Id == accounting.PaymentMethodId && !p.IsDeleted)
+            .Select(p => p.Name)
+            .FirstOrDefault() ?? string.Empty;
+        return response;
     }
 
     /// <summary>
@@ -290,6 +297,16 @@ public class AccountingServerImpl : IAccountingServer
 
         // 将实体列表映射到响应模型列表
         var responseList = _autoMapper.Map<List<AccountingResponse>>(pagedData);
+
+        // 填充支付方式名称
+        var paymentMethodIds = pagedData.Select(a => a.PaymentMethodId).Distinct().ToList();
+        var paymentMethodNames = _dbContext.PaymentMethods
+            .Where(p => paymentMethodIds.Contains(p.Id) && !p.IsDeleted)
+            .ToDictionary(p => p.Id, p => p.Name);
+        foreach (var item in responseList)
+        {
+            item.PaymentMethodName = paymentMethodNames.GetValueOrDefault(item.PaymentMethodId) ?? string.Empty;
+        }
 
         // 返回分页响应
         return new PageResponse<AccountingResponse>
@@ -437,5 +454,20 @@ public class AccountingServerImpl : IAccountingServer
 
         _dbContext.Accountings.UpdateRange(accountingsToMigrate);
         _dbContext.SaveChanges();
+    }
+
+    /// <summary>
+    /// 校验支付方式是否存在且属于当前用户
+    /// </summary>
+    /// <param name="paymentMethodId">支付方式ID</param>
+    private void ValidatePaymentMethod(long paymentMethodId)
+    {
+        long userId = _contextSession.UserId;
+        bool exists = _dbContext.PaymentMethods
+            .Any(p => p.Id == paymentMethodId && p.CreateUserId == userId && !p.IsDeleted);
+        if (!exists)
+        {
+            throw new NotFoundException("支付方式不存在", paymentMethodId);
+        }
     }
 }
