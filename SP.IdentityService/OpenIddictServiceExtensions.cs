@@ -16,7 +16,8 @@ public static class OpenIddictServiceExtensions
     /// <param name="services"></param>
     /// <param name="configuration"></param>
     /// <returns></returns>
-    public static IServiceCollection AddOpenIddict(this IServiceCollection services, IConfiguration configuration)
+    public static IServiceCollection AddOpenIddict(this IServiceCollection services, IConfiguration configuration,
+        IHostEnvironment environment)
     {
         string signingKey = configuration["Jwt:SigningKey"];
         string encryptionKey = configuration["Jwt:EncryptionKey"];
@@ -31,18 +32,26 @@ public static class OpenIddictServiceExtensions
             {
                 // 设置令牌端点
                 options.SetTokenEndpointUris("api/auth/token");
-                
+
                 // 设置撤销端点
-                options.SetRevocationEndpointUris("api/auth/revoke");
+                // 自定义 MVC action 处理 revoke 端点，不在此配置 SetRevocationEndpointUris
+                // （配置了但没有 passthrough 会导致 OpenIddict 拦截，自定义 Redis 清理逻辑失效）
 
                 // 启用密码模式
                 options.AllowPasswordFlow() // 开启密码模式
                     .AllowClientCredentialsFlow() // 开启客户端令牌模式
                     .AllowRefreshTokenFlow(); // 开启刷新令牌
+                
+                // 自定义授权模式
+                options.AllowCustomFlow("sms_otp").AllowCustomFlow("email_code");
 
                 // 注册授权范围
                 options.RegisterScopes("api", OpenIddictConstants.Scopes.OfflineAccess);
-
+                // 仅在开发/本地环境允许匿名客户端
+                if (environment.IsDevelopment() || environment.EnvironmentName == "Local")
+                {
+                    options.AcceptAnonymousClients();
+                }
                 // 注册所有资源
                 options.RegisterClaims(
                     OpenIddictConstants.Claims.Name,
@@ -64,17 +73,18 @@ public static class OpenIddictServiceExtensions
                 options.AddEncryptionKey(
                     new SymmetricSecurityKey(Convert.FromBase64String(encryptionKey)));
 
-                // 允许接收表单数据
-                options.AcceptAnonymousClients();
-
                 // 配置令牌选项 - 使用引用刷新令牌使令牌更短
                 options.UseReferenceRefreshTokens();
                 options.DisableAccessTokenEncryption();
 
                 // 集成 ASP.NET Core
-                options.UseAspNetCore()
-                    .EnableTokenEndpointPassthrough()
-                    .DisableTransportSecurityRequirement(); // 开发模式下禁用HTTPS
+                var aspNetCoreBuilder = options.UseAspNetCore()
+                    .EnableTokenEndpointPassthrough();
+
+                if (environment.IsDevelopment() || environment.EnvironmentName == "Local")
+                {
+                    aspNetCoreBuilder.DisableTransportSecurityRequirement();
+                }
             })
             .AddValidation(options =>
             {

@@ -55,7 +55,7 @@ namespace SP.Common.ExceptionHandling
             _logger.LogError(exception, "处理请求时发生未处理的异常: {Message}", exception.Message);
             
             // 记录到Loki日志（包含更详细的信息）
-            LogExceptionToLoki(context, exception);
+            await LogExceptionToLokiAsync(context, exception);
 
             // 设置响应内容类型
             context.Response.ContentType = "application/json";
@@ -140,7 +140,7 @@ namespace SP.Common.ExceptionHandling
         /// </summary>
         /// <param name="context">HTTP上下文</param>
         /// <param name="exception">异常</param>
-        private void LogExceptionToLoki(HttpContext context, Exception exception)
+        private async Task LogExceptionToLokiAsync(HttpContext context, Exception exception)
         {
             try
             {
@@ -160,7 +160,7 @@ namespace SP.Common.ExceptionHandling
                         var position = request.Body.Position;
                         request.Body.Position = 0;
                         using var reader = new StreamReader(request.Body, leaveOpen: true);
-                        requestBody = reader.ReadToEndAsync().GetAwaiter().GetResult();
+                        requestBody = await reader.ReadToEndAsync();
                         request.Body.Position = position;
                     }
                 }

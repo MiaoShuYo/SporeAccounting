@@ -1,4 +1,8 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using SP.Common;
+using SP.Common.ExceptionHandling.Exceptions;
+using SP.Common.Model;
 using SP.IdentityService.Models.Request;
 using SP.IdentityService.Models.Response;
 using SP.IdentityService.Service;
@@ -10,6 +14,7 @@ namespace SP.IdentityService.Controllers;
 /// </summary>
 [ApiController]
 [Route("/api/roles")]
+[Authorize]
 public class RoleController : ControllerBase
 {
     /// <summary>
@@ -22,15 +27,22 @@ public class RoleController : ControllerBase
     /// </summary>
     private readonly IRolePermissionService _rolePermissionService;
 
+    /// <summary>
+    /// 上下文会话
+    /// </summary>
+    private readonly ContextSession _contextSession;
 
     /// <summary>
     /// 角色控制器构造函数
     /// </summary>
     /// <param name="roleService"></param>
-    public RoleController(IRoleService roleService, IRolePermissionService rolePermissionService)
+    /// <param name="rolePermissionService"></param>
+    /// <param name="contextSession"></param>
+    public RoleController(IRoleService roleService, IRolePermissionService rolePermissionService, ContextSession contextSession)
     {
         _rolePermissionService = rolePermissionService;
         _roleService = roleService;
+        _contextSession = contextSession;
     }
 
     /// <summary>
@@ -39,7 +51,7 @@ public class RoleController : ControllerBase
     /// <param name="page">分页查询参数</param>
     /// <returns></returns>
     [HttpGet]
-    public async Task<ActionResult<PagedResponse<RoleResponse>>> GetRoles([FromQuery] RolePageRequest page)
+    public async Task<ActionResult<PageResponse<RoleResponse>>> GetRoles([FromQuery] RolePageRequest page)
     {
         var result = await _roleService.GetRoleList(page);
         return Ok(result);
@@ -131,13 +143,18 @@ public class RoleController : ControllerBase
     }
 
     /// <summary>
-    /// 获取用户权限
+    /// 获取用户权限（只能查询自身的权限）
     /// </summary>
     /// <param name="userId"></param>
     /// <returns></returns>
     [HttpGet("users/{userId}/permissions")]
     public async Task<ActionResult<List<string>>> GetUserPermissions([FromRoute] long userId)
     {
+        if (userId != _contextSession.UserId)
+        {
+            throw new ForbiddenException("不能查看其他用户的权限");
+        }
+
         var result = await _rolePermissionService.GetUserPermissions(userId);
         return Ok(result);
     }

@@ -56,7 +56,7 @@ public class ExchangeRateRecordServerImpl : IExchangeRateRecordServer
 
         var query = _dbContext.ExchangeRateRecords.AsQueryable();
 
-        if (exchangeRateRecordPage.SourceCurrencyId > 0 && exchangeRateRecordPage.SourceCurrencyId > 0)
+        if (exchangeRateRecordPage.SourceCurrencyId > 0 && exchangeRateRecordPage.TargetCurrencyId > 0)
         {
             query = query.Where(x =>
                 x.SourceCurrencyId == exchangeRateRecordPage.SourceCurrencyId &&

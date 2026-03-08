@@ -36,6 +36,25 @@ jobs:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
 
+      - name: Remove existing Docker image (if any)
+        run: |
+          IMAGE_REPO="${{ secrets.DOCKER_USERNAME }}/sp-finance-service"
+          EXISTING_IDS=$(docker images "$IMAGE_REPO" -q || true)
+          if [ -n "$EXISTING_IDS" ]; then
+            echo "Removing existing images: $EXISTING_IDS"
+            docker rmi -f $EXISTING_IDS || true
+          else
+            echo "No existing local images to remove."
+          fi
+
+      - name: Remove remote Docker Hub image tag (if any)
+        run: |
+          IMAGE_REPO="${{ secrets.DOCKER_USERNAME }}/sp-finance-service"
+          IMAGE_TAG="${{ github.event.inputs.tag || 'latest' }}"
+          IMAGE_REF="$IMAGE_REPO:$IMAGE_TAG"
+          echo "Attempting to remove remote image: $IMAGE_REF"
+          docker buildx imagetools rm "$IMAGE_REF" || echo "Remote image not found or cannot be removed; continuing."
+
       - name: Build and push Docker image
         uses: docker/build-push-action@v4
         with:
@@ -59,7 +78,16 @@ jobs:
           username: ${{ secrets.SERVER_USERNAME }}
           key: ${{ secrets.SERVER_SSH_KEY }}
           script: |
+            HOST_IP=$(curl -fsS https://api.ipify.org || curl -fsS https://ifconfig.me || curl -fsS https://ipinfo.io/ip)
+            if [ -z "$HOST_IP" ]; then HOST_IP=$(ip -o route get 1.1.1.1 2>/dev/null | awk '{print $7; exit}'); fi
+            if [ -z "$HOST_IP" ]; then HOST_IP=$(hostname -I | awk '{print $1}'); fi
+            echo "HOST_IP=$HOST_IP"
+            echo "ENVIRONMENT=${{ env.ENVIRONMENT }}"
             docker pull ${{ secrets.DOCKER_USERNAME }}/sp-finance-service:${{ github.event.inputs.tag || 'latest' }}
             docker stop sp-finance-service || true
             docker rm sp-finance-service || true
-            docker run -d --name sp-finance-service -p 8399:80 -e ASPNETCORE_ENVIRONMENT=${{ env.ENVIRONMENT }} ${{ secrets.DOCKER_USERNAME }}/sp-finance-service:${{ github.event.inputs.tag || 'latest' }} 
+            docker run -d --name sp-finance-service -p 8399:80 \
+              -e ASPNETCORE_ENVIRONMENT=${{ env.ENVIRONMENT }} \
+              -e HOST_IP=$HOST_IP \
+              -e EXPOSE_PORT=8399 \
+              ${{ secrets.DOCKER_USERNAME }}/sp-finance-service:${{ github.event.inputs.tag || 'latest' }}

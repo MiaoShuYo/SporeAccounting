@@ -74,6 +74,11 @@ namespace SP.FinanceService.Controllers
                 return BadRequest("Invalid category data.");
             }
 
+            if (id != category.Id)
+            {
+                return BadRequest("Route id does not match category.Id.");
+            }
+
             bool result = _transactionCategoryServer.Edit(category);
             if (result)
             {

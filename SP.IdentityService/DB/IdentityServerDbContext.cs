@@ -34,22 +34,21 @@ public class IdentityServerDbContext : IdentityDbContext<SpUser, SpRole, long>
         base.OnModelCreating(modelBuilder);
         // 配置 OpenIddict
         modelBuilder.UseOpenIddict();
+
+        // 为 OpenIddictTokens 的复合索引添加 MySQL 前缀长度，防止在 utf8mb4 下超过 3072 字节
+        modelBuilder.Entity<OpenIddict.EntityFrameworkCore.Models.OpenIddictEntityFrameworkCoreToken>(b =>
+        {
+            b.HasIndex("ApplicationId", "Status", "Subject", "Type")
+                .HasDatabaseName("IX_OpenIddictTokens_ApplicationId_Status_Subject_Type")
+                .HasPrefixLength(191, 50, 191, 150);
+        });
         // 修改Users表
         modelBuilder.Entity<SpUser>(b =>
         {
             b.Property(x => x.UserName).IsRequired().HasMaxLength(50);
             b.Property(x => x.Email).HasMaxLength(100);
             b.Property(x => x.LockoutEnd);
-            b.Property(x => x.PasswordHash).IsRequired();
-            b.Ignore(x => x.NormalizedUserName);
-            b.Ignore(x => x.NormalizedEmail);
-            b.Ignore(x => x.SecurityStamp);
-            b.Ignore(x => x.ConcurrencyStamp);
-            b.Ignore(x => x.TwoFactorEnabled);
-            b.Ignore(x => x.PhoneNumberConfirmed);
-            b.Ignore(x => x.AccessFailedCount);
         });
-        SeedData(modelBuilder);
     }
 
     /// <summary>
@@ -60,33 +59,10 @@ public class IdentityServerDbContext : IdentityDbContext<SpUser, SpRole, long>
     {
         var serverVersion = ServerVersion.AutoDetect(_dbConfig.GetConnectionString("MySQLConnection"));
         optionsBuilder.UseMySql(_dbConfig.GetConnectionString("MySQLConnection"), serverVersion);
-    }
-
-    private void SeedData(ModelBuilder builder)
-    {
-        // 添加默认角色
-        SpRole adminRole = new SpRole { Id = Snow.GetId(), Name = "Admin", NormalizedName = "ADMIN" };
-        SpRole userRole = new SpRole { Id = Snow.GetId(), Name = "User", NormalizedName = "USER" };
-        builder.Entity<SpRole>().HasData(adminRole, userRole);
-
-        // 添加默认用户
-        var hasher = new PasswordHasher<SpUser>();
-        SpUser adminUser = new SpUser
+        var env = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
+        if (env == "Development" || env == "Local")
         {
-            Id = Snow.GetId(),
-            UserName = "admin",
-            Email = "494324190@qq.com",
-            EmailConfirmed = true,
-            PasswordHash = hasher.HashPassword(null, "123*asdasd")
-        };
-        builder.Entity<SpUser>().HasData(adminUser);
-        // 添加用户角色
-        builder.Entity<IdentityUserRole<long>>().HasData(
-            new IdentityUserRole<long>
-            {
-                UserId = adminUser.Id,
-                RoleId = adminRole.Id
-            }
-        );
+            optionsBuilder.EnableSensitiveDataLogging();
+        }
     }
 }

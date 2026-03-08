@@ -7,19 +7,29 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="MMLib.SwaggerForOcelot" Version="9.0.0"/>
+        <PackageReference Include="MMLib.SwaggerForOcelot" Version="8.3.2" />
         <PackageReference Include="Ocelot" Version="24.0.1"/>
-        <PackageReference Include="Ocelot.Provider.Nacos" Version="1.3.5"/>
+        <PackageReference Include="OpenIddict.Validation.AspNetCore" Version="7.0.0" />
+        <PackageReference Include="OpenIddict.Validation.ServerIntegration" Version="7.0.0" />
         <PackageReference Include="Swashbuckle.AspNetCore" Version="6.6.2"/>
-        <PackageReference Include="nacos-sdk-csharp" Version="1.3.10"/>
-        <PackageReference Include="nacos-sdk-csharp.Extensions.Configuration" Version="1.3.10"/>
-        <PackageReference Include="nacos-sdk-csharp.AspNetCore" Version="1.3.10"/>
+        <PackageReference Include="Azure.Identity" Version="1.11.4" />
+        <PackageReference Include="Microsoft.Data.SqlClient" Version="5.1.3" />
+        <PackageReference Include="System.Formats.Asn1" Version="8.0.1" />
     </ItemGroup>
 
     <ItemGroup>
         <None Update="ocelot.json">
             <CopyToOutputDirectory>Always</CopyToOutputDirectory>
         </None>
+    </ItemGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\SP.Common\SP.Common.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <_ContentIncludedByDefault Remove="nacos\config\config_rpc_client_nacos\encrypted-data-key\snapshot-tenant\a8f01c53-b0b2-4046-b0f8-850e24738b23\DEFAULT_GROUP\ocelot.json" />
+      <_ContentIncludedByDefault Remove="nacos\config\config_rpc_client_nacos\snapshot-tenant\a8f01c53-b0b2-4046-b0f8-850e24738b23\DEFAULT_GROUP\ocelot.json" />
     </ItemGroup>
 
 </Project>

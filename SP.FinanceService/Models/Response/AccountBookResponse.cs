@@ -1,4 +1,6 @@
-﻿namespace SP.FinanceService.Models.Response;
+﻿using SP.FinanceService.Models.Enumeration;
+
+namespace SP.FinanceService.Models.Response;
 
 /// <summary>
 /// 账本响应模型
@@ -29,4 +31,9 @@ public class AccountBookResponse
     /// 账本支出金额
     /// </summary>
     public decimal ExpenditureAmount { get; set; }
+
+    /// <summary>
+    /// 账本权限(0-只读，1-读写，2-管理）
+    /// </summary>
+    public PermissionTypeEnum PermissionType { get; set; }
 }

@@ -1,5 +1,4 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using SP.Common;
 using SP.CurrencyService.Models.Entity;
 
 namespace SP.CurrencyService.DB;
@@ -59,79 +58,81 @@ public class CurrencyServiceDbContext : DbContext
     private void SeedData(ModelBuilder modelBuilder)
     {
         long adminUserId = 7333155174099406848;
+        // 使用固定 ID 和固定时间，确保每次运行 `HasData` 的结果确定性一致，避免重复迁移
+        var seedDate = new DateTime(2024, 1, 1, 0, 0, 0, DateTimeKind.Utc);
         modelBuilder.Entity<Currency>().HasData(new List<Currency>()
         {
             new Currency()
             {
-                Id = Snow.GetId(),
+                Id = 1000001L,
                 Name = "人民币",
                 Abbreviation = "CNY",
                 CreateUserId = adminUserId,
-                CreateDateTime = DateTime.Now
+                CreateDateTime = seedDate
             },
             new Currency()
             {
-                Id = Snow.GetId(),
+                Id = 1000002L,
                 Name = "美元",
                 Abbreviation = "USD",
                 CreateUserId = adminUserId,
-                CreateDateTime = DateTime.Now
+                CreateDateTime = seedDate
             },
             new Currency()
             {
-                Id = Snow.GetId(),
+                Id = 1000003L,
                 Name = "欧元",
                 Abbreviation = "EUR",
                 CreateUserId = adminUserId,
-                CreateDateTime = DateTime.Now
+                CreateDateTime = seedDate
             },
             new Currency()
             {
-                Id = Snow.GetId(),
+                Id = 1000004L,
                 Name = "日元",
                 Abbreviation = "JPY",
                 CreateUserId = adminUserId,
-                CreateDateTime = DateTime.Now
+                CreateDateTime = seedDate
             },
             new Currency()
             {
-                Id = Snow.GetId(),
+                Id = 1000005L,
                 Name = "英镑",
                 Abbreviation = "GBP",
                 CreateUserId = adminUserId,
-                CreateDateTime = DateTime.Now
+                CreateDateTime = seedDate
             },
             new Currency()
             {
-                Id = Snow.GetId(),
+                Id = 1000006L,
                 Name = "澳门币",
                 Abbreviation = "MOP",
                 CreateUserId = adminUserId,
-                CreateDateTime = DateTime.Now
+                CreateDateTime = seedDate
             },
             new Currency()
             {
-                Id = Snow.GetId(),
+                Id = 1000007L,
                 Name = "港元",
                 Abbreviation = "HKD",
                 CreateUserId = adminUserId,
-                CreateDateTime = DateTime.Now
+                CreateDateTime = seedDate
             },
             new Currency()
             {
-                Id = Snow.GetId(),
+                Id = 1000008L,
                 Name = "韩圆",
                 Abbreviation = "KRW",
                 CreateUserId = adminUserId,
-                CreateDateTime = DateTime.Now
+                CreateDateTime = seedDate
             },
             new Currency()
             {
-                Id = Snow.GetId(),
+                Id = 1000009L,
                 Name = "新台币",
                 Abbreviation = "TWD",
                 CreateUserId = adminUserId,
-                CreateDateTime = DateTime.Now
+                CreateDateTime = seedDate
             }
         });
     }

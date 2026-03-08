@@ -59,7 +59,14 @@ jobs:
           username: ${{ secrets.SERVER_USERNAME }}
           key: ${{ secrets.SERVER_SSH_KEY }}
           script: |
+            HOST_IP=$(curl -fsS https://api.ipify.org || curl -fsS https://ifconfig.me || curl -fsS https://ipinfo.io/ip)
+            if [ -z "$HOST_IP" ]; then HOST_IP=$(ip -o route get 1.1.1.1 2>/dev/null | awk '{print $7; exit}'); fi
+            if [ -z "$HOST_IP" ]; then HOST_IP=$(hostname -I | awk '{print $1}'); fi
             docker pull ${{ secrets.DOCKER_USERNAME }}/sp-gateway:${{ github.event.inputs.tag || 'latest' }}
             docker stop sp-gateway || true
             docker rm sp-gateway || true
-            docker run -d --name sp-gateway -p 8977:80 -e ASPNETCORE_ENVIRONMENT=${{ env.ENVIRONMENT }} ${{ secrets.DOCKER_USERNAME }}/sp-gateway:${{ github.event.inputs.tag || 'latest' }}
+            docker run -d --name sp-gateway -p 8977:80 \
+              -e ASPNETCORE_ENVIRONMENT=${{ env.ENVIRONMENT }} \
+              -e HOST_IP=$HOST_IP \
+              -e EXPOSE_PORT=8977 \
+              ${{ secrets.DOCKER_USERNAME }}/sp-gateway:${{ github.event.inputs.tag || 'latest' }}

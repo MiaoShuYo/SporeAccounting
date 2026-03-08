@@ -1,6 +1,4 @@
 using System.Reflection;
-using Nacos.AspNetCore.V2;
-using Nacos.V2.DependencyInjection;
 using Quartz;
 using SP.Common.Middleware;
 using SP.CurrencyService.DB;
@@ -10,12 +8,16 @@ using SP.CurrencyService.Task.ExchangeRate;
 using SP.Common.ConfigService;
 using SP.Common.Logger;
 using SP.Common.Redis;
+using SP.Common.ExceptionHandling;
+using SP.Common.Nacos;
+using SP.Common.Nacos.Configuration;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 
 builder.Services.AddControllers();
+builder.Services.ConfigureDetailedModelValidation();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
@@ -55,11 +57,23 @@ builder.Services.AddSwaggerGen(c =>
     });
 });
 
-// 添加Nacos服务注册
-builder.Services.AddNacosAspNet(builder.Configuration);
-// 添加Nacos配置中心
-builder.Configuration.AddNacosV2Configuration(builder.Configuration.GetSection("nacos"));
-builder.Services.AddNacosV2Naming(builder.Configuration);
+// 覆盖 Nacos 注册的 IP/Port 为宿主机IP + 对外端口（通过环境变量或配置传入）
+var hostIp = Environment.GetEnvironmentVariable("HOST_IP") ?? builder.Configuration["HOST_IP"];
+var exposePort = Environment.GetEnvironmentVariable("EXPOSE_PORT") ?? builder.Configuration["EXPOSE_PORT"];
+
+if (!string.IsNullOrWhiteSpace(hostIp) || !string.IsNullOrWhiteSpace(exposePort))
+{
+    var overrides = new Dictionary<string, string?>();
+    if (!string.IsNullOrWhiteSpace(hostIp)) overrides["nacos:Ip"] = hostIp;
+    if (!string.IsNullOrWhiteSpace(exposePort)) overrides["nacos:Port"] = exposePort;
+    builder.Configuration.AddInMemoryCollection(overrides);
+}
+
+// Nacos 配置中心（OpenAPI）
+builder.Configuration.AddSpNacosConfiguration(builder.Configuration.GetSection("nacos"));
+
+// 注册 SP.Common Nacos OpenAPI 封装
+builder.Services.AddSpNacos(builder.Configuration);
 // 注册 DbContext
 builder.Services.AddDbContext<CurrencyServiceDbContext>(ServiceLifetime.Scoped);
 builder.Services.AddAutoMapper(Assembly.GetExecutingAssembly());
@@ -103,10 +117,10 @@ if (app.Environment.IsDevelopment() || app.Environment.EnvironmentName == "Local
     app.UseSwaggerUI();
 }
 
-app.UseMiddleware<ApplicationMiddleware>();
-
 app.UseHttpsRedirection();
 
+app.UseAuthentication();
+app.UseMiddleware<ApplicationMiddleware>();
 app.UseAuthorization();
 
 app.MapControllers();

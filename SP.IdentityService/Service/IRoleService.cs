@@ -1,4 +1,5 @@
-﻿using SP.IdentityService.Models.Request;
+﻿using SP.Common.Model;
+using SP.IdentityService.Models.Request;
 using SP.IdentityService.Models.Response;
 
 namespace SP.IdentityService.Service;
@@ -11,7 +12,7 @@ public interface IRoleService
     /// <summary>
     /// 获取角色列表
     /// </summary>
-    Task<PagedResponse<RoleResponse>> GetRoleList(RolePageRequest page);
+    Task<PageResponse<RoleResponse>> GetRoleList(RolePageRequest page);
 
     /// <summary>
     /// 获取角色信息

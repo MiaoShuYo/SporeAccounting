@@ -8,6 +8,10 @@
 
     <ItemGroup>
         <PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="8.0.7" />
+        <PackageReference Include="Microsoft.Build" Version="17.8.43">
+            <PrivateAssets>all</PrivateAssets>
+        </PackageReference>
+        <PackageReference Include="System.Text.Encodings.Web" Version="8.0.0" />
         <PackageReference Include="AutoMapper" Version="14.0.0" />
         <PackageReference Include="Pomelo.EntityFrameworkCore.MySql" Version="8.0.3" />
         <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="8.0.8" />
@@ -16,14 +20,7 @@
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
         <PackageReference Include="Swashbuckle.AspNetCore" Version="6.6.2"/>
-        <PackageReference Include="nacos-sdk-csharp" Version="1.3.10"/>
-        <PackageReference Include="nacos-sdk-csharp.Extensions.Configuration" Version="1.3.10"/>
-        <PackageReference Include="nacos-sdk-csharp.AspNetCore" Version="1.3.10"/>
         <PackageReference Include="Quartz.AspNetCore" Version="3.14.0" />
-    </ItemGroup>
-
-    <ItemGroup>
-      <Folder Include="Controllers\" />
     </ItemGroup>
 
     <ItemGroup>

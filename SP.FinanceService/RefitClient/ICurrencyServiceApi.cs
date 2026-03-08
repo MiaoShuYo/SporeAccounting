@@ -16,6 +16,6 @@ public interface ICurrencyServiceApi
     /// <returns>返回今日汇率记录</returns>
     [Get("/api/exchangeRate/{sourceCurrencyId}/{targetCurrencyId}/today")]
     Task<ApiResponse<ExchangeRateRecordResponse>> GetTodayExchangeRateByCode(
-        long sourceCurrencyId, 
+        long sourceCurrencyId,
         long targetCurrencyId);
-} 
+}

@@ -56,7 +56,7 @@ public class EmailConsumerService : BackgroundService
     /// <exception cref="NotImplementedException"></exception>
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
-        MqSubscriber subscriber = new MqSubscriber(MqExchange.EmailExchange,
+        MqSubscriber subscriber = new MqSubscriber(MqExchange.MessageExchange,
             MqRoutingKey.EmailRoutingKey, MqQueue.EmailQueue);
         await _rabbitMqMessage.ReceiveAsync(subscriber, async message =>
         {
@@ -64,7 +64,7 @@ public class EmailConsumerService : BackgroundService
             if (mqMessage == null)
             {
                 _logger.LogError("消息转换失败");
-                throw new ArgumentNullException(nameof(mqMessage));
+                return;
             }
 
             string email = mqMessage.Body;
@@ -80,7 +80,7 @@ public class EmailConsumerService : BackgroundService
             else
             {
                 _logger.LogError("消息类型错误");
-                throw new ArgumentException("消息类型错误", nameof(mqMessage.Type));
+                return;
             }
 
             string code = CodeGeneratorCommon.GenerateVerificationCode(6);
@@ -91,6 +91,6 @@ public class EmailConsumerService : BackgroundService
                 subject,
                 $"您的验证码是：{code} 五分钟内有效，请勿泄露给他人。");
             await Task.CompletedTask;
-        });
+        }, stoppingToken);
     }
 }

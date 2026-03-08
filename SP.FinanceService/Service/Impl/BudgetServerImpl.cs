@@ -59,12 +59,14 @@ public class BudgetServerImpl : IBudgetServer
     /// <returns>预算id</returns>
     public long Add(BudgetAddRequest budget)
     {
+        long userId = _contextSession.UserId;
         // 预算是否存在，需要结合预算周期和预算开始时间与结束时间判断
         var existingBudget = _dbContext.Budgets
             .FirstOrDefault(b => b.TransactionCategoryId == budget.TransactionCategoryId
                                  && b.Period == budget.Period
                                  && b.StartTime <= budget.EndTime
                                  && b.EndTime >= budget.StartTime
+                                 && b.CreateUserId == userId
                                  && !b.IsDeleted);
 
         if (existingBudget != null)
@@ -87,12 +89,24 @@ public class BudgetServerImpl : IBudgetServer
     /// <param name="id">预算id</param>
     public void Delete(long id)
     {
+        long userId = _contextSession.UserId;
         var budget = _dbContext.Budgets
-            .FirstOrDefault(b => b.Id == id && !b.IsDeleted);
+            .FirstOrDefault(b => b.Id == id && b.CreateUserId == userId && !b.IsDeleted);
 
         if (budget == null)
         {
             throw new NotFoundException($"预算不存在，ID: {id}");
+        }
+
+        // 已经在使用的和使用过的预算不能删除，根据开始时间和结束时间判断
+        if (budget.StartTime <= DateTime.Now)
+        {
+            throw new BusinessException("正在使用中的预算不能删除");
+        }
+
+        if (budget.Remaining < budget.Amount)
+        {
+            throw new BusinessException("使用过的预算不能删除");
         }
 
         // 标记为已删除
@@ -107,8 +121,9 @@ public class BudgetServerImpl : IBudgetServer
     /// <param name="budget">修改预算</param>
     public void Edit(BudgetEditRequest budget)
     {
+        long userId = _contextSession.UserId;
         var existingBudget = _dbContext.Budgets
-            .FirstOrDefault(b => b.Id == budget.Id && !b.IsDeleted);
+            .FirstOrDefault(b => b.Id == budget.Id && b.CreateUserId == userId && !b.IsDeleted);
 
         if (existingBudget == null)
         {
@@ -122,12 +137,16 @@ public class BudgetServerImpl : IBudgetServer
                                  && b.Period == budget.Period
                                  && b.StartTime <= budget.EndTime
                                  && b.EndTime >= budget.StartTime
+                                 && b.CreateUserId == userId
                                  && !b.IsDeleted);
 
         if (conflictingBudget != null)
         {
             throw new BusinessException($"该分类在指定时间段内已存在其他预算配置");
         }
+
+        // 重新计算剩余预算（保持已使用金额不变）
+        var usedAmount = existingBudget.Amount - existingBudget.Remaining;
 
         // 更新预算信息
         existingBudget.TransactionCategoryId = budget.TransactionCategoryId;
@@ -137,8 +156,6 @@ public class BudgetServerImpl : IBudgetServer
         existingBudget.StartTime = budget.StartTime;
         existingBudget.EndTime = budget.EndTime;
 
-        // 重新计算剩余预算（保持已使用金额不变）
-        var usedAmount = existingBudget.Amount - existingBudget.Remaining;
         existingBudget.Remaining = budget.Amount - usedAmount;
         SettingCommProperty.Edit(existingBudget);
 
@@ -153,8 +170,9 @@ public class BudgetServerImpl : IBudgetServer
     /// <returns>预算列表</returns>
     public PageResponse<BudgetResponse> QueryPage(BudgetPageRequest request)
     {
+        long userId = _contextSession.UserId;
         var query = _dbContext.Budgets
-            .Where(b => !b.IsDeleted)
+            .Where(b => !b.IsDeleted && b.CreateUserId == userId)
             .AsQueryable();
 
         // 根据年份筛选
@@ -228,8 +246,19 @@ public class BudgetServerImpl : IBudgetServer
     /// <returns>预算信息</returns>
     public BudgetResponse QueryById(long id)
     {
+        return QueryById(id, _contextSession.UserId);
+    }
+
+    /// <summary>
+    /// 查询预算列表
+    /// </summary>
+    /// <param name="id">预算id</param>
+    /// <param name="userId">用户id</param>
+    /// <returns>预算信息</returns>
+    public BudgetResponse QueryById(long id, long userId)
+    {
         var budget = _dbContext.Budgets
-            .FirstOrDefault(b => b.Id == id && !b.IsDeleted);
+            .FirstOrDefault(b => b.Id == id && b.CreateUserId == userId && !b.IsDeleted);
 
         if (budget == null)
         {
@@ -257,14 +286,38 @@ public class BudgetServerImpl : IBudgetServer
     public List<Budget> QueryCurrentBudgets()
     {
         long userId = _contextSession.UserId;
-        // 查询当前用户当月或者当季度或者当年的预算列表
-        var currentMonth = DateTime.Now.Month;
-        var currentQuarter = (currentMonth - 1) / 3 + 1;
-        var currentYear = DateTime.Now.Year;
+        // 使用时间范围查询当前在用的预算，兼容月度/季度/年度预算
+        var now = DateTime.Now;
         var budgets = _dbContext.Budgets
             .Where(b => !b.IsDeleted
-                        && b.StartTime.Year == currentYear
-                        && (b.StartTime.Month == currentMonth || b.StartTime.Month / 3 + 1 == currentQuarter)
+                        && b.StartTime <= now
+                        && b.EndTime >= now
+                        && b.CreateUserId == userId)
+            .ToList();
+
+        if (budgets == null || budgets.Count == 0)
+        {
+            return new List<Budget>();
+        }
+
+        return budgets;
+    }
+
+    /// <summary>
+    /// 根据支出分类获取当前用户在用的预算列表
+    /// </summary>
+    /// <param name="transactionCategoryId">收支分类id</param>
+    /// <param name="userId">用户id</param>
+    /// <returns>预算列表</returns>
+    public List<Budget> QueryCurrentBudgetsByExpenseCategoryId(long transactionCategoryId, long userId)
+    {
+        // 使用时间范围查询当前在用的预算，兼容月度/季度/年度预算
+        var now = DateTime.Now;
+        var budgets = _dbContext.Budgets
+            .Where(b => !b.IsDeleted
+                        && b.StartTime <= now
+                        && b.EndTime >= now
+                        && b.TransactionCategoryId == transactionCategoryId
                         && b.CreateUserId == userId)
             .ToList();
 
@@ -287,6 +340,7 @@ public class BudgetServerImpl : IBudgetServer
             throw new ArgumentNullException(nameof(budgets), "预算列表不能为空");
         }
 
+        var existingBudgets = new List<Budget>();
         foreach (var budget in budgets)
         {
             var existingBudget = _dbContext.Budgets
@@ -305,9 +359,42 @@ public class BudgetServerImpl : IBudgetServer
             existingBudget.EndTime = budget.EndTime;
 
             SettingCommProperty.Edit(existingBudget);
+            existingBudgets.Add(existingBudget);
         }
 
-        _dbContext.Budgets.UpdateRange(budgets);
+        _dbContext.Budgets.UpdateRange(existingBudgets);
         _dbContext.SaveChanges();
+    }
+
+    /// <summary>
+    /// 根据日期查询预算列表
+    /// </summary>
+    /// <param name="dateTime">日期</param>
+    /// <returns></returns>
+    public IQueryable<Budget> QueryBudgetsByDate(DateTime dateTime)
+    {
+        // 返回 IQueryable，不执行查询
+        return _dbContext.Budgets
+            .Where(b => !b.IsDeleted
+                        && b.StartTime <= dateTime
+                        && b.EndTime >= dateTime)
+            .AsQueryable();
+    }
+
+    /// <summary>
+    /// 获取当前用户正在使用的预算列表
+    /// </summary>
+    /// <returns>正在使用的预算列表</returns>
+    public List<BudgetResponse> QueryActiveBudgets()
+    { 
+        var userId = _contextSession.UserId;
+        var budgets = _dbContext.Budgets
+            .Where(b => !b.IsDeleted
+                        && b.CreateUserId == userId
+                        && b.StartTime <= DateTime.Now
+                        && b.EndTime >= DateTime.Now)
+            .ToList();
+        var budgetResponses = _auMapper.Map<List<BudgetResponse>>(budgets);
+        return budgetResponses;
     }
 }

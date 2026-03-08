@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using SP.Common;
 using SP.Common.ExceptionHandling.Exceptions;
 using SP.Common.Model;
 using SP.FinanceService.DB;
@@ -16,18 +17,33 @@ public class TransactionCategoryServerImpl : ITransactionCategoryServer
     private readonly IMapper _automapper;
 
     /// <summary>
+    /// 用户id
+    /// </summary>
+    private readonly long _userId;
+
+    /// <summary>
     /// 数据库上下文
     /// </summary>
     private readonly FinanceServiceDbContext _dbContext;
-
+    
+    /// <summary>
+    /// 上下文会话
+    /// </summary>
+    private readonly ContextSession _contextSession;
+    
     /// <summary>
     /// 收支分类服务构造函数
     /// </summary>
     /// <param name="dbContext"></param>
-    public TransactionCategoryServerImpl(FinanceServiceDbContext dbContext, IMapper automapper)
+    /// <param name="automapper"></param>
+    /// <param name="contextSession"></param>
+    public TransactionCategoryServerImpl(FinanceServiceDbContext dbContext, IMapper automapper,
+        ContextSession contextSession)
     {
         _dbContext = dbContext;
         _automapper = automapper;
+        _contextSession = contextSession;
+        _userId = _contextSession.UserId;
     }
 
     /// <summary>
@@ -39,7 +55,7 @@ public class TransactionCategoryServerImpl : ITransactionCategoryServer
     {
         // 查询指定父分类下的所有子分类
         var categories = _dbContext.TransactionCategories
-            .Where(c => c.ParentId == parentId).ToList();
+            .Where(c => c.ParentId == parentId && c.CreateUserId ==_userId && !c.IsDeleted).ToList();
         List<TransactionCategoryResponse> categoryResponses =
             _automapper.Map<List<TransactionCategoryResponse>>(categories);
         return categoryResponses;
@@ -118,6 +134,7 @@ public class TransactionCategoryServerImpl : ITransactionCategoryServer
 
         // 保存更改到数据库
         _dbContext.SaveChanges();
+        transaction.Commit();
         return true;
     }
 
@@ -161,21 +178,21 @@ public class TransactionCategoryServerImpl : ITransactionCategoryServer
     }
 
     /// <summary>
-    /// 查询分类信息
+    /// 查询分类信息（仅返回当前用户名下的分类）
     /// </summary>
     /// <param name="categoryId">分类id</param>
     /// <returns>返回分类信息</returns>
     public TransactionCategory? QueryById(long categoryId)
     {
         return _dbContext.TransactionCategories
-            .FirstOrDefault(c => c.Id == categoryId && c.IsDeleted == false);
+            .FirstOrDefault(c => c.Id == categoryId && c.IsDeleted == false && c.CreateUserId == _userId);
     }
 
     public long Add(TransactionCategoryAddRequest category)
     {
         // 检查是否存在同名分类
         var existingCategory = _dbContext.TransactionCategories
-            .FirstOrDefault(c => c.Name == category.Name && c.IsDeleted == false);
+            .FirstOrDefault(c => c.Name == category.Name && c.IsDeleted == false && c.CreateUserId == _userId);
         if (existingCategory != null)
         {
             throw new BusinessException($"分类名称已存在：{category.Name}");
@@ -221,8 +238,8 @@ public class TransactionCategoryServerImpl : ITransactionCategoryServer
             return new List<TransactionCategory>();
         }
 
-        // 查询指定ID列表的收支分类
+        // 查询指定ID列表的收支分类（仅当前用户名下）
         return _dbContext.TransactionCategories
-            .Where(c => ids.Contains(c.Id) && c.IsDeleted == false).ToList();
+            .Where(c => ids.Contains(c.Id) && c.IsDeleted == false && c.CreateUserId == _userId).ToList();
     }
 }

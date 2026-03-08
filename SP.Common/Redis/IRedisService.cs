@@ -79,8 +79,12 @@ namespace SP.Common.Redis
         /// 获取所有匹配的键
         /// </summary>
         /// <param name="pattern">匹配模式</param>
+        /// <param name="maxCount">最大返回数量，默认1000</param>
+        /// <param name="pageSize">每次扫描页大小，默认100</param>
+        /// <param name="cancellationToken">取消令牌</param>
         /// <returns>键集合</returns>
-        Task<IEnumerable<string>> GetKeysAsync(string pattern);
+        Task<IEnumerable<string>> GetKeysAsync(string pattern, int maxCount = 1000, int pageSize = 100,
+            CancellationToken cancellationToken = default);
 
         /// <summary>
         /// 获取Hash值
@@ -128,5 +132,13 @@ namespace SP.Common.Redis
         /// <param name="key">锁键</param>
         /// <returns>是否成功释放锁</returns>
         Task<bool> UnlockAsync(string key);
+
+        /// <summary>
+        /// 计数自增（不存在则创建并设置过期时间）
+        /// </summary>
+        /// <param name="key">键</param>
+        /// <param name="expirySeconds">过期时间(秒)</param>
+        /// <returns>自增后的值</returns>
+        Task<long> IncrementAsync(string key, int expirySeconds);
     }
 } 

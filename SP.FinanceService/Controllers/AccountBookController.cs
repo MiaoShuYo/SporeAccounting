@@ -57,6 +57,16 @@ public class AccountBookController : ControllerBase
     [HttpPut("{id}")]
     public ActionResult<bool> UpdateAccountBook([FromRoute] long id, [FromBody] AccountBookEditeRequest request)
     {
+        if (request == null || request.Id <= 0)
+        {
+            return BadRequest("Invalid account book data.");
+        }
+
+        if (id != request.Id)
+        {
+            return BadRequest("Route id does not match request.Id.");
+        }
+
         _accountBookServer.Edit(request);
         return Ok();
     }
@@ -79,5 +89,16 @@ public class AccountBookController : ControllerBase
         };
         PageResponse<AccountBookResponse> result = _accountBookServer.QueryPage(pageRequest);
         return Ok(result);
+    }
+
+    ///<summary>
+    ///账本合并
+    ///</summary>
+    ///<param name="request">账本合并请求</param>
+    [HttpPost("merge")]
+    public ActionResult<bool> MergeAccountBooks([FromBody] AccountBookMergeRequest request)
+    {
+        _accountBookServer.Merge(request);
+        return Ok();
     }
 }

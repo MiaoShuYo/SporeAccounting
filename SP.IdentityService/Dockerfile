@@ -29,6 +29,15 @@ RUN dotnet publish "SP.IdentityService.csproj" -c Release -o /app/publish /p:Use
 # 最终镜像
 FROM base AS final
 WORKDIR /app
+
+# 安装字体包（用于验证码生成）
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+    fonts-dejavu-core \
+    fonts-liberation \
+    fonts-noto-cjk \
+    && rm -rf /var/lib/apt/lists/*
+
 COPY --from=publish /app/publish .
 
 # 设置环境变量

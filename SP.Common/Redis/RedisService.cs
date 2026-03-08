@@ -158,6 +158,7 @@ namespace SP.Common.Redis
                 {
                     return true;
                 }
+
                 var deletedCount = await Database.KeyDeleteAsync(keys);
                 return deletedCount == keys.Length;
             }
@@ -232,21 +233,61 @@ namespace SP.Common.Redis
         /// <summary>
         /// 获取所有匹配的键
         /// </summary>
-        public async Task<IEnumerable<string>> GetKeysAsync(string pattern)
+        public async Task<IEnumerable<string>> GetKeysAsync(string pattern, int maxCount = 1000, int pageSize = 100,
+            CancellationToken cancellationToken = default)
         {
             try
             {
-                var keys = new List<string>();
-                var endpoints = Connection.GetEndPoints();
-
-                foreach (var endpoint in endpoints)
+                if (string.IsNullOrWhiteSpace(pattern))
                 {
-                    var server = Connection.GetServer(endpoint);
-                    var serverKeys = server.Keys(pattern: pattern).Select(k => (string)k).ToList();
-                    keys.AddRange(serverKeys);
+                    return Enumerable.Empty<string>();
                 }
 
-                return await Task.FromResult(keys);
+                maxCount = maxCount <= 0 ? 1000 : maxCount;
+                pageSize = pageSize <= 0 ? 100 : pageSize;
+
+                var keys = await Task.Run(() =>
+                {
+                    var result = new HashSet<string>(StringComparer.Ordinal);
+                    var endpoints = Connection.GetEndPoints();
+
+                    foreach (var endpoint in endpoints)
+                    {
+                        cancellationToken.ThrowIfCancellationRequested();
+
+                        var server = Connection.GetServer(endpoint);
+                        if (!server.IsConnected)
+                        {
+                            continue;
+                        }
+
+                        foreach (var key in server.Keys(pattern: pattern, pageSize: pageSize))
+                        {
+                            cancellationToken.ThrowIfCancellationRequested();
+                            result.Add(key.ToString());
+
+                            if (result.Count >= maxCount)
+                            {
+                                return result;
+                            }
+                        }
+                    }
+
+                    return result;
+                }, cancellationToken);
+
+                if (keys.Count >= maxCount)
+                {
+                    _logger.LogWarning("Redis键扫描达到最大返回限制，Pattern: {Pattern}, MaxCount: {MaxCount}",
+                        pattern, maxCount);
+                }
+
+                return keys;
+            }
+            catch (OperationCanceledException)
+            {
+                _logger.LogWarning("Redis获取匹配键被取消，Pattern: {Pattern}", pattern);
+                return Enumerable.Empty<string>();
             }
             catch (Exception ex)
             {
@@ -357,6 +398,36 @@ namespace SP.Common.Redis
             {
                 _logger.LogError(ex, "Redis释放分布式锁失败，Key: {Key}", key);
                 return false;
+            }
+        }
+
+        /// <summary>
+        /// 自增计数（若键不存在则设置为1并附带过期时间）
+        /// </summary>
+        /// <param name="key">键</param>
+        /// <param name="expirySeconds">过期时间(秒)</param>
+        /// <returns>自增后的值</returns>
+        public async Task<long> IncrementAsync(string key, int expirySeconds)
+        {
+            try
+            {
+                // 使用 Lua 脚本保证原子性：不存在则设置为1并设置过期；存在则INCR
+                const string script = @"local exists = redis.call('EXISTS', KEYS[1])
+                                        if exists == 1 then
+                                          return redis.call('INCR', KEYS[1])
+                                        else
+                                          redis.call('SET', KEYS[1], 1, 'EX', ARGV[1])
+                                          return 1
+                                        end";
+
+                var result = (long)await Database.ScriptEvaluateAsync(script, new RedisKey[] { key },
+                    new RedisValue[] { expirySeconds });
+                return result;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Redis自增失败，Key: {Key}", key);
+                return -1;
             }
         }
     }

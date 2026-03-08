@@ -17,7 +17,7 @@ namespace SP.IdentityService.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "8.0.13")
+                .HasAnnotation("ProductVersion", "8.0.17")
                 .HasAnnotation("Relational:MaxIdentifierLength", 64);
 
             MySqlModelBuilderExtensions.AutoIncrementColumns(modelBuilder);
@@ -108,8 +108,8 @@ namespace SP.IdentityService.Migrations
                     b.HasData(
                         new
                         {
-                            UserId = 7333155174099406848L,
-                            RoleId = 7333155173923246080L
+                            UserId = 7373234892517376000L,
+                            RoleId = 7373234892307660800L
                         });
                 });
 
@@ -325,8 +325,8 @@ namespace SP.IdentityService.Migrations
                         .HasColumnType("varchar(400)");
 
                     b.Property<string>("Type")
-                        .HasMaxLength(50)
-                        .HasColumnType("varchar(50)");
+                        .HasMaxLength(150)
+                        .HasColumnType("varchar(150)");
 
                     b.HasKey("Id");
 
@@ -335,7 +335,9 @@ namespace SP.IdentityService.Migrations
                     b.HasIndex("ReferenceId")
                         .IsUnique();
 
-                    b.HasIndex("ApplicationId", "Status", "Subject", "Type");
+                    b.HasIndex("ApplicationId", "Status", "Subject", "Type")
+                        .HasDatabaseName("IX_OpenIddictTokens_ApplicationId_Status_Subject_Type")
+                        .HasAnnotation("MySql:IndexPrefixLength", new[] { 191, 50, 191, 150 });
 
                     b.ToTable("OpenIddictTokens", (string)null);
                 });
@@ -371,13 +373,13 @@ namespace SP.IdentityService.Migrations
                     b.HasData(
                         new
                         {
-                            Id = 7333155173923246080L,
+                            Id = 7373234892307660800L,
                             Name = "Admin",
                             NormalizedName = "ADMIN"
                         },
                         new
                         {
-                            Id = 7333155174015520768L,
+                            Id = 7373234892404129792L,
                             Name = "User",
                             NormalizedName = "USER"
                         });
@@ -390,6 +392,13 @@ namespace SP.IdentityService.Migrations
                         .HasColumnType("bigint");
 
                     MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<int>("AccessFailedCount")
+                        .HasColumnType("int");
+
+                    b.Property<string>("ConcurrencyStamp")
+                        .IsConcurrencyToken()
+                        .HasColumnType("longtext");
 
                     b.Property<string>("Email")
                         .HasMaxLength(100)
@@ -407,12 +416,28 @@ namespace SP.IdentityService.Migrations
                     b.Property<DateTimeOffset?>("LockoutEnd")
                         .HasColumnType("datetime(6)");
 
+                    b.Property<string>("NormalizedEmail")
+                        .HasMaxLength(256)
+                        .HasColumnType("varchar(256)");
+
+                    b.Property<string>("NormalizedUserName")
+                        .HasMaxLength(256)
+                        .HasColumnType("varchar(256)");
+
                     b.Property<string>("PasswordHash")
-                        .IsRequired()
                         .HasColumnType("longtext");
 
                     b.Property<string>("PhoneNumber")
                         .HasColumnType("longtext");
+
+                    b.Property<bool>("PhoneNumberConfirmed")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<string>("SecurityStamp")
+                        .HasColumnType("longtext");
+
+                    b.Property<bool>("TwoFactorEnabled")
+                        .HasColumnType("tinyint(1)");
 
                     b.Property<string>("UserName")
                         .IsRequired()
@@ -421,17 +446,29 @@ namespace SP.IdentityService.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("NormalizedEmail")
+                        .HasDatabaseName("EmailIndex");
+
+                    b.HasIndex("NormalizedUserName")
+                        .IsUnique()
+                        .HasDatabaseName("UserNameIndex");
+
                     b.ToTable("AspNetUsers", (string)null);
 
                     b.HasData(
                         new
                         {
-                            Id = 7333155174099406848L,
+                            Id = 7373234892517376000L,
+                            AccessFailedCount = 0,
+                            ConcurrencyStamp = "3ecac3c436484068a99d70daca1e73b2",
                             Email = "494324190@qq.com",
                             EmailConfirmed = true,
                             IsDeleted = false,
                             LockoutEnabled = false,
-                            PasswordHash = "AQAAAAIAAYagAAAAELkxVNU3bTyoz+vBllYqLJT/PXhI4RL1PFa7o2848F32K0MrmB3sYzo83rghpERNvA==",
+                            PasswordHash = "AQAAAAIAAYagAAAAECWES3YMq1g0KZJ8LzJ8uAhjJ3d3dDGuBntzqS0IWiKAYzAqHGMOwUu+8jlAfElMNA==",
+                            PhoneNumberConfirmed = false,
+                            SecurityStamp = "01b5d6b1c9a94912b9408172a0ab5208",
+                            TwoFactorEnabled = false,
                             UserName = "admin"
                         });
                 });

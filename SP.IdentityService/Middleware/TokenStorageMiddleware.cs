@@ -14,6 +14,14 @@ public class TokenStorageMiddleware
     private readonly IRedisService _redisService;
     private readonly ILogger<TokenStorageMiddleware> _logger;
 
+    // Helper to sanitize user input for logging (removes newlines and control chars)
+    private static string SanitizeForLog(string input)
+    {
+        if (string.IsNullOrEmpty(input)) return input;
+        // Remove carriage returns, newlines, and other control characters
+        return new string(input.Where(c => !char.IsControl(c)).ToArray());
+    }
+
     public TokenStorageMiddleware(RequestDelegate next, IRedisService redisService, ILogger<TokenStorageMiddleware> logger)
     {
         _next = next;
@@ -97,7 +105,7 @@ public class TokenStorageMiddleware
                             string tokenKey = string.Format(SPRedisKey.Token, userId);
                             await _redisService.SetStringAsync(tokenKey, accessToken, expiresIn);
                             
-                            _logger.LogInformation("Token 已存储到 Redis，用户ID: {UserId}", userId);
+                            _logger.LogInformation("Token 已存储到 Redis，用户ID: {UserId}", SanitizeForLog(userId));
                         }
                         else
                         {

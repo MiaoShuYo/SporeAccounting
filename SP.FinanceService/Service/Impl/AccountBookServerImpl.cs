@@ -1,8 +1,11 @@
 ﻿using AutoMapper;
+using Microsoft.Extensions.DependencyInjection;
+using SP.Common;
 using SP.Common.ExceptionHandling.Exceptions;
 using SP.Common.Model;
 using SP.FinanceService.DB;
 using SP.FinanceService.Models.Entity;
+using SP.FinanceService.Models.Enumeration;
 using SP.FinanceService.Models.Request;
 using SP.FinanceService.Models.Response;
 
@@ -29,17 +32,25 @@ public class AccountBookServerImpl : IAccountBookServer
     private readonly IServiceProvider _serviceProvider;
 
     /// <summary>
+    /// 账本分享
+    /// </summary>
+    private readonly IAccountBookShareServer _accountBookShareServer;
+
+    /// <summary>
     /// 账本服务构造函数
     /// </summary>
     /// <param name="dbContext"></param>
     /// <param name="automapper"></param>
     /// <param name="serviceProvider"></param>
+    /// <param name="accountBookShareServer"></param>
     public AccountBookServerImpl(FinanceServiceDbContext dbContext, IMapper automapper,
-        IServiceProvider serviceProvider)
+        IServiceProvider serviceProvider,
+        IAccountBookShareServer accountBookShareServer)
     {
         _automapper = automapper;
         _dbContext = dbContext;
         _serviceProvider = serviceProvider;
+        _accountBookShareServer = accountBookShareServer;
     }
 
     /// <summary>
@@ -100,31 +111,85 @@ public class AccountBookServerImpl : IAccountBookServer
             throw new NotFoundException($"账本不存在，ID: {request.Id}");
         }
 
-        // 将请求模型映射到实体
-        existingAccountBook = _automapper.Map<AccountBook>(request);
+        // 仅修改允许的字段，避免覆盖 CreateUserId/CreateDateTime 等元数据
+        existingAccountBook.Name = request.Name;
+        existingAccountBook.Remarks = request.Remarks;
         SettingCommProperty.Edit(existingAccountBook);
-        // 更新账本信息
-        _dbContext.AccountBooks.Update(existingAccountBook);
         // 保存更改到数据库
         _dbContext.SaveChanges();
     }
 
     /// <summary>
     /// 查询账本分页
+    /// 分页查询当前用户创建的账本以及分享给当前用户的账本
     /// </summary>
     /// <param name="page">分页数据</param>
     /// <returns></returns>
     public PageResponse<AccountBookResponse> QueryPage(AccountBookPageRequest page)
     {
-        // 查询符合条件的账本列表
-        var query = _dbContext.AccountBooks.Where(p => !p.IsDeleted).AsQueryable();
+        // 获取当前会话用户（通过延迟解析）
+        var contextSession = _serviceProvider.GetService<ContextSession>();
+        long currentUserId = contextSession?.UserId ?? 0;
 
-        // 分页查询
+        // 构建查询：未删除，并且是当前用户创建的 OR 分享给当前用户的账本
+        var query = _dbContext.AccountBooks
+            .Where(ab => !ab.IsDeleted &&
+                         (ab.CreateUserId == currentUserId ||
+                          _dbContext.AccountBookShares.Any(sh =>
+                              !sh.IsDeleted && sh.AccountBookId == ab.Id && sh.UserId == currentUserId)))
+            .OrderByDescending(ab => ab.CreateDateTime)
+            .AsQueryable();
+
+        // 获取总数并分页
         var totalCount = query.Count();
-        var accountBooks = query.Skip((page.PageIndex - 1) * page.PageSize)
-            .Take(page.PageSize).ToList();
+        var accountBooks = query
+            .Skip((page.PageIndex - 1) * page.PageSize)
+            .Take(page.PageSize)
+            .ToList();
 
+        // 获取当前页账本的统计（收入/支出）
+        var accountBookIds = accountBooks.Select(ab => ab.Id).ToList();
+        var stats = _dbContext.Accountings
+            .Where(a => !a.IsDeleted && accountBookIds.Contains(a.AccountBookId))
+            .GroupBy(a => a.AccountBookId)
+            .Select(g => new
+            {
+                AccountBookId = g.Key,
+                Income = g.Where(x => x.AfterAmount > 0).Sum(x => x.AfterAmount),
+                Expenditure = g.Where(x => x.AfterAmount < 0).Sum(x => Math.Abs(x.AfterAmount))
+            })
+            .ToList();
+
+        // 映射响应对象
         var accountBookResponses = _automapper.Map<List<AccountBookResponse>>(accountBooks);
+
+        // 查询账本权限
+        List<long> ids = accountBookResponses.Select(ab => ab.Id).ToList();
+        Dictionary<long, PermissionTypeEnum> permissionDict = _accountBookShareServer.GetPermission(ids);
+
+        // 将统计填充到响应对象
+        foreach (var resp in accountBookResponses)
+        {
+            var stat = stats.FirstOrDefault(s => s.AccountBookId == resp.Id);
+            resp.IncomeAmount = stat?.Income ?? 0m;
+            resp.ExpenditureAmount = stat?.Expenditure ?? 0m;
+
+            // 获取当前账本对象以判断是否是创建者
+            var accountBook = accountBooks.FirstOrDefault(ab => ab.Id == resp.Id);
+            long currentUserIdForPermission = contextSession?.UserId ?? 0;
+
+            // 如果是创建者（所有者），权限为 Admin；否则从分享表查询
+            if (accountBook?.CreateUserId == currentUserIdForPermission)
+            {
+                resp.PermissionType = PermissionTypeEnum.Admin;
+            }
+            else
+            {
+                resp.PermissionType = permissionDict.ContainsKey(resp.Id)
+                    ? permissionDict[resp.Id]
+                    : PermissionTypeEnum.ReadOnly; // 默认只读
+            }
+        }
 
         // 返回分页结果
         return new PageResponse<AccountBookResponse>
@@ -150,14 +215,95 @@ public class AccountBookServerImpl : IAccountBookServer
     }
 
     /// <summary>
+    /// 合并账本
+    /// </summary>
+    /// <param name="request"></param>
+    /// <exception cref="NotImplementedException"></exception>
+    public void Merge(AccountBookMergeRequest request)
+    {
+        // 目标账本是否存在
+        bool targetExist = Exist(request.TargetAccountBookId);
+        if (!targetExist)
+        {
+            throw new NotFoundException($"账本不存在，ID: {request.TargetAccountBookId}");
+        }
+
+        // 来源账本是否存在
+        List<long> sourceIds = request.SourceAccountBookIds;
+        List<long> notExistIds = BatchQuery(sourceIds);
+        if (notExistIds.Any())
+        {
+            throw new NotFoundException($"以下账本不存在，ID: {string.Join(", ", notExistIds)}");
+        }
+
+        // 迁移账本下的记录
+        // 规则：源账本的记录迁移到目标账本下，修改账本ID为目标账本ID
+        var accountingServer = _serviceProvider.GetRequiredService<IAccountingServer>();
+        accountingServer.MigrateAccountBook(request.TargetAccountBookId, sourceIds);
+    }
+
+    /// <summary>
     /// 根据id查找账本
     /// </summary>
     /// <param name="id">账本ID</param>
     /// <returns>返回账本信息</returns>
     private AccountBook? QueryById(long id)
     {
-        // 查询指定ID的账本
-        var accountBook = _dbContext.AccountBooks.Find(id);
+        // 查询指定ID的账本（过滤软删除）
+        var accountBook = _dbContext.AccountBooks
+            .FirstOrDefault(p => p.Id == id && !p.IsDeleted);
         return accountBook;
+    }
+
+    /// <summary>
+    /// 批量判断账本是否存在
+    /// </summary>
+    /// <param name="ids">账本列表</param>
+    /// <returns>不存在的账本ID列表</returns>
+    private List<long> BatchQuery(List<long> ids)
+    {
+        // 查询所有账本（过滤软删除）
+        var accountBooks = _dbContext.AccountBooks.Where(p => ids.Contains(p.Id) && !p.IsDeleted).ToList();
+        // 返回不存在的账本ID
+        return ids.Where(id => !accountBooks.Any(p => p.Id == id)).ToList();
+    }
+
+    /// <summary>
+    /// 按ID获取账本（当前用户为创建者或被分享用户才可访问）
+    /// </summary>
+    /// <param name="requestAccountBookId">账本ID</param>
+    /// <returns>账本响应</returns>
+    public AccountBookResponse Get(long requestAccountBookId)
+    {
+        var contextSession = _serviceProvider.GetService<ContextSession>();
+        long currentUserId = contextSession?.UserId ?? 0;
+
+        var accountBook = _dbContext.AccountBooks.FirstOrDefault(ab =>
+            ab.Id == requestAccountBookId &&
+            !ab.IsDeleted &&
+            (ab.CreateUserId == currentUserId ||
+             _dbContext.AccountBookShares.Any(sh =>
+                 !sh.IsDeleted && sh.AccountBookId == ab.Id && sh.UserId == currentUserId)));
+
+        if (accountBook == null)
+        {
+            throw new NotFoundException($"账本不存在或无访问权限，ID: {requestAccountBookId}");
+        }
+
+        var response = _automapper.Map<AccountBookResponse>(accountBook);
+
+        // 设置权限类型
+        if (accountBook.CreateUserId == currentUserId)
+        {
+            response.PermissionType = PermissionTypeEnum.Admin;
+        }
+        else
+        {
+            var share = _dbContext.AccountBookShares.FirstOrDefault(sh =>
+                !sh.IsDeleted && sh.AccountBookId == requestAccountBookId && sh.UserId == currentUserId);
+            response.PermissionType = share?.PermissionType ?? PermissionTypeEnum.ReadOnly;
+        }
+
+        return response;
     }
 }

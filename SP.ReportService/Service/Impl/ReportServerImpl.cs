@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using SP.Common;
+using SP.Common.ExceptionHandling.Exceptions;
 using SP.ReportService.DB;
 using SP.ReportService.Models.Entity;
 using SP.ReportService.Models.Enumeration;
@@ -54,7 +55,18 @@ public class ReportServerImpl:IReportServer
     /// </summary>
     public void Delete(string reportId)
     {
-        var report = _reportServiceDbContext.Reports.Find(reportId);
+        if (!long.TryParse(reportId, out var reportIdValue))
+        {
+            throw new NotFoundException($"报表不存在，ID: {reportId}");
+        }
+
+        var report = _reportServiceDbContext.Reports
+            .FirstOrDefault(p => p.Id == reportIdValue && p.UserId == _contextSession.UserId && !p.IsDeleted);
+        if (report == null)
+        {
+            throw new NotFoundException($"报表不存在，ID: {reportId}");
+        }
+
         _reportServiceDbContext.Reports.Remove(report);
         _reportServiceDbContext.SaveChanges();
     }
@@ -65,7 +77,24 @@ public class ReportServerImpl:IReportServer
     /// <param name="report"></param>
     public void Update(Report report)
     {
-        _reportServiceDbContext.Reports.Update(report);
+        var existingReport = _reportServiceDbContext.Reports
+            .FirstOrDefault(p => p.Id == report.Id && p.UserId == _contextSession.UserId && !p.IsDeleted);
+        if (existingReport == null)
+        {
+            throw new NotFoundException($"报表不存在，ID: {report.Id}");
+        }
+
+        existingReport.Year = report.Year;
+        existingReport.Month = report.Month;
+        existingReport.Quarter = report.Quarter;
+        existingReport.Name = report.Name;
+        existingReport.Type = report.Type;
+        existingReport.Amount = report.Amount;
+        existingReport.TransactionCategoryId = report.TransactionCategoryId;
+        existingReport.UpdateDateTime = DateTime.Now;
+        existingReport.UpdateUserId = _contextSession.UserId;
+
+        _reportServiceDbContext.Reports.Update(existingReport);
         _reportServiceDbContext.SaveChanges();
     }
     

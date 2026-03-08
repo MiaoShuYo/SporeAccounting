@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using SP.Common.Model;
 using SP.IdentityService.Models.Request;
 using SP.IdentityService.Models.Response;
 using SP.IdentityService.Service;
@@ -41,7 +42,7 @@ public class UserController : ControllerBase
     /// <param name="page">分页查询参数</param>
     /// <returns></returns>
     [HttpGet]
-    public async Task<ActionResult<PagedResponse<UserResponse>>> GetUsers([FromQuery] UserPageRequest page)
+    public async Task<ActionResult<PageResponse<UserResponse>>> GetUsers([FromQuery] UserPageRequest page)
     {
         var result = await _userService.GetUserList(page);
         return Ok(result);
@@ -84,4 +85,27 @@ public class UserController : ControllerBase
         await _userService.UpdateUser(id, user);
         return Ok();
     }
+
+    ///<summary>
+    /// 查询用户手机是否已验证
+    /// </summary>
+    /// <returns></returns>
+    [HttpGet("phone/verify")]
+    public async Task<ActionResult<bool>> IsUserPhoneVerified()
+    {
+        bool result = await _userService.IsUserPhoneVerified();
+        return Ok(result);
+    }
+    
+    ///<summary>
+    /// 查询用户邮箱是否已验证
+    /// </summary>
+    /// <returns></returns>
+    [HttpGet("email/verify")]
+    public async Task<ActionResult<bool>> IsUserEmailVerified()
+    {
+        bool result = await _userService.IsUserEmailVerified();
+        return Ok(result);
+    }
+    
 }

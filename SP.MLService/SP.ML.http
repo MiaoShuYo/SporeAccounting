@@ -1,0 +1,6 @@
+@SP.ML_HostAddress = http://localhost:5137
+
+GET {{SP.ML_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

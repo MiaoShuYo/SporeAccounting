@@ -1,5 +1,9 @@
-﻿using AutoMapper;
+﻿using System.Globalization;
+using System.Threading.Tasks;
+using System.Text.Json;
+using AutoMapper;
 using Refit;
+using SP.Common;
 using SP.Common.ExceptionHandling.Exceptions;
 using SP.Common.Message.Model;
 using SP.Common.Message.Mq;
@@ -8,8 +12,10 @@ using SP.Common.Model;
 using SP.Common.Model.Enumeration;
 using SP.FinanceService.DB;
 using SP.FinanceService.Models.Entity;
+using SP.FinanceService.Models.Enumeration;
 using SP.FinanceService.Models.Request;
 using SP.FinanceService.Models.Response;
+using SP.FinanceService.Mq.Models;
 using SP.FinanceService.RefitClient;
 
 namespace SP.FinanceService.Service.Impl;
@@ -50,6 +56,11 @@ public class AccountingServerImpl : IAccountingServer
     private readonly IConfigServiceApi _configService;
 
     /// <summary>
+    /// 上下文会话
+    /// </summary>
+    private readonly ContextSession _contextSession;
+
+    /// <summary>
     /// 记账服务构造函数
     /// </summary>
     /// <param name="dbContext"></param>
@@ -58,9 +69,10 @@ public class AccountingServerImpl : IAccountingServer
     /// <param name="accountBookServer"></param>
     /// <param name="rabbitMqMessage"></param>
     /// <param name="currencyServer"></param>
+    /// <param name="contextSession"></param>
     public AccountingServerImpl(FinanceServiceDbContext dbContext, IMapper autoMapper,
         IConfigServiceApi configService, IAccountBookServer accountBookServer, RabbitMqMessage rabbitMqMessage,
-        ICurrencyService currencyServer)
+        ICurrencyService currencyServer, ContextSession contextSession)
     {
         _dbContext = dbContext;
         _autoMapper = autoMapper;
@@ -68,6 +80,7 @@ public class AccountingServerImpl : IAccountingServer
         _rabbitMqMessage = rabbitMqMessage;
         _currencyServer = currencyServer;
         _configService = configService;
+        _contextSession = contextSession;
     }
 
 
@@ -79,7 +92,7 @@ public class AccountingServerImpl : IAccountingServer
     public bool AccountingExistByAccountBookId(long accountBookId)
     {
         // 查询账本下是否有记账数据
-        return _dbContext.Accountings.Any(a => a.AccountBookId == accountBookId);
+        return _dbContext.Accountings.Any(a => a.AccountBookId == accountBookId && !a.IsDeleted);
     }
 
     /// <summary>
@@ -88,22 +101,23 @@ public class AccountingServerImpl : IAccountingServer
     /// <param name="accountBookId">账本ID</param>
     /// <param name="request">记账添加请求</param>
     /// <returns></returns>
-    public long Add(long accountBookId, AccountingAddRequest request)
+    public async System.Threading.Tasks.Task<long> Add(long accountBookId, AccountingAddRequest request)
     {
-        AccountBookExist(accountBookId);
+        AccountBookExist(accountBookId, true);
+        ValidatePaymentMethod(request.PaymentMethodId!.Value);
 
         // 将请求映射到实体
         var accounting = _autoMapper.Map<Accounting>(request);
-        long targetCurrencyId = GetUserTargetCurrencyId();
+        long targetCurrencyId = await GetUserTargetCurrencyId();
 
         if (request.CurrencyId == targetCurrencyId)
         {
-            accounting.AfterAmount = request.Amount;
+            accounting.AfterAmount = request.Amount!.Value;
         }
         else
         {
-            accounting.AfterAmount = CalculateConvertedAmount(
-                request.CurrencyId, targetCurrencyId, request.Amount);
+            accounting.AfterAmount = await CalculateConvertedAmount(
+                request.CurrencyId!.Value, targetCurrencyId, request.Amount!.Value);
         }
 
         SettingCommProperty.Create(accounting);
@@ -112,12 +126,22 @@ public class AccountingServerImpl : IAccountingServer
         _dbContext.Accountings.Add(accounting);
         _dbContext.SaveChanges();
 
+        // 组合预算变动消息：消费金额、消费类型
+        BudgetChangeMQ budgetChange = new BudgetChangeMQ
+        {
+            ChangeAmount = accounting.AfterAmount,
+            TransactionCategoryId = request.TransactionCategoryId!.Value,
+            UserId = _contextSession.UserId
+        };
+        string budgetChangeJson = JsonSerializer.Serialize(budgetChange);
+
+
         //通过MQ发送记账数据到消息队列，从预算中扣除金额
-        MqPublisher mqPublisher = new MqPublisher(accounting.AfterAmount.ToString("F2"),
+        MqPublisher mqPublisher = new MqPublisher(budgetChangeJson,
             MqExchange.BudgetExchange,
             MqRoutingKey.BudgetRoutingKey,
             MqQueue.BudgetQueue, MessageType.BudgetDeduct, ExchangeType.Direct);
-        _rabbitMqMessage.SendAsync(mqPublisher).Start();
+        await _rabbitMqMessage.SendAsync(mqPublisher);
 
         // 返回新增的记账ID
         return accounting.Id;
@@ -128,12 +152,12 @@ public class AccountingServerImpl : IAccountingServer
     /// </summary>
     /// <param name="accountBookId">账本ID</param>
     /// <param name="id">记账ID</param>
-    public void Delete(long accountBookId, long id)
+    public async System.Threading.Tasks.Task Delete(long accountBookId, long id)
     {
         // 检查账本是否存在
-        AccountBookExist(accountBookId);
+        AccountBookExist(accountBookId, true);
         // 查询要删除的记账记录
-        Accounting accounting = QueryById(id);
+        Accounting accounting = QueryAccountingById(id, accountBookId);
         if (accounting == null)
         {
             throw new NotFoundException($"记账记录不存在，ID: {id}");
@@ -145,12 +169,21 @@ public class AccountingServerImpl : IAccountingServer
         _dbContext.Accountings.Update(accounting);
         _dbContext.SaveChanges();
 
+        // 组合预算变动消息：消费金额、消费类型
+        BudgetChangeMQ budgetChange = new BudgetChangeMQ
+        {
+            ChangeAmount = accounting.AfterAmount,
+            TransactionCategoryId = accounting.TransactionCategoryId,
+            UserId = _contextSession.UserId
+        };
+        string budgetChangeJson = JsonSerializer.Serialize(budgetChange);
+
         //通过MQ发送删除记账数据到消息队列，把预算中的金额恢复
-        MqPublisher mqPublisher = new MqPublisher(accounting.AfterAmount.ToString("F2"),
+        MqPublisher mqPublisher = new MqPublisher(budgetChangeJson,
             MqExchange.BudgetExchange,
             MqRoutingKey.BudgetRoutingKey,
             MqQueue.BudgetQueue, MessageType.BudgetAdd, ExchangeType.Direct);
-        _rabbitMqMessage.SendAsync(mqPublisher).Start();
+        await _rabbitMqMessage.SendAsync(mqPublisher);
     }
 
     /// <summary>
@@ -158,32 +191,33 @@ public class AccountingServerImpl : IAccountingServer
     /// </summary>
     /// <param name="accountBookId">账本ID</param>
     /// <param name="request">修改请求</param>
-    public void Edit(long accountBookId, AccountingEditRequest request)
+    public async System.Threading.Tasks.Task Edit(long accountBookId, AccountingEditRequest request)
     {
         // 检查账本是否存在
-        AccountBookExist(accountBookId);
+        AccountBookExist(accountBookId, true);
+        ValidatePaymentMethod(request.PaymentMethodId!.Value);
 
         // 查询要修改的记账记录
-        Accounting existingAccounting = QueryById(request.Id);
+        Accounting existingAccounting = QueryAccountingById(request.Id!.Value, accountBookId);
         if (existingAccounting == null)
         {
             throw new NotFoundException($"记账记录不存在，ID: {request.Id}");
         }
 
-        // 将请求模型映射到实体
-        existingAccounting = _autoMapper.Map<Accounting>(request);
-        long targetCurrencyId = GetUserTargetCurrencyId();
-        // 计算原金额与现金额的差额，用于更新预算
+        // 保存原始金额，用于后续计算差额
         decimal originalAmount = existingAccounting.AfterAmount;
+        // 将请求模型映射到已追踪实体（不替换整个对象）
+        _autoMapper.Map(request, existingAccounting);
+        long targetCurrencyId = await GetUserTargetCurrencyId();
         // 如果修改的货币与目标货币相同，直接使用原金额，否则进行转换
         if (request.CurrencyId == targetCurrencyId)
         {
-            existingAccounting.AfterAmount = request.Amount;
+            existingAccounting.AfterAmount = request.Amount!.Value;
         }
         else
         {
-            existingAccounting.AfterAmount = CalculateConvertedAmount(
-                request.CurrencyId, targetCurrencyId, request.Amount);
+            existingAccounting.AfterAmount = await CalculateConvertedAmount(
+                request.CurrencyId!.Value, targetCurrencyId, request.Amount!.Value);
         }
 
         // 计算金额差额
@@ -197,11 +231,17 @@ public class AccountingServerImpl : IAccountingServer
         _dbContext.SaveChanges();
 
         // 通过MQ发送修改记账数据到消息队列，更新预算中的金额
-        MqPublisher mqPublisher = new MqPublisher(amountDifference.ToString("F2"),
+        BudgetChangeMQ budgetUpdateChange = new BudgetChangeMQ
+        {
+            ChangeAmount = amountDifference,
+            TransactionCategoryId = request.TransactionCategoryId!.Value,
+            UserId = _contextSession.UserId
+        };
+        MqPublisher mqPublisher = new MqPublisher(JsonSerializer.Serialize(budgetUpdateChange),
             MqExchange.BudgetExchange,
             MqRoutingKey.BudgetRoutingKey,
             MqQueue.BudgetQueue, MessageType.BudgetUpdate, ExchangeType.Direct);
-        _rabbitMqMessage.SendAsync(mqPublisher).Start();
+        await _rabbitMqMessage.SendAsync(mqPublisher);
     }
 
     /// <summary>
@@ -213,17 +253,22 @@ public class AccountingServerImpl : IAccountingServer
     public AccountingResponse QueryById(long accountBookId, long id)
     {
         // 检查账本是否存在
-        AccountBookExist(accountBookId);
+        AccountBookExist(accountBookId, false);
 
         // 查询记账记录
-        Accounting accounting = QueryById(id);
+        Accounting accounting = QueryAccountingById(id, accountBookId);
         if (accounting == null)
         {
             throw new NotFoundException($"记账记录不存在，ID: {id}");
         }
 
         // 将实体映射到响应模型
-        return _autoMapper.Map<AccountingResponse>(accounting);
+        var response = _autoMapper.Map<AccountingResponse>(accounting);
+        response.PaymentMethodName = _dbContext.PaymentMethods
+            .Where(p => p.Id == accounting.PaymentMethodId && !p.IsDeleted)
+            .Select(p => p.Name)
+            .FirstOrDefault() ?? string.Empty;
+        return response;
     }
 
     /// <summary>
@@ -235,7 +280,7 @@ public class AccountingServerImpl : IAccountingServer
     public PageResponse<AccountingResponse> QueryPage(long accountBookId, AccountingPageRequest page)
     {
         // 检查账本是否存在
-        AccountBookExist(accountBookId);
+        AccountBookExist(accountBookId, false);
 
         // 查询记账记录分页
         var query = _dbContext.Accountings
@@ -253,6 +298,16 @@ public class AccountingServerImpl : IAccountingServer
         // 将实体列表映射到响应模型列表
         var responseList = _autoMapper.Map<List<AccountingResponse>>(pagedData);
 
+        // 填充支付方式名称
+        var paymentMethodIds = pagedData.Select(a => a.PaymentMethodId).Distinct().ToList();
+        var paymentMethodNames = _dbContext.PaymentMethods
+            .Where(p => paymentMethodIds.Contains(p.Id) && !p.IsDeleted)
+            .ToDictionary(p => p.Id, p => p.Name);
+        foreach (var item in responseList)
+        {
+            item.PaymentMethodName = paymentMethodNames.GetValueOrDefault(item.PaymentMethodId) ?? string.Empty;
+        }
+
         // 返回分页响应
         return new PageResponse<AccountingResponse>
         {
@@ -269,13 +324,37 @@ public class AccountingServerImpl : IAccountingServer
     /// </summary>
     /// <param name="accountBookId"></param>
     /// <returns></returns>
-    private void AccountBookExist(long accountBookId)
+    private void AccountBookExist(long accountBookId, bool requireWritePermission)
     {
-        // 检查账本是否存在
-        bool exist = _accountBookServer.Exist(accountBookId);
-        if (!exist)
+        var accountBook = _dbContext.AccountBooks
+            .FirstOrDefault(p => p.Id == accountBookId && !p.IsDeleted);
+        if (accountBook == null)
         {
             throw new NotFoundException("账本不存在");
+        }
+
+        bool isOwner = accountBook.CreateUserId == _contextSession.UserId;
+        if (isOwner)
+        {
+            return;
+        }
+
+        var sharePermission = _dbContext.AccountBookShares
+            .Where(p => !p.IsDeleted
+                        && p.AccountBookId == accountBookId
+                        && p.UserId == _contextSession.UserId)
+            .Select(p => p.PermissionType)
+            .FirstOrDefault();
+
+        bool hasReadPermission = sharePermission == PermissionTypeEnum.ReadOnly
+                                 || sharePermission == PermissionTypeEnum.ReadWrite
+                                 || sharePermission == PermissionTypeEnum.Admin;
+        bool hasWritePermission = sharePermission == PermissionTypeEnum.ReadWrite
+                                  || sharePermission == PermissionTypeEnum.Admin;
+
+        if (!hasReadPermission || (requireWritePermission && !hasWritePermission))
+        {
+            throw new ForbiddenException("无权访问账本");
         }
     }
 
@@ -284,10 +363,11 @@ public class AccountingServerImpl : IAccountingServer
     /// </summary>
     /// <param name="id">记账ID</param>
     /// <returns>返回记账记录</returns>
-    private Accounting QueryById(long id)
+    private Accounting QueryAccountingById(long id, long accountBookId)
     {
         // 查询记账记录
-        var accounting = _dbContext.Accountings.FirstOrDefault(p => p.IsDeleted == false && p.Id == id);
+        var accounting = _dbContext.Accountings.FirstOrDefault(p =>
+            p.IsDeleted == false && p.Id == id && p.AccountBookId == accountBookId);
         if (accounting == null)
         {
             throw new NotFoundException($"记账记录不存在，ID: {id}");
@@ -302,13 +382,13 @@ public class AccountingServerImpl : IAccountingServer
     /// <param name="sourceCurrencyId">源货币ID</param>
     /// <param name="targetCurrencyId">目标货币ID</param>
     /// <returns>返回转换后的金额</returns>
-    private decimal CalculateConvertedAmount(long sourceCurrencyId, long targetCurrencyId, decimal amount)
+    private async System.Threading.Tasks.Task<decimal> CalculateConvertedAmount(long sourceCurrencyId, long targetCurrencyId, decimal amount)
     {
         // 获取今日汇率记录
-        var todayExchangeRate = _currencyServer
+        var todayExchangeRate = await _currencyServer
             .GetTodayExchangeRateByCode(sourceCurrencyId, targetCurrencyId);
         // 返回汇率
-        decimal exchangeRate = todayExchangeRate.Result.ExchangeRate;
+        decimal exchangeRate = todayExchangeRate.ExchangeRate;
         // 计算转换后的金额
         return amount * exchangeRate;
     }
@@ -317,15 +397,77 @@ public class AccountingServerImpl : IAccountingServer
     /// 从用户配置中获取用户设置的目标币种
     /// </summary>
     /// <returns>返回目标币种ID</returns>
-    private long GetUserTargetCurrencyId()
+    private async System.Threading.Tasks.Task<long> GetUserTargetCurrencyId()
     {
-        ApiResponse<ConfigResponse> apiResponse = _configService.QueryByType(ConfigTypeEnum.Currency);
+        ApiResponse<ConfigResponse> apiResponse = await _configService.QueryByType(ConfigTypeEnum.Currency);
         // 检查响应是否成功，并且内容不为空
         if (apiResponse.IsSuccessStatusCode && apiResponse.Content != null)
         {
-            return long.Parse(apiResponse.Content.ToString() ?? string.Empty);
+            if (long.TryParse(apiResponse.Content.Value, out var currencyId))
+            {
+                return currencyId;
+            }
+
+            throw new BusinessException("用户默认币种配置无效");
         }
 
-        throw new RefitException($"获取汇率失败: {apiResponse.StatusCode}");
+        throw new RefitException($"获取用户默认币种失败: {apiResponse.StatusCode}");
+    }
+
+    /// <summary>
+    /// 根据时间范围获取记账记录列表
+    /// </summary>
+    /// <param name="startTime"></param>
+    /// <param name="endTime"></param>
+    /// <returns></returns>
+    public object GetAccountingsByTimeRange(DateTime startTime, DateTime endTime)
+    {
+        // 查询记账记录
+        var accountings = _dbContext.Accountings
+            .Where(a => a.IsDeleted == false
+                        && a.RecordDate >= startTime
+                        && a.RecordDate <= endTime
+                        && a.CreateUserId == _contextSession.UserId)
+            .ToList();
+        // 将实体列表映射到响应模型列表
+        var responseList = _autoMapper.Map<List<AccountingResponse>>(accountings);
+        // 返回响应列表
+        return responseList;
+    }
+
+    /// <summary>
+    /// 合并记账记录到目标账本
+    /// </summary>
+    /// <param name="targetAccountBookId"></param>
+    /// <param name="sourceIds"></param>
+    public void MigrateAccountBook(long targetAccountBookId, List<long> sourceIds)
+    {
+        // 迁移记账记录到目标账本
+        var accountingsToMigrate = _dbContext.Accountings
+            .Where(a => sourceIds.Contains(a.AccountBookId) && a.IsDeleted == false)
+            .ToList();
+        foreach (var accounting in accountingsToMigrate)
+        {
+            accounting.AccountBookId = targetAccountBookId;
+            SettingCommProperty.Edit(accounting);
+        }
+
+        _dbContext.Accountings.UpdateRange(accountingsToMigrate);
+        _dbContext.SaveChanges();
+    }
+
+    /// <summary>
+    /// 校验支付方式是否存在且属于当前用户
+    /// </summary>
+    /// <param name="paymentMethodId">支付方式ID</param>
+    private void ValidatePaymentMethod(long paymentMethodId)
+    {
+        long userId = _contextSession.UserId;
+        bool exists = _dbContext.PaymentMethods
+            .Any(p => p.Id == paymentMethodId && p.CreateUserId == userId && !p.IsDeleted);
+        if (!exists)
+        {
+            throw new NotFoundException("支付方式不存在", paymentMethodId);
+        }
     }
 }

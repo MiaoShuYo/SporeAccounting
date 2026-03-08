@@ -105,7 +105,7 @@ public class ConfigServerImpl : IConfigServer
     {
         // 查询用户配置
         Config? existingConfig = _context.Configs
-            .FirstOrDefault(c => c.Id == config.Id);
+            .FirstOrDefault(c => c.Id == config.Id && c.UserId == _userId);
         if (existingConfig == null)
         {
             throw new NotFoundException("配置项不存在");
@@ -142,7 +142,8 @@ public class ConfigServerImpl : IConfigServer
         // 保存到数据库
         await _context.SaveChangesAsync();
         // 删除Redis缓存
-        await _redisService.RemoveAsync(_redisUserConfigKey);
+        var userConfigRedisKey = string.Format(ConfigRedisKey.UserConfig, userId);
+        await _redisService.RemoveAsync(userConfigRedisKey);
     }
 
     /// <summary>
@@ -150,15 +151,33 @@ public class ConfigServerImpl : IConfigServer
     /// </summary>
     /// <param name="type">类型</param>
     /// <returns>配置信息</returns>
-    public ConfigResponse QueryByType(ConfigTypeEnum type)
+    public Task<ConfigResponse> QueryByType(ConfigTypeEnum type)
     {
-        Config? config = _context.Configs.FirstOrDefault(p => p.ConfigType == type);
+        Config? config = _context.Configs.FirstOrDefault(p => p.ConfigType == type && p.UserId == _userId);
         if (config == null)
         {
-            return new ConfigResponse();
+            return Task.FromResult(new ConfigResponse());
         }
 
         ConfigResponse configResponse = _autoMapper.Map<ConfigResponse>(config);
-        return configResponse;
+        return Task.FromResult(configResponse);
+    }
+    
+    /// <summary>
+    /// 根据类型和userId获取配置
+    /// </summary>
+    /// <param name="type">类型</param>
+    /// <param name="userId">用户id</param>
+    /// <returns>配置信息</returns>
+    public Task<ConfigResponse> QueryByTypeAndUserId(ConfigTypeEnum type, long userId)
+    {
+        Config? config = _context.Configs.FirstOrDefault(p => p.ConfigType == type && p.UserId == userId);
+        if (config == null)
+        {
+            return Task.FromResult(new ConfigResponse());
+        }
+
+        ConfigResponse configResponse = _autoMapper.Map<ConfigResponse>(config);
+        return Task.FromResult(configResponse);
     }
 }
