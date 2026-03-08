@@ -74,6 +74,11 @@ public class FinanceServiceDbContext : DbContext
     public DbSet<PaymentMethod> PaymentMethods { get; set; }
 
     /// <summary>
+    /// 财务健康评分
+    /// </summary>
+    public DbSet<FinancialHealthScore> FinancialHealthScores { get; set; }
+
+    /// <summary>
     /// 数据库连接配置
     /// </summary>
     private readonly IConfiguration _dbConfig;

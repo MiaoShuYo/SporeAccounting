@@ -21,6 +21,7 @@ using SP.FinanceService.Service.Impl;
 using SP.Common.ExceptionHandling;
 using SP.FinanceService.Task.Accounting;
 using SP.FinanceService.Task.Budget;
+using SP.FinanceService.Task.FinancialHealth;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -131,6 +132,7 @@ builder.Services.AddScoped<ISharedExpenseServer, SharedExpenseServerImpl>();
 builder.Services.AddScoped<ISharedExpenseReminderServer, SharedExpenseReminderServerImpl>();
 builder.Services.AddScoped<ISharedExpenseServer, SharedExpenseServerImpl>();
 builder.Services.AddScoped<IPaymentMethodServer, PaymentMethodServerImpl>();
+builder.Services.AddScoped<IFinancialHealthScoreService, FinancialHealthScoreServiceImpl>();
 
 // 注册 IHttpContextAccessor
 builder.Services.AddHttpContextAccessor();
@@ -202,6 +204,17 @@ builder.Services.AddQuartz(q =>
         .WithIdentity("SharedExpenseReminderWatcherTrigger")
         .StartNow()
         .WithCronSchedule("0 0/30 * * * ?")); // 每30分钟执行
+});
+// 添加财务健康评分月度计算任务
+builder.Services.AddQuartz(q =>
+{
+    var healthScoreJobKey = new JobKey("FinancialHealthScoreJob");
+    q.AddJob<FinancialHealthScoreTask>(opts => opts.WithIdentity(healthScoreJobKey));
+    q.AddTrigger(opts => opts
+        .ForJob(healthScoreJobKey)
+        .WithIdentity("FinancialHealthScoreTrigger")
+        .StartNow()
+        .WithCronSchedule("0 0 2 1 * ?")); // 每月1日凌晨2点执行
 });
 builder.Services.AddQuartzHostedService(options =>
 {

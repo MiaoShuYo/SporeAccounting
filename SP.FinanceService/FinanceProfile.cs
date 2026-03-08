@@ -71,5 +71,10 @@ public class FinanceProfile : Profile
         CreateMap<PaymentMethodAddRequest, PaymentMethod>();
         CreateMap<PaymentMethodEditRequest, PaymentMethod>();
         CreateMap<PaymentMethod, PaymentMethodResponse>();
+
+        // 财务健康评分映射
+        CreateMap<FinancialHealthScore, FinancialHealthScoreResponse>()
+            .ForMember(dest => dest.HealthLevel, opt => opt.MapFrom(src => (int)src.HealthLevel))
+            .ForMember(dest => dest.HealthLevelName, opt => opt.Ignore());
     }
 }
