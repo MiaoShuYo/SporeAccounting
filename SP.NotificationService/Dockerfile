@@ -1,5 +1,5 @@
-# 使用官方.NET 8.0 SDK镜像作为构建阶段
-FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
+# 使用官方.NET 1.0 SDK镜像作为构建阶段
+FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
 WORKDIR /src
 
 # 复制项目文件
@@ -21,7 +21,7 @@ FROM build AS publish
 RUN dotnet publish "SP.NotificationService.csproj" -c Release -o /app/publish /p:UseAppHost=false
 
 # 使用官方.NET 8.0运行时镜像作为最终阶段
-FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS final
+FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS final
 WORKDIR /app
 
 # 安装必要的系统包（如果需要）

@@ -1,11 +1,11 @@
 # 使用官方.NET 8.0运行时镜像作为基础镜像
-FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS base
+FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS base
 WORKDIR /app
 EXPOSE 80
 EXPOSE 443
 
 # 使用官方.NET 8.0 SDK镜像作为构建镜像
-FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
+FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
 WORKDIR /src
 
 # 复制项目文件
