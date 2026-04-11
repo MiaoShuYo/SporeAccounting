@@ -18,9 +18,9 @@
         <PackageReference Include="Microsoft.Build" Version="18.4.0">
           <PrivateAssets>all</PrivateAssets>
         </PackageReference>
-        <PackageReference Include="OpenIddict.AspNetCore" Version="7.0.0" />
-        <PackageReference Include="OpenIddict.EntityFrameworkCore" Version="7.0.0" />
-        <PackageReference Include="OpenIddict.Validation.AspNetCore" Version="7.0.0" />
+        <PackageReference Include="OpenIddict.AspNetCore" Version="7.4.0" />
+        <PackageReference Include="OpenIddict.EntityFrameworkCore" Version="7.4.0" />
+        <PackageReference Include="OpenIddict.Validation.AspNetCore" Version="7.4.0" />
         <PackageReference Include="Pomelo.EntityFrameworkCore.MySql" Version="9.0.0" />
         <PackageReference Include="Swashbuckle.AspNetCore" Version="6.6.2"/>
         <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="10.0.5"/>
