@@ -1,5 +1,5 @@
 using System.Reflection;
-using Microsoft.OpenApi.Models;
+using Microsoft.OpenApi;
 using Quartz;
 using SP.Common.Refit;
 using SP.Common.ServiceDiscovery;
@@ -29,42 +29,32 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers();
 builder.Services.ConfigureDetailedModelValidation();
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
-builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen(c =>
+builder.Services.AddOpenApi(options =>
 {
-    // 添加XML文档
-    var xmlFile = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
-    var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
-    if (File.Exists(xmlPath))
+    options.AddDocumentTransformer((document, context, cancellationToken) =>
     {
-        c.IncludeXmlComments(xmlPath);
-    }
-
-    // 添加JWT认证配置
-    c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
-    {
-        Description = "JWT授权(数据将在请求头中进行传输) 参数结构: \"Authorization: Bearer {token}\"",
-        Name = "Authorization",
-        In = ParameterLocation.Header,
-        Type = SecuritySchemeType.ApiKey,
-        BearerFormat = "JWT",
-        Scheme = "Bearer"
-    });
-
-    c.AddSecurityRequirement(new OpenApiSecurityRequirement
-    {
+        document.Components ??= new OpenApiComponents();
+        document.Components.SecuritySchemes["Bearer"] = new OpenApiSecurityScheme
         {
-            new OpenApiSecurityScheme
+            Description = "JWT授权(数据将在请求头中进行传输) 参数结构: \"Authorization: Bearer {token}\"",
+            Name = "Authorization",
+            In = ParameterLocation.Header,
+            Type = SecuritySchemeType.ApiKey,
+            BearerFormat = "JWT",
+            Scheme = "Bearer"
+        };
+        return Task.CompletedTask;
+    });
+    options.AddOperationTransformer((operation, context, cancellationToken) =>
+    {
+        operation.Security = [new OpenApiSecurityRequirement
+        {
             {
-                Reference = new OpenApiReference
-                {
-                    Type = ReferenceType.SecurityScheme,
-                    Id = "Bearer"
-                }
-            },
-            new string[] { }
-        }
+                new OpenApiSecuritySchemeReference("Bearer"),
+                new List<string>()
+            }
+        }];
+        return Task.CompletedTask;
     });
 });
 
@@ -230,8 +220,7 @@ SP.Common.Model.SettingCommProperty.ServiceProvider = app.Services;
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment() || app.Environment.EnvironmentName == "Local")
 {
-    app.UseSwagger();
-    app.UseSwaggerUI();
+    app.MapOpenApi();
 }
 
 app.UseHttpsRedirection();

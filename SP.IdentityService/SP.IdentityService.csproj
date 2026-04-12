@@ -22,7 +22,8 @@
         <PackageReference Include="OpenIddict.EntityFrameworkCore" Version="7.4.0" />
         <PackageReference Include="OpenIddict.Validation.AspNetCore" Version="7.4.0" />
         <PackageReference Include="Pomelo.EntityFrameworkCore.MySql" Version="9.0.0" />
-        <PackageReference Include="Swashbuckle.AspNetCore" Version="6.6.2"/>
+        <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="10.0.5"/>
+        <PackageReference Include="Microsoft.OpenApi" Version="2.0.0"/>
         <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="10.0.5"/>
         <PackageReference Include="SixLabors.ImageSharp" Version="3.1.11" />
         <PackageReference Include="SixLabors.Fonts" Version="2.1.3" />

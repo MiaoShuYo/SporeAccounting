@@ -1,5 +1,6 @@
 using Ocelot.DependencyInjection;
 using Ocelot.Middleware;
+using Scalar.AspNetCore;
 using SP.Gateway.Middleware;
 using SP.Common.Redis;
 using SP.Gateway.Services;
@@ -22,7 +23,6 @@ if (string.IsNullOrWhiteSpace(gatewaySecret))
 // 基础服务
 builder.Services.AddControllers();
 builder.Services.ConfigureDetailedModelValidation();
-builder.Services.AddEndpointsApiExplorer();
 
 // 覆盖 Nacos 注册的 IP/Port 为宿主机IP + 对外端口（通过环境变量或配置传入）
 var hostIp = Environment.GetEnvironmentVariable("HOST_IP") ?? builder.Configuration["HOST_IP"];
@@ -44,6 +44,7 @@ builder.Services.AddSpNacos(builder.Configuration);
 
 // 添加 HTTP 客户端用于获取微服务的 OpenAPI 文档
 builder.Services.AddHttpClient();
+builder.Services.AddHttpClient("OpenApiProxy", client => { client.Timeout = TimeSpan.FromSeconds(10); });
 
 // 添加Redis服务
 builder.Services.AddRedisService(builder.Configuration);
@@ -81,22 +82,22 @@ builder.Services.AddOcelot(builder.Configuration)
 // 使用 SP.Common 的 Nacos OpenAPI 封装替代 Ocelot.Provider.Nacos
 builder.Services.AddSpNacosServiceDiscoveryForOcelot();
 
-if (builder.Environment.IsDevelopment() || builder.Environment.EnvironmentName == "Local")
-{
-    // Swagger 配置
-    builder.Services.AddSwaggerGen();
-    builder.Services.AddSwaggerForOcelot(builder.Configuration);
-}
-
 var app = builder.Build();
 
 // 中间件管道
 if (app.Environment.IsDevelopment() || app.Environment.EnvironmentName == "Local")
 {
-    app.UseSwagger();
-    app.UseSwaggerForOcelotUI(opt =>
+    app.MapScalarApiReference("/scalar", options =>
     {
-        opt.PathToSwaggerGenerator = "/swagger/docs";
+        options.Title = "SporeAccounting API Gateway";
+        options.AddDocument("SPFinanceService",      "Finance Service",      "/openapi/proxy/SPFinanceService");
+        options.AddDocument("SPCurrencyService",     "Currency Service",     "/openapi/proxy/SPCurrencyService");
+        options.AddDocument("SPIdentityService",     "Identity Service",     "/openapi/proxy/SPIdentityService");
+        options.AddDocument("SPConfigService",       "Config Service",       "/openapi/proxy/SPConfigService");
+        options.AddDocument("SPMLService",           "ML Service",           "/openapi/proxy/SPMLService");
+        options.AddDocument("SPNotificationService", "Notification Service", "/openapi/proxy/SPNotificationService");
+        options.AddDocument("SPReportService",       "Report Service",       "/openapi/proxy/SPReportService");
+        options.AddDocument("SPResourceService",     "Resource Service",     "/openapi/proxy/SPResourceService");
     });
 }
 
