@@ -1,0 +1,606 @@
+{
+  "Routes": [
+
+    {
+      "UpstreamPathTemplate": "/.well-known/openid-configuration",
+      "UpstreamHttpMethod": [ "Get" ],
+      "DownstreamPathTemplate": "/.well-known/openid-configuration",
+      "DownstreamScheme": "http",
+      "ServiceName": "SPIdentityService"
+    },
+    {
+      "UpstreamPathTemplate": "/.well-known/openid_configuration",
+      "UpstreamHttpMethod": [ "Get" ],
+      "DownstreamPathTemplate": "/.well-known/openid_configuration",
+      "DownstreamScheme": "http",
+      "ServiceName": "SPIdentityService"
+    },
+    {
+      "UpstreamPathTemplate": "/.well-known/jwks",
+      "UpstreamHttpMethod": [ "Get" ],
+      "DownstreamPathTemplate": "/.well-known/jwks",
+      "DownstreamScheme": "http",
+      "ServiceName": "SPIdentityService"
+    },
+    {
+      "UpstreamPathTemplate": "/.well-known/health",
+      "UpstreamHttpMethod": [ "Get" ],
+      "DownstreamPathTemplate": "/.well-known/health",
+      "DownstreamScheme": "http",
+      "ServiceName": "SPIdentityService"
+    },
+    {
+      "UpstreamPathTemplate": "/api/auth/token",
+      "UpstreamHttpMethod": [ "Post" ],
+      "DownstreamPathTemplate": "/api/auth/token",
+      "DownstreamScheme": "http",
+      "ServiceName": "SPIdentityService"
+    },
+    {
+      "UpstreamPathTemplate": "/api/captcha/create",
+      "UpstreamHttpMethod": [ "Get" ],
+      "DownstreamPathTemplate": "/api/captcha/create",
+      "DownstreamScheme": "http",
+      "ServiceName": "SPIdentityService"
+    },
+    {
+      "UpstreamPathTemplate": "/api/captcha/verify",
+      "UpstreamHttpMethod": [ "Post" ],
+      "DownstreamPathTemplate": "/api/captcha/verify",
+      "DownstreamScheme": "http",
+      "ServiceName": "SPIdentityService"
+    },
+    {
+      "UpstreamPathTemplate": "/api/users/phone/verify",
+      "UpstreamHttpMethod": [ "Get" ],
+      "DownstreamPathTemplate": "/api/users/phone/verify",
+      "DownstreamScheme": "http",
+      "ServiceName": "SPIdentityService"
+    },
+    {
+      "UpstreamPathTemplate": "/api/users/email/verify",
+      "UpstreamHttpMethod": [ "Get" ],
+      "DownstreamPathTemplate": "/api/users/email/verify",
+      "DownstreamScheme": "http",
+      "ServiceName": "SPIdentityService"
+    },
+    {
+      "UpstreamPathTemplate": "/api/users/{id}/status",
+      "UpstreamHttpMethod": [ "Put" ],
+      "DownstreamPathTemplate": "/api/users/{id}/status",
+      "DownstreamScheme": "http",
+      "ServiceName": "SPIdentityService"
+    },
+    {
+      "UpstreamPathTemplate": "/api/users/{id}",
+      "UpstreamHttpMethod": [ "Get", "Put", "Delete" ],
+      "DownstreamPathTemplate": "/api/users/{id}",
+      "DownstreamScheme": "http",
+      "ServiceName": "SPIdentityService"
+    },
+    {
+      "UpstreamPathTemplate": "/api/users",
+      "UpstreamHttpMethod": [ "Get" ],
+      "DownstreamPathTemplate": "/api/users",
+      "DownstreamScheme": "http",
+      "ServiceName": "SPIdentityService"
+    },
+    {
+      "UpstreamPathTemplate": "/api/roles/users/{userId}/permissions",
+      "UpstreamHttpMethod": [ "Get" ],
+      "DownstreamPathTemplate": "/api/roles/users/{userId}/permissions",
+      "DownstreamScheme": "http",
+      "ServiceName": "SPIdentityService"
+    },
+    {
+      "UpstreamPathTemplate": "/api/roles/{roleId}/permissions/{permission}",
+      "UpstreamHttpMethod": [ "Delete" ],
+      "DownstreamPathTemplate": "/api/roles/{roleId}/permissions/{permission}",
+      "DownstreamScheme": "http",
+      "ServiceName": "SPIdentityService"
+    },
+    {
+      "UpstreamPathTemplate": "/api/roles/{roleId}/permissions",
+      "UpstreamHttpMethod": [ "Get", "Post" ],
+      "DownstreamPathTemplate": "/api/roles/{roleId}/permissions",
+      "DownstreamScheme": "http",
+      "ServiceName": "SPIdentityService"
+    },
+    {
+      "UpstreamPathTemplate": "/api/roles/{id}",
+      "UpstreamHttpMethod": [ "Get", "Put", "Delete" ],
+      "DownstreamPathTemplate": "/api/roles/{id}",
+      "DownstreamScheme": "http",
+      "ServiceName": "SPIdentityService"
+    },
+    {
+      "UpstreamPathTemplate": "/api/roles",
+      "UpstreamHttpMethod": [ "Get", "Post" ],
+      "DownstreamPathTemplate": "/api/roles",
+      "DownstreamScheme": "http",
+      "ServiceName": "SPIdentityService"
+    },
+    {
+      "UpstreamPathTemplate": "/api/clients/register",
+      "UpstreamHttpMethod": [ "Post" ],
+      "DownstreamPathTemplate": "/api/clients/register",
+      "DownstreamScheme": "http",
+      "ServiceName": "SPIdentityService"
+    },
+    {
+      "UpstreamPathTemplate": "/api/clients/{clientId}",
+      "UpstreamHttpMethod": [ "Delete" ],
+      "DownstreamPathTemplate": "/api/clients/{clientId}",
+      "DownstreamScheme": "http",
+      "ServiceName": "SPIdentityService"
+    },
+
+    {
+      "UpstreamPathTemplate": "/api/account-books/merge",
+      "UpstreamHttpMethod": [ "Post" ],
+      "DownstreamPathTemplate": "/api/account-books/merge",
+      "DownstreamScheme": "http",
+      "ServiceName": "SPFinanceService"
+    },
+    {
+      "UpstreamPathTemplate": "/api/account-books/{id}",
+      "UpstreamHttpMethod": [ "Delete", "Put" ],
+      "DownstreamPathTemplate": "/api/account-books/{id}",
+      "DownstreamScheme": "http",
+      "ServiceName": "SPFinanceService"
+    },
+    {
+      "UpstreamPathTemplate": "/api/account-books",
+      "UpstreamHttpMethod": [ "Get", "Post" ],
+      "DownstreamPathTemplate": "/api/account-books",
+      "DownstreamScheme": "http",
+      "ServiceName": "SPFinanceService"
+    },
+    {
+      "UpstreamPathTemplate": "/api/account-books/share/Page/Self",
+      "UpstreamHttpMethod": [ "Post" ],
+      "DownstreamPathTemplate": "/api/account-books/share/Page/Self",
+      "DownstreamScheme": "http",
+      "ServiceName": "SPFinanceService"
+    },
+    {
+      "UpstreamPathTemplate": "/api/account-books/share/Page/SharedToMe",
+      "UpstreamHttpMethod": [ "Post" ],
+      "DownstreamPathTemplate": "/api/account-books/share/Page/SharedToMe",
+      "DownstreamScheme": "http",
+      "ServiceName": "SPFinanceService"
+    },
+    {
+      "UpstreamPathTemplate": "/api/account-books/share/Revoke",
+      "UpstreamHttpMethod": [ "Put" ],
+      "DownstreamPathTemplate": "/api/account-books/share/Revoke",
+      "DownstreamScheme": "http",
+      "ServiceName": "SPFinanceService"
+    },
+    {
+      "UpstreamPathTemplate": "/api/account-books/share",
+      "UpstreamHttpMethod": [ "Post", "Put" ],
+      "DownstreamPathTemplate": "/api/account-books/share",
+      "DownstreamScheme": "http",
+      "ServiceName": "SPFinanceService"
+    },
+    {
+      "UpstreamPathTemplate": "/api/accountings/by-time-range",
+      "UpstreamHttpMethod": [ "Get" ],
+      "DownstreamPathTemplate": "/api/accountings/by-time-range",
+      "DownstreamScheme": "http",
+      "ServiceName": "SPFinanceService"
+    },
+    {
+      "UpstreamPathTemplate": "/api/accountings/{id}",
+      "UpstreamHttpMethod": [ "Get", "Put", "Delete" ],
+      "DownstreamPathTemplate": "/api/accountings/{id}",
+      "DownstreamScheme": "http",
+      "ServiceName": "SPFinanceService"
+    },
+    {
+      "UpstreamPathTemplate": "/api/accountings",
+      "UpstreamHttpMethod": [ "Get", "Post" ],
+      "DownstreamPathTemplate": "/api/accountings",
+      "DownstreamScheme": "http",
+      "ServiceName": "SPFinanceService"
+    },
+    {
+      "UpstreamPathTemplate": "/api/budgets/current-budgets",
+      "UpstreamHttpMethod": [ "Get" ],
+      "DownstreamPathTemplate": "/api/budgets/current-budgets",
+      "DownstreamScheme": "http",
+      "ServiceName": "SPFinanceService"
+    },
+    {
+      "UpstreamPathTemplate": "/api/budgets/{id}",
+      "UpstreamHttpMethod": [ "Get", "Put", "Delete" ],
+      "DownstreamPathTemplate": "/api/budgets/{id}",
+      "DownstreamScheme": "http",
+      "ServiceName": "SPFinanceService"
+    },
+    {
+      "UpstreamPathTemplate": "/api/budgets",
+      "UpstreamHttpMethod": [ "Get", "Post" ],
+      "DownstreamPathTemplate": "/api/budgets",
+      "DownstreamScheme": "http",
+      "ServiceName": "SPFinanceService"
+    },
+    {
+      "UpstreamPathTemplate": "/api/budget-records/by-budget-ids",
+      "UpstreamHttpMethod": [ "Get" ],
+      "DownstreamPathTemplate": "/api/budget-records/by-budget-ids",
+      "DownstreamScheme": "http",
+      "ServiceName": "SPFinanceService"
+    },
+    {
+      "UpstreamPathTemplate": "/api/transaction-categories/by-parent/{parentId}",
+      "UpstreamHttpMethod": [ "Get" ],
+      "DownstreamPathTemplate": "/api/transaction-categories/by-parent/{parentId}",
+      "DownstreamScheme": "http",
+      "ServiceName": "SPFinanceService"
+    },
+    {
+      "UpstreamPathTemplate": "/api/transaction-categories/update-parent",
+      "UpstreamHttpMethod": [ "Put" ],
+      "DownstreamPathTemplate": "/api/transaction-categories/update-parent",
+      "DownstreamScheme": "http",
+      "ServiceName": "SPFinanceService"
+    },
+    {
+      "UpstreamPathTemplate": "/api/transaction-categories/batch",
+      "UpstreamHttpMethod": [ "Delete" ],
+      "DownstreamPathTemplate": "/api/transaction-categories/batch",
+      "DownstreamScheme": "http",
+      "ServiceName": "SPFinanceService"
+    },
+    {
+      "UpstreamPathTemplate": "/api/transaction-categories/{id}",
+      "UpstreamHttpMethod": [ "Put" ],
+      "DownstreamPathTemplate": "/api/transaction-categories/{id}",
+      "DownstreamScheme": "http",
+      "ServiceName": "SPFinanceService"
+    },
+    {
+      "UpstreamPathTemplate": "/api/transaction-categories",
+      "UpstreamHttpMethod": [ "Post" ],
+      "DownstreamPathTemplate": "/api/transaction-categories",
+      "DownstreamScheme": "http",
+      "ServiceName": "SPFinanceService"
+    },
+    {
+      "UpstreamPathTemplate": "/api/payment-methods/{id}/default",
+      "UpstreamHttpMethod": [ "Patch" ],
+      "DownstreamPathTemplate": "/api/payment-methods/{id}/default",
+      "DownstreamScheme": "http",
+      "ServiceName": "SPFinanceService"
+    },
+    {
+      "UpstreamPathTemplate": "/api/payment-methods/{id}",
+      "UpstreamHttpMethod": [ "Put", "Delete" ],
+      "DownstreamPathTemplate": "/api/payment-methods/{id}",
+      "DownstreamScheme": "http",
+      "ServiceName": "SPFinanceService"
+    },
+    {
+      "UpstreamPathTemplate": "/api/payment-methods",
+      "UpstreamHttpMethod": [ "Get", "Post" ],
+      "DownstreamPathTemplate": "/api/payment-methods",
+      "DownstreamScheme": "http",
+      "ServiceName": "SPFinanceService"
+    },
+    {
+      "UpstreamPathTemplate": "/api/shared-expenses/{id}",
+      "UpstreamHttpMethod": [ "Get", "Put", "Delete" ],
+      "DownstreamPathTemplate": "/api/shared-expenses/{id}",
+      "DownstreamScheme": "http",
+      "ServiceName": "SPFinanceService"
+    },
+    {
+      "UpstreamPathTemplate": "/api/shared-expenses",
+      "UpstreamHttpMethod": [ "Get", "Post" ],
+      "DownstreamPathTemplate": "/api/shared-expenses",
+      "DownstreamScheme": "http",
+      "ServiceName": "SPFinanceService"
+    },
+    {
+      "UpstreamPathTemplate": "/api/shared-expense-settlements/by-shared-expense/{sharedExpenseId}",
+      "UpstreamHttpMethod": [ "Get" ],
+      "DownstreamPathTemplate": "/api/shared-expense-settlements/by-shared-expense/{sharedExpenseId}",
+      "DownstreamScheme": "http",
+      "ServiceName": "SPFinanceService"
+    },
+    {
+      "UpstreamPathTemplate": "/api/shared-expense-settlements/{id}",
+      "UpstreamHttpMethod": [ "Get" ],
+      "DownstreamPathTemplate": "/api/shared-expense-settlements/{id}",
+      "DownstreamScheme": "http",
+      "ServiceName": "SPFinanceService"
+    },
+    {
+      "UpstreamPathTemplate": "/api/shared-expense-settlements",
+      "UpstreamHttpMethod": [ "Post" ],
+      "DownstreamPathTemplate": "/api/shared-expense-settlements",
+      "DownstreamScheme": "http",
+      "ServiceName": "SPFinanceService"
+    },
+    {
+      "UpstreamPathTemplate": "/api/shared-expense-reminders/by-shared-expense/{sharedExpenseId}",
+      "UpstreamHttpMethod": [ "Get" ],
+      "DownstreamPathTemplate": "/api/shared-expense-reminders/by-shared-expense/{sharedExpenseId}",
+      "DownstreamScheme": "http",
+      "ServiceName": "SPFinanceService"
+    },
+    {
+      "UpstreamPathTemplate": "/api/shared-expense-reminders/{id}/status",
+      "UpstreamHttpMethod": [ "Put" ],
+      "DownstreamPathTemplate": "/api/shared-expense-reminders/{id}/status",
+      "DownstreamScheme": "http",
+      "ServiceName": "SPFinanceService"
+    },
+    {
+      "UpstreamPathTemplate": "/api/shared-expense-reminders",
+      "UpstreamHttpMethod": [ "Post" ],
+      "DownstreamPathTemplate": "/api/shared-expense-reminders",
+      "DownstreamScheme": "http",
+      "ServiceName": "SPFinanceService"
+    },
+    {
+      "UpstreamPathTemplate": "/api/recurring-expense-rule",
+      "UpstreamHttpMethod": [ "Get", "Post", "Put" ],
+      "DownstreamPathTemplate": "/api/recurring-expense-rule",
+      "DownstreamScheme": "http",
+      "ServiceName": "SPFinanceService"
+    },
+    {
+      "UpstreamPathTemplate": "/page",
+      "UpstreamHttpMethod": [ "Post" ],
+      "DownstreamPathTemplate": "/page",
+      "DownstreamScheme": "http",
+      "ServiceName": "SPFinanceService"
+    },
+    {
+      "UpstreamPathTemplate": "/api/financial-health/calculate",
+      "UpstreamHttpMethod": [ "Post" ],
+      "DownstreamPathTemplate": "/api/financial-health/calculate",
+      "DownstreamScheme": "http",
+      "ServiceName": "SPFinanceService"
+    },
+    {
+      "UpstreamPathTemplate": "/api/financial-health/score",
+      "UpstreamHttpMethod": [ "Get" ],
+      "DownstreamPathTemplate": "/api/financial-health/score",
+      "DownstreamScheme": "http",
+      "ServiceName": "SPFinanceService"
+    },
+    {
+      "UpstreamPathTemplate": "/api/financial-health/history",
+      "UpstreamHttpMethod": [ "Get" ],
+      "DownstreamPathTemplate": "/api/financial-health/history",
+      "DownstreamScheme": "http",
+      "ServiceName": "SPFinanceService"
+    },
+    {
+      "UpstreamPathTemplate": "/api/financial-health/suggestions",
+      "UpstreamHttpMethod": [ "Get" ],
+      "DownstreamPathTemplate": "/api/financial-health/suggestions",
+      "DownstreamScheme": "http",
+      "ServiceName": "SPFinanceService"
+    },
+    {
+      "UpstreamPathTemplate": "/api/health",
+      "UpstreamHttpMethod": [ "Get" ],
+      "DownstreamPathTemplate": "/api/health",
+      "DownstreamScheme": "http",
+      "ServiceName": "SPFinanceService"
+    },
+
+    {
+      "UpstreamPathTemplate": "/api/currencies",
+      "UpstreamHttpMethod": [ "Get" ],
+      "DownstreamPathTemplate": "/api/currencies",
+      "DownstreamScheme": "http",
+      "ServiceName": "SPCurrencyService"
+    },
+    {
+      "UpstreamPathTemplate": "/api/exchange-rates/{sourceCurrencyId}/{targetCurrencyId}/today",
+      "UpstreamHttpMethod": [ "Get" ],
+      "DownstreamPathTemplate": "/api/exchange-rates/{sourceCurrencyId}/{targetCurrencyId}/today",
+      "DownstreamScheme": "http",
+      "ServiceName": "SPCurrencyService"
+    },
+    {
+      "UpstreamPathTemplate": "/api/exchange-rates",
+      "UpstreamHttpMethod": [ "Get" ],
+      "DownstreamPathTemplate": "/api/exchange-rates",
+      "DownstreamScheme": "http",
+      "ServiceName": "SPCurrencyService"
+    },
+
+    {
+      "UpstreamPathTemplate": "/api/Report/GetReport",
+      "UpstreamHttpMethod": [ "Post" ],
+      "DownstreamPathTemplate": "/api/Report/GetReport",
+      "DownstreamScheme": "http",
+      "ServiceName": "SPReportService"
+    },
+    {
+      "UpstreamPathTemplate": "/api/budget-reports/budget-progress",
+      "UpstreamHttpMethod": [ "Get" ],
+      "DownstreamPathTemplate": "/api/budget-reports/budget-progress",
+      "DownstreamScheme": "http",
+      "ServiceName": "SPReportService"
+    },
+    {
+      "UpstreamPathTemplate": "/api/budget-reports/budget-consumption-trend",
+      "UpstreamHttpMethod": [ "Get" ],
+      "DownstreamPathTemplate": "/api/budget-reports/budget-consumption-trend",
+      "DownstreamScheme": "http",
+      "ServiceName": "SPReportService"
+    },
+
+    {
+      "UpstreamPathTemplate": "/api/files/upload",
+      "UpstreamHttpMethod": [ "Post" ],
+      "DownstreamPathTemplate": "/api/files/upload",
+      "DownstreamScheme": "http",
+      "ServiceName": "SPResourceService"
+    },
+    {
+      "UpstreamPathTemplate": "/api/files/upload-token",
+      "UpstreamHttpMethod": [ "Get" ],
+      "DownstreamPathTemplate": "/api/files/upload-token",
+      "DownstreamScheme": "http",
+      "ServiceName": "SPResourceService"
+    },
+    {
+      "UpstreamPathTemplate": "/api/files/confirm-upload",
+      "UpstreamHttpMethod": [ "Post" ],
+      "DownstreamPathTemplate": "/api/files/confirm-upload",
+      "DownstreamScheme": "http",
+      "ServiceName": "SPResourceService"
+    },
+    {
+      "UpstreamPathTemplate": "/api/files/url",
+      "UpstreamHttpMethod": [ "Get" ],
+      "DownstreamPathTemplate": "/api/files/url",
+      "DownstreamScheme": "http",
+      "ServiceName": "SPResourceService"
+    },
+    {
+      "UpstreamPathTemplate": "/api/files",
+      "UpstreamHttpMethod": [ "Delete" ],
+      "DownstreamPathTemplate": "/api/files",
+      "DownstreamScheme": "http",
+      "ServiceName": "SPResourceService"
+    },
+    {
+      "UpstreamPathTemplate": "/api/ocr/recognize",
+      "UpstreamHttpMethod": [ "Get" ],
+      "DownstreamPathTemplate": "/api/ocr/recognize",
+      "DownstreamScheme": "http",
+      "ServiceName": "SPResourceService"
+    },
+    {
+      "UpstreamPathTemplate": "/api/ocr/text",
+      "UpstreamHttpMethod": [ "Get" ],
+      "DownstreamPathTemplate": "/api/ocr/text",
+      "DownstreamScheme": "http",
+      "ServiceName": "SPResourceService"
+    },
+    {
+      "UpstreamPathTemplate": "/api/assistant/extract-amount-and-category",
+      "UpstreamHttpMethod": [ "Post" ],
+      "DownstreamPathTemplate": "/api/assistant/extract-amount-and-category",
+      "DownstreamScheme": "http",
+      "ServiceName": "SPResourceService"
+    },
+
+    {
+      "UpstreamPathTemplate": "/api/insite-notifications/all",
+      "UpstreamHttpMethod": [ "Post" ],
+      "DownstreamPathTemplate": "/api/insite-notifications/all",
+      "DownstreamScheme": "http",
+      "ServiceName": "SPNotificationService"
+    },
+    {
+      "UpstreamPathTemplate": "/api/insite-notifications/unread-count",
+      "UpstreamHttpMethod": [ "Get" ],
+      "DownstreamPathTemplate": "/api/insite-notifications/unread-count",
+      "DownstreamScheme": "http",
+      "ServiceName": "SPNotificationService"
+    },
+    {
+      "UpstreamPathTemplate": "/api/insite-notifications/{notificationId}/read",
+      "UpstreamHttpMethod": [ "Put" ],
+      "DownstreamPathTemplate": "/api/insite-notifications/{notificationId}/read",
+      "DownstreamScheme": "http",
+      "ServiceName": "SPNotificationService"
+    },
+    {
+      "UpstreamPathTemplate": "/api/insite-notifications/{notificationId}",
+      "UpstreamHttpMethod": [ "Get" ],
+      "DownstreamPathTemplate": "/api/insite-notifications/{notificationId}",
+      "DownstreamScheme": "http",
+      "ServiceName": "SPNotificationService"
+    },
+    {
+      "UpstreamPathTemplate": "/api/insite-notifications",
+      "UpstreamHttpMethod": [ "Get", "Post", "Put", "Delete" ],
+      "DownstreamPathTemplate": "/api/insite-notifications",
+      "DownstreamScheme": "http",
+      "ServiceName": "SPNotificationService"
+    },
+
+    {
+      "UpstreamPathTemplate": "/api/CategoryPrediction/predict",
+      "UpstreamHttpMethod": [ "Post" ],
+      "DownstreamPathTemplate": "/api/CategoryPrediction/predict",
+      "DownstreamScheme": "http",
+      "ServiceName": "SPMLService"
+    },
+    {
+      "UpstreamPathTemplate": "/api/CategoryPrediction/feedback/choice",
+      "UpstreamHttpMethod": [ "Post" ],
+      "DownstreamPathTemplate": "/api/CategoryPrediction/feedback/choice",
+      "DownstreamScheme": "http",
+      "ServiceName": "SPMLService"
+    },
+    {
+      "UpstreamPathTemplate": "/api/CategoryPrediction/feedback/correction",
+      "UpstreamHttpMethod": [ "Post" ],
+      "DownstreamPathTemplate": "/api/CategoryPrediction/feedback/correction",
+      "DownstreamScheme": "http",
+      "ServiceName": "SPMLService"
+    },
+    {
+      "UpstreamPathTemplate": "/api/CategoryPrediction/stats",
+      "UpstreamHttpMethod": [ "Get" ],
+      "DownstreamPathTemplate": "/api/CategoryPrediction/stats",
+      "DownstreamScheme": "http",
+      "ServiceName": "SPMLService"
+    },
+    {
+      "UpstreamPathTemplate": "/api/CategoryPrediction/retrain",
+      "UpstreamHttpMethod": [ "Post" ],
+      "DownstreamPathTemplate": "/api/CategoryPrediction/retrain",
+      "DownstreamScheme": "http",
+      "ServiceName": "SPMLService"
+    },
+
+    {
+      "UpstreamPathTemplate": "/api/configs/by-type-and-user/{type}/{userId}",
+      "UpstreamHttpMethod": [ "Get" ],
+      "DownstreamPathTemplate": "/api/configs/by-type-and-user/{type}/{userId}",
+      "DownstreamScheme": "http",
+      "ServiceName": "SPConfigService"
+    },
+    {
+      "UpstreamPathTemplate": "/api/configs/by-type/{type}",
+      "UpstreamHttpMethod": [ "Get" ],
+      "DownstreamPathTemplate": "/api/configs/by-type/{type}",
+      "DownstreamScheme": "http",
+      "ServiceName": "SPConfigService"
+    },
+    {
+      "UpstreamPathTemplate": "/api/configs",
+      "UpstreamHttpMethod": [ "Get", "Put" ],
+      "DownstreamPathTemplate": "/api/configs",
+      "DownstreamScheme": "http",
+      "ServiceName": "SPConfigService"
+    }
+
+  ],
+
+  "GlobalConfiguration": {
+    "BaseUrl": "http://localhost:9000",
+    "ServiceDiscoveryProvider": {
+      "Scheme": "http",
+      "Host": "180.184.87.247",
+      "Port": 8848,
+      "Type": "Nacos",
+      "Namespace": "08a0fc6e-b163-4f9e-8145-7393d9bef091"
+    },
+    "Timeout": 30
+  }
+}
