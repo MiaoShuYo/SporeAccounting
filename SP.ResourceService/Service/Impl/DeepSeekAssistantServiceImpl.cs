@@ -52,7 +52,7 @@ public class DeepSeekAssistantServiceImpl : IAssistantService
         string apiKey = _deepSeekOptions.APIKey;
         var options = new RestClientOptions(url)
         {
-            MaxTimeout = -1,
+            Timeout = System.Threading.Timeout.InfiniteTimeSpan,
         };
         var client = new RestClient(options);
         var request = new RestRequest(url, Method.Post);
