@@ -1,0 +1,104 @@
+﻿using Microsoft.EntityFrameworkCore;
+using SP.FinanceService.Models.Entity;
+
+namespace SP.FinanceService.DB;
+
+/// <summary>
+/// 财务服务数据库上下文
+/// </summary>
+public class FinanceServiceDbContext : DbContext
+{
+    /// <summary>
+    /// 收支分类
+    /// </summary>
+    public DbSet<TransactionCategory> TransactionCategories { get; set; }
+
+    /// <summary>
+    /// 账本
+    /// </summary>
+    public DbSet<AccountBook> AccountBooks { get; set; }
+
+    /// <summary>
+    /// 财务记录
+    /// </summary>
+    public DbSet<Accounting> Accountings { get; set; }
+    
+    /// <summary>
+    /// 预算
+    /// </summary>
+    public DbSet<Budget> Budgets { get; set; }
+    
+    /// <summary>
+    /// 预算记录
+    /// </summary>
+    public DbSet<BudgetRecord> BudgetRecords { get; set; }
+
+    /// <summary>
+    /// 账本分享
+    /// </summary>
+    public DbSet<AccountBookShare> AccountBookShares { get; set; }
+
+    /// <summary>
+    /// 规定开销规则
+    /// </summary>
+    public DbSet<RecurringExpenseRule> RecurringExpenseRules { get; set; }
+
+    /// <summary>
+    /// 规定开销执行记录
+    /// </summary>
+    public DbSet<RecurringExpenseRuleExecutionRecord> RecurringExpenseRuleExecutionRecords { get; set; }
+
+    /// <summary>
+    /// 分摊账目
+    /// </summary>
+    public DbSet<SharedExpense> SharedExpenses { get; set; }
+
+    /// <summary>
+    /// 分摊参与者
+    /// </summary>
+    public DbSet<SharedExpenseParticipant> SharedExpenseParticipants { get; set; }
+
+    /// <summary>
+    /// 分摊提醒记录
+    /// </summary>
+    public DbSet<SharedExpenseReminder> SharedExpenseReminders { get; set; }
+
+    /// <summary>
+    /// 分摊结算流水
+    /// </summary>
+    public DbSet<SharedExpenseSettlement> SharedExpenseSettlements { get; set; }
+
+    /// <summary>
+    /// 常用支付方式
+    /// </summary>
+    public DbSet<PaymentMethod> PaymentMethods { get; set; }
+
+    /// <summary>
+    /// 财务健康评分
+    /// </summary>
+    public DbSet<FinancialHealthScore> FinancialHealthScores { get; set; }
+
+    /// <summary>
+    /// 数据库连接配置
+    /// </summary>
+    private readonly IConfiguration _dbConfig;
+
+    /// <summary>
+    /// 构造函数
+    /// </summary>
+    /// <param name="dbConfig"></param>
+    public FinanceServiceDbContext(IConfiguration dbConfig)
+    {
+        _dbConfig = dbConfig;
+    }
+
+    /// <summary>
+    /// 数据库连接配置
+    /// </summary>
+    /// <param name="optionsBuilder"></param>
+    protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+    {
+        var serverVersion = ServerVersion.AutoDetect(_dbConfig.GetConnectionString("MySQLConnection"));
+        optionsBuilder.UseMySql(_dbConfig.GetConnectionString("MySQLConnection"), serverVersion);
+    }
+}

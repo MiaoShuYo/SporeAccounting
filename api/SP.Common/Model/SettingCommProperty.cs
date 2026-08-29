@@ -1,0 +1,107 @@
+﻿using SP.Common.ExceptionHandling.Exceptions;
+using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.DependencyInjection;
+
+namespace SP.Common.Model;
+
+/// <summary>
+/// 通用设置属性类
+/// </summary>
+public static class SettingCommProperty
+{
+    /// <summary>
+    /// 静态服务提供者
+    /// </summary>
+    public static IServiceProvider? ServiceProvider { get; set; }
+
+    /// <summary>
+    /// 删除
+    /// </summary>
+    /// <param name="model"></param>
+    public static void Delete(BaseModel model)
+    {
+        if (model is null)
+        {
+            throw new BusinessException("Model cannot be null");
+        }
+
+        model.IsDeleted = true;
+        model.UpdateDateTime = DateTime.Now;
+        model.UpdateUserId = GetCurrentUserId();
+    }
+
+    /// <summary>
+    /// 新建
+    /// </summary>
+    /// <param name="model"></param>
+    public static void Create(BaseModel model)
+    {
+        if (model is null)
+        {
+            throw new BusinessException("Model cannot be null");
+        }
+
+        model.Id = Snow.GetId();
+        model.CreateDateTime = DateTime.Now;
+        model.CreateUserId = GetCurrentUserId();
+    }
+
+    /// <summary>
+    /// 批量新建
+    /// </summary>
+    /// <param name="models"></param>
+    public static void Create(IEnumerable<BaseModel> models)
+    {
+        if (models?.Any() != true)
+        {
+            throw new BusinessException("Models cannot be null or empty");
+        }
+
+        foreach (var model in models)
+        {
+            Create(model);
+        }
+    }
+
+    /// <summary>
+    /// 更新
+    /// </summary>
+    /// <param name="model"></param>
+    public static void Edit(BaseModel model)
+    {
+        if (model is null)
+        {
+            throw new BusinessException("Model cannot be null");
+        }
+        model.UpdateDateTime = DateTime.Now;
+        model.UpdateUserId = GetCurrentUserId();
+    }
+
+    /// <summary>
+    /// 获取当前用户ID
+    /// </summary>
+    /// <returns></returns>
+    public static long GetCurrentUserId()
+    {
+        if (ServiceProvider == null)
+        {
+            return 0;
+        }
+
+        try
+        {
+            var httpContextAccessor = ServiceProvider.GetService<IHttpContextAccessor>();
+            var userIdClaim = httpContextAccessor?.HttpContext?.User?.FindFirst("UserId");
+            if (userIdClaim != null && long.TryParse(userIdClaim.Value, out var userId))
+            {
+                return userId;
+            }
+        }
+        catch
+        {
+            // 如果获取失败，返回0
+        }
+
+        return 0;
+    }
+}

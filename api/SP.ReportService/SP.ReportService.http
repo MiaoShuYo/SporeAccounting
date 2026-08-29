@@ -1,0 +1,22 @@
+@SP.ReportService_HostAddress = http://localhost:5041
+
+GET {{SP.ReportService_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
+
+POST {{SP.ReportService_HostAddress}}/api/Report/GetReportInsight
+Content-Type: application/json
+
+{
+	"reportType": 0,
+	"year": 2026,
+	"month": 6
+}
+
+###
+
+GET {{SP.ReportService_HostAddress}}/api/budget-reports/budget-insight
+Accept: application/json
+
+###

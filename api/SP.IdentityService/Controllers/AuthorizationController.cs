@@ -1,0 +1,808 @@
+using System.IdentityModel.Tokens.Jwt;
+using System.Collections.Immutable;
+using System.Security.Claims;
+using System.Security.Cryptography;
+using Microsoft.AspNetCore;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Identity.Data;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.IdentityModel.Tokens;
+using OpenIddict.Abstractions;
+using OpenIddict.Server.AspNetCore;
+using SP.Common;
+using SP.Common.ConfigService;
+using SP.Common.ExceptionHandling.Exceptions;
+using SP.Common.Message.SmS.Model;
+using SP.Common.Message.SmS.Services;
+using SP.Common.Redis;
+using SP.IdentityService.Models.Request;
+using SP.IdentityService.Models.Response;
+using SP.IdentityService.Service;
+
+namespace SP.IdentityService.Controllers;
+
+/// <summary>
+/// 授权控制器
+/// </summary>
+[Route("api/auth")]
+[ApiController]
+public class AuthorizationController : ControllerBase
+{
+    private readonly IAuthorizationService _authorizationService;
+    private readonly ILogger<AuthorizationController> _logger;
+    private readonly IRedisService _redisService;
+    private readonly ContextSession _contextSession;
+    private readonly JwtConfigService _jwtConfigService;
+
+    /// <summary>
+    /// 授权控制器构造函数
+    /// </summary>
+    /// <param name="authorizationService"></param>
+    /// <param name="logger"></param>
+    /// <param name="redisService"></param>
+    /// <param name="contextSession"></param>
+    /// <param name="smSService"></param>
+    public AuthorizationController(IAuthorizationService authorizationService,
+        ILogger<AuthorizationController> logger, IRedisService redisService, ContextSession contextSession,
+        ISmSService smSService, JwtConfigService jwtConfigService)
+    {
+        _logger = logger;
+        _authorizationService = authorizationService;
+        _redisService = redisService;
+        _contextSession = contextSession;
+        _jwtConfigService = jwtConfigService;
+    }
+
+    /// <summary>
+    /// 获取访问令牌
+    /// </summary>
+    /// <remarks>
+    /// 请求示例:
+    /// 
+    ///     POST /api/auth/token
+    ///     Content-Type: application/x-www-form-urlencoded
+    ///     
+    ///     grant_type=password&amp;username=admin&amp;password=123*asdasd&amp;scope=api offline_access
+    ///
+    ///     或者刷新令牌:
+    ///     
+    ///     grant_type=refresh_token&amp;refresh_token=YOUR_REFRESH_TOKEN&amp;scope=api
+    ///     
+    ///     或者客户端凭证模式:
+    ///     
+    ///     grant_type=client_credentials&amp;client_id=YOUR_CLIENT_ID&amp;client_secret=YOUR_CLIENT_SECRET&amp;scope=api
+    ///
+    ///     或者短信验证码登录:
+    ///     
+    ///     grant_type=sms_otp&amp;phone_number=13800000000&amp;code=123456&amp;scope=api
+    ///     
+    ///     或者邮箱验证码登录:
+    ///     
+    ///     grant_type=email_code&amp;email=user@example.com&amp;code=123456&amp;scope=api
+    ///
+    /// 注意：
+    /// 1. 必须使用表单（form-data）方式提交，Content-Type为application/x-www-form-urlencoded
+    /// 2. 不要将参数放在URL查询字符串中
+    /// 3. 在刷新令牌模式下，refresh_token必须放在请求体中，不能放在URL中
+    /// 4. 客户端凭证模式适用于服务器到服务器的API调用，不关联特定用户
+    /// 5. 短信验证码登录需要先发送短信验证码，验证码有效期为5-10分钟
+    /// 6. 邮箱验证码登录需要先发送邮箱验证码，验证码有效期为5-10分钟
+    /// </remarks>
+    /// <returns>返回访问令牌信息</returns>
+    /// <response code="200">返回访问令牌</response>
+    /// <response code="400">请求格式不正确或不支持的授权类型</response>
+    /// <response code="403">认证失败</response>
+    [HttpPost("token")]
+    [Consumes("application/x-www-form-urlencoded")]
+    [Produces("application/json")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    public async Task<ActionResult> GetToken()
+    {
+        // 检查是否通过查询参数传递敏感信息
+        if (Request.Query.Count > 0 &&
+            (Request.Query.ContainsKey("refresh_token") || Request.Query.ContainsKey("password") ||
+             Request.Query.ContainsKey("client_secret")))
+        {
+            throw new BadRequestException("不要在URL中包含敏感信息，请使用表单提交方式");
+        }
+
+        // 检查请求头中是否包含敏感信息
+        if (Request.Headers.Any(h => h.Key.Equals("Authorization", StringComparison.OrdinalIgnoreCase) &&
+                                     h.Value.ToString().Contains("Basic")))
+        {
+            // 记录警告日志，但允许继续处理，因为某些客户端可能使用Basic认证
+            _logger.LogWarning("检测到使用Basic认证，建议改用表单提交方式");
+        }
+
+        var request = HttpContext.GetOpenIddictServerRequest();
+        if (request == null)
+        {
+            throw new BadRequestException("请求格式不正确，请使用表单(application/x-www-form-urlencoded)提交");
+        }
+
+        // 处理资源所有者密码模式
+        if (request.IsPasswordGrantType())
+        {
+            // 验证用户名和密码
+            if (string.IsNullOrEmpty(request.Username) || string.IsNullOrEmpty(request.Password))
+            {
+                throw new BusinessException("用户名或密码不能为空");
+            }
+
+            var principal =
+                await _authorizationService.LoginByPasswordAsync(request.Username, request.Password,
+                    request.GetScopes());
+            // 确保 SignIn 方法只在授权端点调用
+            SignInResult signInResult = SignIn(principal, OpenIddictServerAspNetCoreDefaults.AuthenticationScheme);
+            return signInResult;
+        }
+
+        // 短信验证码登录
+        if (string.Equals(request.GrantType, "sms_otp", StringComparison.Ordinal))
+        {
+            var phoneNumber = (string?)request.GetParameter("phone_number");
+            var code = (string?)request.GetParameter("code");
+            if (string.IsNullOrEmpty(phoneNumber) || string.IsNullOrEmpty(code))
+            {
+                throw new BusinessException("手机号或验证码不能为空");
+            }
+
+            var principal =
+                await _authorizationService.LoginBySmSCodeAsync(phoneNumber, code,
+                    request.GetScopes());
+            var signInResult = SignIn(principal, OpenIddictServerAspNetCoreDefaults.AuthenticationScheme);
+            return signInResult;
+        }
+        
+        // 邮箱验证码登录
+        if (string.Equals(request.GrantType, "email_code", StringComparison.Ordinal))
+        {
+            var email = (string?)request.GetParameter("email");
+            var code = (string?)request.GetParameter("code");
+            if (string.IsNullOrEmpty(email) || string.IsNullOrEmpty(code))
+            {
+                throw new BusinessException("邮箱或验证码不能为空");
+            }
+
+            var principal =
+                await _authorizationService.LoginByEmailCodeAsync(email, code,
+                    request.GetScopes());
+            var signInResult = SignIn(principal, OpenIddictServerAspNetCoreDefaults.AuthenticationScheme);
+            return signInResult;
+        }
+
+        // 处理刷新令牌
+        if (request.IsRefreshTokenGrantType())
+        {
+            // 从 request 上下文中获取之前存储的身份验证票据
+            var principal =
+                (await HttpContext.AuthenticateAsync(OpenIddictServerAspNetCoreDefaults.AuthenticationScheme))
+                ?.Principal;
+
+            var newPrincipal =
+                await _authorizationService.RefreshTokenAsync(request.RefreshToken, request.GetScopes(), principal);
+
+            var signInResult = SignIn(newPrincipal, OpenIddictServerAspNetCoreDefaults.AuthenticationScheme);
+
+            // 注意：token 将在 OpenIddict 中间件处理过程中生成
+            return signInResult;
+        }
+
+        // 处理客户端凭证模式
+        if (request.IsClientCredentialsGrantType())
+        {
+            var clientId = request.ClientId;
+            var clientSecret = request.ClientSecret;
+
+            if (string.IsNullOrEmpty(clientId))
+            {
+                throw new BusinessException("client_id不能为空");
+            }
+
+            var principal =
+                await _authorizationService.HandleClientCredentialsAsync(clientId, clientSecret, request.GetScopes());
+            var signInResult = SignIn(principal, OpenIddictServerAspNetCoreDefaults.AuthenticationScheme);
+
+            // 注意：token 将在 OpenIddict 中间件处理过程中生成
+            return signInResult;
+        }
+
+        // 不支持的授权类型
+        return BadRequest(new
+        {
+            error = OpenIddictConstants.Errors.UnsupportedGrantType,
+            error_description = "不支持的授权类型。"
+        });
+    }
+
+    /// <summary>
+    /// 注册用户
+    /// </summary>
+    /// <param name="user"></param>
+    [HttpPost("register")]
+    public async Task<ActionResult<long>> Register([FromBody] UserRegisterRequest user)
+    {
+        var result = await _authorizationService.AddUserAsync(user);
+        return Ok(result);
+    }
+
+    /// <summary>
+    /// 发送邮件验证码
+    /// </summary>
+    /// <param name="email"></param>
+    [HttpPost("emailVerificationCode")]
+    public async Task<ActionResult> EmailVerificationCode([FromBody] SendEmailRequest email)
+    {
+        await _authorizationService.EmailVerificationCode(email);
+        return Ok();
+    }
+
+    /// <summary>
+    /// 发送手机验证码
+    /// </summary>
+    /// <param name="smSRequest"></param>
+    [HttpPost("smsVerificationCode")]
+    public async Task<ActionResult> SmsVerificationCode([FromBody] SmSRequest smSRequest)
+    {
+        if (smSRequest.PhoneNumbers == null || smSRequest.PhoneNumbers.Count == 0 ||
+            string.IsNullOrWhiteSpace(smSRequest.PhoneNumbers[0]))
+        {
+            throw new BadRequestException("手机号不能为空");
+        }
+
+        await _authorizationService.SendVerificationCodeAsync(smSRequest.PhoneNumbers[0], smSRequest.Purpose);
+        return Ok();
+    }
+
+    /// <summary>
+    /// 绑定邮箱
+    /// </summary>
+    /// <param name="verifyCode">验证码</param>
+    [HttpPost("email/bind")]
+    public async Task<ActionResult> BindEmail([FromBody] VerifyCodeRequest verifyCode)
+    {
+        await _authorizationService.AddEmailAsync(verifyCode);
+        return Ok();
+    }
+
+    /// <summary>
+    /// 绑定手机号
+    /// </summary>
+    /// <param name="verifyCode">验证码</param>
+    [HttpPost("phone/bind")]
+    public async Task<ActionResult> BindPhoneNumber([FromBody] VerifyCodeRequest verifyCode)
+    {
+        await _authorizationService.AddPhoneNumberAsync(verifyCode);
+        return Ok();
+    }
+
+    /// <summary>
+    /// 重置密码
+    /// </summary>
+    /// <param name="resetPasswordRequest"></param>
+    [HttpPut("password/reset")]
+    public async Task<ActionResult> ResetPassword([FromBody] PasswordResetRequest resetPasswordRequest)
+    {
+        await _authorizationService.ResetPasswordAsync(resetPasswordRequest);
+        return Ok();
+    }
+
+    /// <summary>
+    /// 退出登录
+    /// </summary>
+    [HttpPost("logout")]
+    [Microsoft.AspNetCore.Authorization.Authorize]
+    public async Task<ActionResult> Logout()
+    {
+        try
+        {
+            // 获取当前用户ID
+            var userId = _contextSession.UserId;
+            var username = _contextSession.UserName;
+
+            if (userId <= 0)
+            {
+                return Unauthorized(new
+                {
+                    error = OpenIddictConstants.Errors.InvalidToken,
+                    error_description = "无效的用户身份"
+                });
+            }
+
+            // 1. 清除 Redis 中的 token
+            string tokenKey = string.Format(SPRedisKey.Token, userId);
+            await _redisService.RemoveAsync(tokenKey);
+
+            // 2. 清除相关的刷新令牌（如果有的话）
+            string refreshTokenKey = string.Format("RefreshToken:{0}", userId);
+            await _redisService.RemoveAsync(refreshTokenKey);
+
+            // 3. 记录登出日志
+            _logger.LogInformation("用户 {Username} (ID: {UserId}) 已退出登录", username, userId);
+
+            return Ok(new
+            {
+                message = "已成功退出登录并撤销令牌",
+                user_id = userId,
+                username = username
+            });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "退出登录时发生错误");
+            return StatusCode(500, new
+            {
+                error = "InternalServerError",
+                error_description = "退出登录时发生内部错误"
+            });
+        }
+    }
+
+    /// <summary>
+    /// OpenIddict 退出端点
+    /// </summary>
+    /// <remarks>
+    /// 符合 OpenID Connect 规范的退出端点
+    /// </remarks>
+    [HttpPost("connect/logout")]
+    [Microsoft.AspNetCore.Authorization.Authorize]
+    public async Task<ActionResult> OpenIddictLogout()
+    {
+        try
+        {
+            // 获取 OpenIddict 请求
+            var request = HttpContext.GetOpenIddictServerRequest();
+            if (request == null)
+            {
+                return BadRequest(new
+                {
+                    error = OpenIddictConstants.Errors.InvalidRequest,
+                    error_description = "无效的退出请求"
+                });
+            }
+
+            // 获取当前用户信息
+            var userId = _contextSession.UserId;
+            var username = _contextSession.UserName;
+
+            if (userId <= 0)
+            {
+                return Unauthorized(new
+                {
+                    error = OpenIddictConstants.Errors.InvalidToken,
+                    error_description = "无效的用户身份"
+                });
+            }
+
+            // 1. 清除访问令牌
+            string tokenKey = string.Format(SPRedisKey.Token, userId);
+            await _redisService.RemoveAsync(tokenKey);
+
+            // 2. 清除刷新令牌
+            string refreshTokenKey = string.Format("RefreshToken:{0}", userId);
+            await _redisService.RemoveAsync(refreshTokenKey);
+
+            // 3. 记录退出日志
+            _logger.LogInformation("用户 {Username} (ID: {UserId}) 通过 OpenIddict 退出", username, userId);
+
+            // 使用 OpenIddict 的标准退出方法
+            return SignOut(OpenIddictServerAspNetCoreDefaults.AuthenticationScheme);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "OpenIddict 退出时发生错误");
+            return StatusCode(500, new
+            {
+                error = "InternalServerError",
+                error_description = "退出时发生内部错误"
+            });
+        }
+    }
+
+    /// <summary>
+    /// 撤销令牌
+    /// </summary>
+    /// <remarks>
+    /// 用于撤销访问令牌和刷新令牌，符合 OpenID Connect 规范
+    /// </remarks>
+    [HttpPost("revoke")]
+    [Microsoft.AspNetCore.Authorization.Authorize]
+    public async Task<ActionResult> RevokeToken()
+    {
+        try
+        {
+            var request = HttpContext.GetOpenIddictServerRequest();
+            if (request == null)
+            {
+                return BadRequest(new
+                {
+                    error = OpenIddictConstants.Errors.InvalidRequest,
+                    error_description = "无效的撤销请求"
+                });
+            }
+
+            // 获取当前用户信息
+            var userId = _contextSession.UserId;
+            var username = _contextSession.UserName;
+
+            if (userId <= 0)
+            {
+                return Unauthorized(new
+                {
+                    error = OpenIddictConstants.Errors.InvalidToken,
+                    error_description = "无效的用户身份"
+                });
+            }
+
+            // 1. 清除访问令牌
+            string tokenKey = string.Format(SPRedisKey.Token, userId);
+            await _redisService.RemoveAsync(tokenKey);
+
+            // 2. 清除刷新令牌
+            string refreshTokenKey = string.Format("RefreshToken:{0}", userId);
+            await _redisService.RemoveAsync(refreshTokenKey);
+
+            // 3. 如果请求中包含特定的刷新令牌，也清除它
+            if (!string.IsNullOrEmpty(request.RefreshToken))
+            {
+                string specificRefreshTokenKey = string.Format("RefreshToken:{0}:{1}", userId, request.RefreshToken);
+                await _redisService.RemoveAsync(specificRefreshTokenKey);
+            }
+
+            // 4. 记录撤销日志
+            _logger.LogInformation("用户 {Username} (ID: {UserId}) 的令牌已被撤销", username, userId);
+
+            return Ok(new
+            {
+                message = "令牌已成功撤销",
+                user_id = userId,
+                username = username,
+                revoked_at = DateTime.UtcNow
+            });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "撤销令牌时发生错误");
+            return StatusCode(500, new
+            {
+                error = "InternalServerError",
+                error_description = "撤销令牌时发生内部错误"
+            });
+        }
+    }
+
+    /// <summary>
+    /// 用户信息端点
+    /// </summary>
+    /// <remarks>
+    /// 符合 OpenID Connect 规范的用户信息端点
+    /// </remarks>
+    [HttpGet("userinfo")]
+    [Microsoft.AspNetCore.Authorization.Authorize]
+    public async Task<ActionResult> GetUserInfo()
+    {
+        try
+        {
+            // 获取当前用户信息
+            var userId = User.FindFirstValue(OpenIddictConstants.Claims.Subject)
+                         ?? User.FindFirstValue("userid")
+                         ?? User.FindFirstValue("UserId");
+            var username = User.FindFirstValue(OpenIddictConstants.Claims.Name)
+                           ?? User.FindFirstValue("username")
+                           ?? User.FindFirstValue("UserName");
+            var email = User.FindFirstValue(OpenIddictConstants.Claims.Email)
+                        ?? User.FindFirstValue("email")
+                        ?? User.FindFirstValue("Email");
+
+            if (string.IsNullOrEmpty(userId))
+            {
+                return Unauthorized(new
+                {
+                    error = OpenIddictConstants.Errors.InvalidToken,
+                    error_description = "无效的访问令牌"
+                });
+            }
+
+            // 返回用户信息
+            return Ok(new
+            {
+                sub = userId,
+                name = username,
+                email = email,
+                updated_at = DateTimeOffset.UtcNow.ToUnixTimeSeconds()
+            });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "获取用户信息时发生错误");
+            return StatusCode(500, new
+            {
+                error = "InternalServerError",
+                error_description = "获取用户信息时发生内部错误"
+            });
+        }
+    }
+
+    /// <summary>
+    /// 令牌内省端点
+    /// </summary>
+    /// <remarks>
+    /// 用于验证访问令牌的有效性和获取令牌信息
+    /// 符合 RFC 7662 标准
+    /// </remarks>
+    [HttpPost("introspect")]
+    [Consumes("application/x-www-form-urlencoded")]
+    [Produces("application/json")]
+    public async Task<ActionResult> IntrospectToken()
+    {
+        try
+        {
+            var clientId = Request.Form["client_id"].FirstOrDefault();
+            var clientSecret = Request.Form["client_secret"].FirstOrDefault();
+
+            if (string.IsNullOrWhiteSpace(clientId) || string.IsNullOrWhiteSpace(clientSecret))
+            {
+                return Unauthorized(new
+                {
+                    error = OpenIddictConstants.Errors.InvalidClient,
+                    error_description = "client_id 或 client_secret 不能为空"
+                });
+            }
+
+            await _authorizationService.HandleClientCredentialsAsync(clientId, clientSecret, ImmutableArray<string>.Empty);
+
+            // 直接从表单数据中获取token
+            var token = Request.Form["token"].FirstOrDefault();
+            if (string.IsNullOrEmpty(token))
+            {
+                return BadRequest(new
+                {
+                    error = OpenIddictConstants.Errors.InvalidRequest,
+                    error_description = "token参数不能为空"
+                });
+            }
+
+            // Avoid logging the full token (sensitive). Keep a short prefix for troubleshooting.
+            var tokenPrefix = token.Length <= 10 ? token : token.Substring(0, 10);
+            _logger.LogDebug("Introspect request received, token_prefix={TokenPrefix}", tokenPrefix);
+
+            var introspectionResult = await ValidateTokenForIntrospectionAsync(token);
+
+            if (introspectionResult == null || !introspectionResult.IsValid)
+            {
+                return Ok(new
+                {
+                    active = false
+                });
+            }
+
+            return Ok(new
+            {
+                active = true,
+                sub = introspectionResult.Subject,
+                username = introspectionResult.Username,
+                email = introspectionResult.Email,
+                scope = introspectionResult.Scope,
+                client_id = introspectionResult.ClientId,
+                token_type = introspectionResult.TokenType,
+                iat = introspectionResult.IssuedAt,
+                exp = introspectionResult.ExpiresAt,
+                nbf = introspectionResult.NotBefore,
+                aud = introspectionResult.Audience,
+                iss = introspectionResult.Issuer,
+                jti = introspectionResult.JwtId,
+                roles = introspectionResult.Roles,
+                permissions = introspectionResult.Permissions
+            });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "令牌内省时发生错误");
+            return StatusCode(500, new
+            {
+                error = "server_error",
+                error_description = "内省服务内部错误"
+            });
+        }
+    }
+
+    /// <summary>
+    /// 验证令牌用于内省
+    /// </summary>
+    /// <param name="token">访问令牌</param>
+    /// <returns>内省结果</returns>
+    private async Task<TokenIntrospectionResponse?> ValidateTokenForIntrospectionAsync(string token)
+    {
+        try
+        {
+            if (string.IsNullOrEmpty(token))
+            {
+                return null;
+            }
+
+            var isRevoked = await CheckTokenRevocationAsync(token);
+            if (isRevoked)
+            {
+                _logger.LogWarning("令牌已被撤销: {TokenPrefix}", token.Substring(0, Math.Min(10, token.Length)));
+                return null;
+            }
+
+            _logger.LogDebug("令牌撤销检查通过");
+
+            var tokenHandler = new JwtSecurityTokenHandler();
+            if (!tokenHandler.CanReadToken(token))
+            {
+                _logger.LogWarning("无法解析JWT令牌");
+                return null;
+            }
+
+            _logger.LogDebug("JWT令牌解析成功");
+
+            var signingKey = _jwtConfigService.GetJwtSecret();
+            if (string.IsNullOrWhiteSpace(signingKey))
+            {
+                _logger.LogWarning("签名密钥未配置，无法执行内省验签");
+                return null;
+            }
+
+            var validationParameters = new TokenValidationParameters
+            {
+                ValidateIssuerSigningKey = true,
+                IssuerSigningKey = new SymmetricSecurityKey(Convert.FromBase64String(signingKey)),
+                ValidateIssuer = false,
+                ValidateAudience = false,
+                ValidateLifetime = true,
+                RequireSignedTokens = true,
+                ClockSkew = TimeSpan.FromMinutes(1)
+            };
+
+            ClaimsPrincipal claimsPrincipal;
+            SecurityToken validatedToken;
+
+            try
+            {
+                claimsPrincipal = tokenHandler.ValidateToken(token, validationParameters, out validatedToken);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "令牌验签或生命周期验证失败");
+                return null;
+            }
+
+            var jwtToken = validatedToken as JwtSecurityToken;
+            if (jwtToken == null)
+            {
+                _logger.LogWarning("验证后的令牌类型无效");
+                return null;
+            }
+
+            _logger.LogDebug("令牌签名与生命周期验证通过");
+
+            var now = DateTime.UtcNow;
+            if (jwtToken.ValidFrom > now)
+            {
+                _logger.LogWarning("令牌尚未生效，生效时间: {ValidFrom}", jwtToken.ValidFrom);
+                return null;
+            }
+
+            if (jwtToken.ValidTo < now)
+            {
+                _logger.LogWarning("令牌已过期，过期时间: {ValidTo}", jwtToken.ValidTo);
+                return null;
+            }
+
+            _logger.LogDebug("令牌时间验证通过，当前时间: {Now}, 过期时间: {ValidTo}", now, jwtToken.ValidTo);
+
+            var nameClaim = claimsPrincipal.FindFirstValue(OpenIddictConstants.Claims.Name)
+                            ?? claimsPrincipal.FindFirstValue("name");
+            var usernameClaim = claimsPrincipal.FindFirstValue("username");
+            var finalUsername = nameClaim ?? usernameClaim;
+
+            _logger.LogDebug(
+                "Username提取结果 - name claim: {NameClaim}, username claim: {UsernameClaim}, final: {FinalUsername}",
+                nameClaim, usernameClaim, finalUsername);
+
+            var result = new TokenIntrospectionResponse
+            {
+                IsValid = true,
+                Subject = jwtToken.Subject,
+                Username = finalUsername,
+                Email = claimsPrincipal.FindFirstValue(OpenIddictConstants.Claims.Email)
+                    ?? claimsPrincipal.FindFirstValue("email"),
+                Scope = claimsPrincipal.FindFirstValue(OpenIddictConstants.Claims.Scope)
+                    ?? claimsPrincipal.FindFirstValue("scope"),
+                ClientId = claimsPrincipal.FindFirstValue(OpenIddictConstants.Claims.ClientId)
+                       ?? claimsPrincipal.FindFirstValue("client_id"),
+                TokenType = "Bearer",
+                IssuedAt = jwtToken.IssuedAt.ToUniversalTime().Subtract(DateTime.UnixEpoch).TotalSeconds is double iat
+                    ? (long)iat
+                    : null,
+                ExpiresAt = jwtToken.ValidTo.ToUniversalTime().Subtract(DateTime.UnixEpoch).TotalSeconds is double exp
+                    ? (long)exp
+                    : null,
+                NotBefore = jwtToken.ValidFrom.ToUniversalTime().Subtract(DateTime.UnixEpoch).TotalSeconds is double nbf
+                    ? (long)nbf
+                    : null,
+                Audience = jwtToken.Audiences?.FirstOrDefault(),
+                Issuer = jwtToken.Issuer,
+                JwtId = jwtToken.Id
+            };
+
+            result.Roles = claimsPrincipal.Claims
+                .Where(c => c.Type == "role")
+                .Select(c => c.Value)
+                .ToList();
+
+            result.Permissions = claimsPrincipal.Claims
+                .Where(c => c.Type == "permission")
+                .Select(c => c.Value)
+                .ToList();
+
+            _logger.LogDebug("令牌内省成功，用户: {Username}, 客户端: {ClientId}",
+                result.Username, result.ClientId);
+
+            return result;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "验证令牌时发生错误");
+            return null;
+        }
+    }
+
+    /// <summary>
+    /// 检查令牌是否被撤销
+    /// </summary>
+    /// <param name="token">访问令牌</param>
+    /// <returns>是否被撤销</returns>
+    private async Task<bool> CheckTokenRevocationAsync(string token)
+    {
+        try
+        {
+            // 1. 黑名单检查：revoked_token:{hash}
+            using var sha256 = SHA256.Create();
+            var tokenHash = Convert.ToBase64String(sha256.ComputeHash(System.Text.Encoding.UTF8.GetBytes(token)));
+            var revocationKey = $"revoked_token:{tokenHash}";
+
+            var isRevoked = await _redisService.ExistsAsync(revocationKey);
+            if (isRevoked)
+            {
+                _logger.LogDebug("令牌在Redis黑名单中被标记为撤销");
+                return true;
+            }
+
+            // 2. 白名单检查：Token:{userId} 必须存在且与当前令牌一致
+            var tokenHandler = new JwtSecurityTokenHandler();
+            if (tokenHandler.CanReadToken(token))
+            {
+                var jwtToken = tokenHandler.ReadJwtToken(token);
+                var sub = jwtToken.Subject;
+                if (!string.IsNullOrEmpty(sub) && long.TryParse(sub, out var userId))
+                {
+                    var allowlistKey = string.Format(SPRedisKey.Token, userId);
+                    var storedToken = await _redisService.GetStringAsync(allowlistKey);
+                    if (string.IsNullOrEmpty(storedToken))
+                    {
+                        _logger.LogDebug("令牌对应的登录会话已不在白名单（用户已登出），将其标记为撤销");
+                        return true;
+                    }
+                    if (storedToken != token)
+                    {
+                        _logger.LogDebug("白名单中存储的令牌与当前令牌不一致（可能已换session），将其标记为撤销");
+                        return true;
+                    }
+                }
+            }
+
+            return false;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "检查令牌撤销状态时发生错误");
+            return false;
+        }
+    }
+
+}

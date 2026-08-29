@@ -1,0 +1,43 @@
+[
+  {
+    "Name": "新建配置文件",
+    "Projects": [
+      {
+        "Path": "SP.IdentityService\\SP.IdentityService.csproj",
+        "Action": "Start"
+      },
+      {
+        "Path": "SP.CurrencyService\\SP.CurrencyService.csproj",
+        "Action": "Start"
+      },
+      {
+        "Path": "SP.FinanceService\\SP.FinanceService.csproj",
+        "Action": "Start"
+      },
+      {
+        "Path": "SP.ConfigService\\SP.ConfigService.csproj",
+        "Action": "Start"
+      },
+      {
+        "Path": "SP.Gateway\\SP.Gateway.csproj",
+        "Action": "Start"
+      },
+      {
+        "Path": "SP.ReportService\\SP.ReportService.csproj",
+        "Action": "Start"
+      },
+      {
+        "Path": "SP.ResourceService\\SP.ResourceService.csproj",
+        "Action": "Start"
+      },
+      {
+        "Path": "SP.MLService\\SP.MLService.csproj",
+        "Action": "Start"
+      },
+      {
+        "Path": "SP.NotificationService\\SP.NotificationService.csproj",
+        "Action": "Start"
+      }
+    ]
+  }
+]

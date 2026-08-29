@@ -1,0 +1,191 @@
+# 构建输出
+bin/
+obj/
+
+# 用户特定文件
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# 构建结果
+[Dd]ebug/
+[Dd]ebugPublic/
+[Rr]elease/
+[Rr]eleases/
+x64/
+x86/
+build/
+bld/
+[Bb]in/
+[Oo]bj/
+
+# MSTest测试结果
+[Tt]est[Rr]esult*/
+[Bb]uild[Ll]og.*
+
+# NuGet包
+*.nupkg
+# NuGet Symbol包
+*.snupkg
+# 包文件夹
+**/[Pp]ackages/*
+# 除了build/，它被NuGet用作缓存
+!**/[Pp]ackages/build/
+
+# 其他
+*.swp
+*.*~
+project.lock.json
+.DS_Store
+*.pyc
+nupkg/
+
+# Visual Studio缓存/选项目录
+.vs/
+
+# ReSharper
+_ReSharper*/
+*.[Rr]e[Ss]harper
+*.DotSettings.user
+
+# TeamCity
+_TeamCity*
+
+# DotCover
+*.dotCover
+
+# NCrunch
+_NCrunch_*
+.*crunch*.local.xml
+nCrunchTemp_*
+
+# MightyMoose
+*.mm.*
+AutoTest.Net/
+
+# Web workbench (sass)
+.sass-cache/
+
+# Installshield输出文件夹
+[Ee]xpress/
+
+# DocProject是一个文档生成器
+DocProject/buildhelp/
+DocProject/Help/*.HxT
+DocProject/Help/*.HxC
+DocProject/Help/*.hhc
+DocProject/Help/*.hhk
+DocProject/Help/*.hhp
+DocProject/Help/Html2
+DocProject/Help/html
+
+# Click-Once目录
+publish/
+
+# Publish Web Output
+*.[Pp]ublish.xml
+*.azurePubxml
+*.pubxml
+*.publishproj
+
+# Microsoft Azure Web App发布设置
+PublishScripts/
+
+# NuGet包
+*.nupkg
+# NuGet Symbol包
+*.snupkg
+# 包文件夹
+**/[Pp]ackages/*
+# 除了build/，它被NuGet用作缓存
+!**/[Pp]ackages/build/
+
+# Windows Azure Build Output
+csx/
+*.build.csdef
+
+# Windows Store app package directories and files
+AppPackages/
+BundleArtifacts/
+Package.StoreAssociation.xml
+_pkginfo.txt
+*.appx
+*.appxbundle
+*.appxupload
+
+# Visual Studio缓存文件
+# 文件以.vs结尾
+.vs/
+
+# Others
+ClientBin/
+~$*
+*~
+*.dbmdl
+*.dbproj.schemaview
+*.jfm
+*.pfx
+*.publishsettings
+orleans.codegen.cs
+
+# 包含敏感信息的文件
+*.pfx
+*.key
+
+# 由于构建过程，忽略用户特定文件
+*.rsuser
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+
+# 用户特定文件(MonoDevelop/Xamarin Studio)
+*.userprefs
+
+# Mono自动生成的文件
+mono_crash.*
+
+# Windows图像缓存文件
+Thumbs.db
+ehthumbs.db
+
+# 文件夹配置文件
+[Dd]esktop.ini
+
+# 回收站
+$RECYCLE.BIN/
+
+# Windows Installer文件
+*.cab
+*.msi
+*.msix
+*.msm
+*.msp
+
+# Windows快捷方式
+*.lnk
+
+# JetBrains Rider
+.idea/
+*.sln.iml
+
+# 日志文件
+*.log
+
+# 临时文件
+*.tmp
+*.temp
+
+# Docker相关
+Dockerfile*
+docker-compose*
+.dockerignore
+
+# Git相关
+.git/
+.gitignore
+
+# 其他IDE文件
+.vscode/
+*.code-workspace 

@@ -1,0 +1,97 @@
+using System.Text.Json;
+using Microsoft.EntityFrameworkCore;
+using SP.Common.ExceptionHandling.Exceptions;
+using SP.Common.Message.Model;
+using SP.Common.Message.Mq;
+using SP.Common.Message.Mq.Model;
+using SP.Common;
+using SP.ResourceService.DB;
+using SP.ResourceService.Models.Entity;
+
+namespace SP.ResourceService.Service.Impl;
+
+/// <summary>
+/// OCR服务实现
+/// </summary>
+public class OCRServiceImpl : IOCRService
+{
+    /// <summary>
+    /// 日志记录器
+    /// </summary>
+    private readonly ILogger<OCRServiceImpl> _logger;
+
+    /// <summary>
+    /// 数据库上下文
+    /// </summary>
+    private readonly ResourceServiceDbContext _dbContext;
+
+    /// <summary>
+    /// RabbitMQ消息服务
+    /// </summary>
+    private readonly RabbitMqMessage _rabbitMqMessage;
+    private readonly ContextSession _contextSession;
+
+    /// <summary>
+    /// 构造函数
+    /// </summary>
+    /// <param name="logger"></param>
+    /// <param name="dbContext"></param>
+    /// <param name="rabbitMqMessage"></param>
+    /// <param name="contextSession"></param>
+    public OCRServiceImpl(ILogger<OCRServiceImpl> logger,
+        ResourceServiceDbContext dbContext, RabbitMqMessage rabbitMqMessage, ContextSession contextSession)
+    {
+        _logger = logger;
+        _dbContext = dbContext;
+        _rabbitMqMessage = rabbitMqMessage;
+        _contextSession = contextSession;
+    }
+
+    /// <summary>
+    /// 识别图片中的文字
+    /// </summary>
+    /// <param name="fileId">图片文件id</param>
+    /// <returns></returns>
+    public async Task RecognizeTextAsync(long fileId)
+    {
+        var currentUserId = _contextSession.UserId;
+        Files? file = await _dbContext.Files.FirstOrDefaultAsync(p => !p.IsDeleted && p.Id == fileId && p.CreateUserId == currentUserId);
+        if (file == null)
+        {
+            throw new NotFoundException("文件不存在");
+        }
+
+        if (file.ContentType != "image/png" && file.ContentType != "image/jpg" && file.ContentType != "image/jpeg")
+        {
+            throw new BadRequestException("仅支持PNG、JPG或JPEG格式的图片");
+        }
+
+        string fileInfoJson = JsonSerializer.Serialize(file);
+        MqPublisher publisher = new MqPublisher(fileInfoJson, MqExchange.MessageExchange,
+            MqRoutingKey.OCRRoutingKey, MqQueue.OCRQueue, "", ExchangeType.Direct);
+        await _rabbitMqMessage.SendAsync(publisher);
+    }
+
+    /// <summary>
+    /// 获取识别到的图片文字
+    /// </summary>
+    /// <param name="fileId">图片文件id</param>
+    /// <returns></returns>
+    public async Task<string?> GetRecognizedTextAsync(long fileId)
+    {
+        var currentUserId = _contextSession.UserId;
+        string? text = await _dbContext.ImageTexts
+            .Join(_dbContext.Files.Where(f => !f.IsDeleted && f.CreateUserId == currentUserId),
+                imageText => imageText.FileId,
+                file => file.Id,
+                (imageText, file) => imageText)
+            .Where(p => !p.IsDeleted && p.FileId == fileId)
+            .Select(p => p.RecognizedText)
+            .FirstOrDefaultAsync();
+        if (text == null)
+        {
+            return "";
+        }
+        return text;
+    }
+}

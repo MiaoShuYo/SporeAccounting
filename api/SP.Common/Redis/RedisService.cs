@@ -1,0 +1,434 @@
+using System.Text.Json;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
+using StackExchange.Redis;
+
+namespace SP.Common.Redis
+{
+    /// <summary>
+    /// Redis服务实现
+    /// </summary>
+    public class RedisService : IRedisService
+    {
+        private readonly ILogger<RedisService> _logger;
+        private readonly RedisOptions _options;
+        private readonly Lazy<ConnectionMultiplexer> _connectionMultiplexer;
+        private readonly string _lockValuePrefix;
+
+        /// <summary>
+        /// 构造函数
+        /// </summary>
+        /// <param name="options">Redis配置选项</param>
+        /// <param name="logger">日志器</param>
+        public RedisService(IOptions<RedisOptions> options, ILogger<RedisService> logger)
+        {
+            _logger = logger;
+            _options = options.Value;
+            _lockValuePrefix = $"lock:{Environment.MachineName}:{Guid.NewGuid()}:";
+
+            _connectionMultiplexer = new Lazy<ConnectionMultiplexer>(() =>
+            {
+                var configOptions = ConfigurationOptions.Parse(_options.ConnectionString);
+                configOptions.DefaultDatabase = _options.DefaultDatabase;
+                configOptions.ConnectTimeout = _options.ConnectTimeout;
+                configOptions.AbortOnConnectFail = false;
+
+                return ConnectionMultiplexer.Connect(configOptions);
+            });
+        }
+
+        /// <summary>
+        /// 获取Redis连接
+        /// </summary>
+        private ConnectionMultiplexer Connection => _connectionMultiplexer.Value;
+
+        /// <summary>
+        /// 获取Redis数据库
+        /// </summary>
+        private IDatabase Database => Connection.GetDatabase();
+
+        /// <summary>
+        /// 获取字符串值
+        /// </summary>
+        public async Task<string?> GetStringAsync(string key)
+        {
+            try
+            {
+                var value = await Database.StringGetAsync(key);
+                return value.HasValue ? value.ToString() : null;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Redis获取字符串值失败");
+                return null;
+            }
+        }
+
+        /// <summary>
+        /// 设置字符串值
+        /// </summary>
+        public async Task<bool> SetStringAsync(string key, string value, int? expirySeconds = null)
+        {
+            try
+            {
+                var expiry = TimeSpan.FromSeconds(expirySeconds ?? _options.DefaultExpireSeconds);
+                return await Database.StringSetAsync(key, value, expiry);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Redis设置字符串值失败");
+                return false;
+            }
+        }
+
+        /// <summary>
+        /// 获取对象
+        /// </summary>
+        public async Task<T?> GetAsync<T>(string key) where T : class
+        {
+            try
+            {
+                var value = await GetStringAsync(key);
+                if (string.IsNullOrEmpty(value))
+                {
+                    return null;
+                }
+
+                return JsonSerializer.Deserialize<T>(value);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Redis获取对象失败，Key: {Key}, Type: {Type}", key, typeof(T).Name);
+                return null;
+            }
+        }
+
+        /// <summary>
+        /// 设置对象
+        /// </summary>
+        public async Task<bool> SetAsync<T>(string key, T value, int? expirySeconds = null) where T : class
+        {
+            if (value == null)
+            {
+                throw new ArgumentNullException(nameof(value));
+            }
+
+            try
+            {
+                var json = JsonSerializer.Serialize(value);
+                return await SetStringAsync(key, json, expirySeconds);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Redis设置对象失败，Key: {Key}, Type: {Type}", key, typeof(T).Name);
+                return false;
+            }
+        }
+
+        /// <summary>
+        /// 删除键
+        /// </summary>
+        public async Task<bool> RemoveAsync(string key)
+        {
+            try
+            {
+                return await Database.KeyDeleteAsync(key);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Redis删除键失败");
+                return false;
+            }
+        }
+
+        /// <summary>
+        /// 移除指定开头的key
+        /// </summary>
+        /// <param name="frontKey">key的开头</param>
+        /// <returns>是否成功</returns>
+        public async Task<bool> RemoveFrontAsync(string frontKey)
+        {
+            try
+            {
+                // 获取所有以frontKey开头的key，并批量删除
+                var endpoints = Connection.GetEndPoints();
+                var server = Connection.GetServer(endpoints.First());
+                var keys = server.Keys(pattern: frontKey + "*").ToArray();
+                if (keys.Length == 0)
+                {
+                    return true;
+                }
+
+                var deletedCount = await Database.KeyDeleteAsync(keys);
+                return deletedCount == keys.Length;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Redis删除键失败，Key: {Key}", frontKey);
+                return false;
+            }
+        }
+
+        /// <summary>
+        /// 键是否存在
+        /// </summary>
+        public async Task<bool> ExistsAsync(string key)
+        {
+            try
+            {
+                return await Database.KeyExistsAsync(key);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Redis检查键是否存在失败，Key: {Key}", key);
+                return false;
+            }
+        }
+
+        /// <summary>
+        /// 设置过期时间
+        /// </summary>
+        public async Task<bool> SetExpiryAsync(string key, int expirySeconds)
+        {
+            try
+            {
+                return await Database.KeyExpireAsync(key, TimeSpan.FromSeconds(expirySeconds));
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Redis设置过期时间失败，Key: {Key}", key);
+                return false;
+            }
+        }
+
+        /// <summary>
+        /// 批量获取
+        /// </summary>
+        public async Task<Dictionary<string, string>> GetAllStringAsync(IEnumerable<string> keys)
+        {
+            try
+            {
+                var keyArray = keys.ToArray();
+                var redisKeys = keyArray.Select(k => (RedisKey)k).ToArray();
+                var values = await Database.StringGetAsync(redisKeys);
+
+                var result = new Dictionary<string, string>();
+                for (var i = 0; i < keyArray.Length; i++)
+                {
+                    if (values[i].HasValue)
+                    {
+                        result.Add(keyArray[i], values[i].ToString());
+                    }
+                }
+
+                return result;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Redis批量获取失败");
+                return new Dictionary<string, string>();
+            }
+        }
+
+        /// <summary>
+        /// 获取所有匹配的键
+        /// </summary>
+        public async Task<IEnumerable<string>> GetKeysAsync(string pattern, int maxCount = 1000, int pageSize = 100,
+            CancellationToken cancellationToken = default)
+        {
+            try
+            {
+                if (string.IsNullOrWhiteSpace(pattern))
+                {
+                    return Enumerable.Empty<string>();
+                }
+
+                maxCount = maxCount <= 0 ? 1000 : maxCount;
+                pageSize = pageSize <= 0 ? 100 : pageSize;
+
+                var keys = await Task.Run(() =>
+                {
+                    var result = new HashSet<string>(StringComparer.Ordinal);
+                    var endpoints = Connection.GetEndPoints();
+
+                    foreach (var endpoint in endpoints)
+                    {
+                        cancellationToken.ThrowIfCancellationRequested();
+
+                        var server = Connection.GetServer(endpoint);
+                        if (!server.IsConnected)
+                        {
+                            continue;
+                        }
+
+                        foreach (var key in server.Keys(pattern: pattern, pageSize: pageSize))
+                        {
+                            cancellationToken.ThrowIfCancellationRequested();
+                            result.Add(key.ToString());
+
+                            if (result.Count >= maxCount)
+                            {
+                                return result;
+                            }
+                        }
+                    }
+
+                    return result;
+                }, cancellationToken);
+
+                if (keys.Count >= maxCount)
+                {
+                    _logger.LogWarning("Redis键扫描达到最大返回限制，Pattern: {Pattern}, MaxCount: {MaxCount}",
+                        pattern, maxCount);
+                }
+
+                return keys;
+            }
+            catch (OperationCanceledException)
+            {
+                _logger.LogWarning("Redis获取匹配键被取消，Pattern: {Pattern}", pattern);
+                return Enumerable.Empty<string>();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Redis获取匹配键失败，Pattern: {Pattern}", pattern);
+                return Enumerable.Empty<string>();
+            }
+        }
+
+        /// <summary>
+        /// 获取Hash值
+        /// </summary>
+        public async Task<string?> HashGetAsync(string key, string field)
+        {
+            try
+            {
+                var value = await Database.HashGetAsync(key, field);
+                return value.HasValue ? value.ToString() : null;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Redis获取Hash值失败，Key: {Key}, Field: {Field}", key, field);
+                return null;
+            }
+        }
+
+        /// <summary>
+        /// 设置Hash值
+        /// </summary>
+        public async Task<bool> HashSetAsync(string key, string field, string value)
+        {
+            try
+            {
+                return await Database.HashSetAsync(key, field, value);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Redis设置Hash值失败，Key: {Key}, Field: {Field}", key, field);
+                return false;
+            }
+        }
+
+        /// <summary>
+        /// 获取所有Hash值
+        /// </summary>
+        public async Task<Dictionary<string, string>> HashGetAllAsync(string key)
+        {
+            try
+            {
+                var entries = await Database.HashGetAllAsync(key);
+                return entries.ToDictionary(
+                    entry => entry.Name.ToString(),
+                    entry => entry.Value.ToString());
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Redis获取所有Hash值失败，Key: {Key}", key);
+                return new Dictionary<string, string>();
+            }
+        }
+
+        /// <summary>
+        /// 发布消息
+        /// </summary>
+        public async Task<long> PublishAsync(string channel, string message)
+        {
+            try
+            {
+                return await Connection.GetSubscriber().PublishAsync(channel, message);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Redis发布消息失败，Channel: {Channel}", channel);
+                return 0;
+            }
+        }
+
+        /// <summary>
+        /// 获取分布式锁
+        /// </summary>
+        public async Task<bool> LockAsync(string key, TimeSpan expiry)
+        {
+            try
+            {
+                var lockKey = $"lock:{key}";
+                var lockValue = $"{_lockValuePrefix}{DateTime.UtcNow.Ticks}";
+
+                // SET命令的NX选项确保键不存在时才设置值
+                return await Database.StringSetAsync(lockKey, lockValue, expiry, When.NotExists);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Redis获取分布式锁失败，Key: {Key}", key);
+                return false;
+            }
+        }
+
+        /// <summary>
+        /// 释放分布式锁
+        /// </summary>
+        public async Task<bool> UnlockAsync(string key)
+        {
+            try
+            {
+                var lockKey = $"lock:{key}";
+                return await Database.KeyDeleteAsync(lockKey);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Redis释放分布式锁失败，Key: {Key}", key);
+                return false;
+            }
+        }
+
+        /// <summary>
+        /// 自增计数（若键不存在则设置为1并附带过期时间）
+        /// </summary>
+        /// <param name="key">键</param>
+        /// <param name="expirySeconds">过期时间(秒)</param>
+        /// <returns>自增后的值</returns>
+        public async Task<long> IncrementAsync(string key, int expirySeconds)
+        {
+            try
+            {
+                // 使用 Lua 脚本保证原子性：不存在则设置为1并设置过期；存在则INCR
+                const string script = @"local exists = redis.call('EXISTS', KEYS[1])
+                                        if exists == 1 then
+                                          return redis.call('INCR', KEYS[1])
+                                        else
+                                          redis.call('SET', KEYS[1], 1, 'EX', ARGV[1])
+                                          return 1
+                                        end";
+
+                var result = (long)await Database.ScriptEvaluateAsync(script, new RedisKey[] { key },
+                    new RedisValue[] { expirySeconds });
+                return result;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Redis自增失败，Key: {Key}", key);
+                return -1;
+            }
+        }
+    }
+}

@@ -1,0 +1,103 @@
+﻿using System.Collections.Immutable;
+using System.Security.Claims;
+using Microsoft.AspNetCore.Identity.Data;
+using SP.Common.Message.SmS.Model;
+using SP.IdentityService.Models.Request;
+
+namespace SP.IdentityService.Service;
+
+/// <summary>
+/// 用户服务接口
+/// </summary>
+public interface IAuthorizationService
+{
+    /// <summary>
+    /// 密码登录
+    /// </summary>
+    /// <param name="userName"></param>
+    /// <param name="password"></param>
+    /// <param name="scopes"></param>
+    /// <returns></returns>
+    Task<ClaimsPrincipal> LoginByPasswordAsync(string userName, string password, ImmutableArray<string> scopes);
+
+    /// <summary>
+    /// 刷新token
+    /// </summary>
+    /// <param name="refreshToken"></param>
+    /// <param name="scopes"></param>
+    /// <param name="principal"></param>
+    /// <returns></returns>
+    Task<ClaimsPrincipal> RefreshTokenAsync(string? refreshToken, ImmutableArray<string> scopes,
+        ClaimsPrincipal? principal);
+
+    /// <summary>
+    /// 处理客户端凭证模式
+    /// </summary>
+    /// <param name="clientId">客户端ID</param>
+    /// <param name="clientSecret">客户端密钥</param>
+    /// <param name="scopes">授权范围</param>
+    /// <returns>ClaimsPrincipal</returns>
+    Task<ClaimsPrincipal> HandleClientCredentialsAsync(string clientId, string? clientSecret,
+        ImmutableArray<string> scopes);
+
+    /// <summary>
+    /// 添加用户
+    /// </summary>
+    /// <param name="user">用户添加请求</param>
+    /// <returns>用户id</returns>
+    Task<long> AddUserAsync(UserRegisterRequest user);
+
+    /// <summary>
+    /// 发送邮件
+    /// </summary>
+    /// <param name="email"></param>
+    /// <returns>是否发送成功</returns>
+    Task EmailVerificationCode(SendEmailRequest email);
+
+    /// <summary>
+    /// 添加邮箱
+    /// </summary>
+    /// <param name="verifyCode"></param>
+    /// <returns></returns>
+    Task AddEmailAsync(VerifyCodeRequest verifyCode);
+
+    /// <summary>
+    /// 重置密码
+    /// </summary>
+    /// <param name="resetPasswordRequest"></param>
+    /// <returns></returns>
+    Task ResetPasswordAsync(PasswordResetRequest resetPasswordRequest);
+
+    /// <summary>
+    /// 添加手机号
+    /// </summary>
+    /// <param name="verifyCode">验证码</param>
+    /// <returns></returns>
+    Task AddPhoneNumberAsync(VerifyCodeRequest verifyCode);
+
+    /// <summary>
+    /// 短信验证登录
+    /// </summary>
+    /// <param name="phoneNumber"></param>
+    /// <param name="code"></param>
+    /// <param name="scopes"></param>
+    /// <returns>ClaimsPrincipal</returns>
+    Task<ClaimsPrincipal> LoginBySmSCodeAsync(string phoneNumber, string code, ImmutableArray<string> scopes);
+
+    /// <summary>
+    /// 邮箱验证码登录
+    /// </summary>
+    /// <param name="email"></param>
+    /// <param name="code"></param>
+    /// <param name="scopes"></param>
+    /// <returns>ClaimsPrincipal</returns>
+    Task<ClaimsPrincipal> LoginByEmailCodeAsync(string email, string code, ImmutableArray<string> scopes);
+
+    /// <summary>
+    /// 发送短信验证码
+    /// </summary>
+    /// <param name="phoneNumber">手机号</param>
+    /// <param name="purpose">用途</param>
+    /// <returns></returns>
+    Task SendVerificationCodeAsync(string phoneNumber, SmSPurposeEnum purpose);
+}
