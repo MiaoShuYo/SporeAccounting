@@ -1,0 +1,23 @@
+name: Deploy Gateway to Production
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - api/SP.Gateway/**
+      - api/SP.Common/**
+      - api/NuGet.Config
+      - .github/workflows/deploy-gateway.yml
+      - .github/workflows/deploy-service.yml
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    uses: ./.github/workflows/deploy-service.yml
+    with:
+      display_name: Gateway
+      service_directory: SP.Gateway
+      image_name: sp-gateway
+      container_name: sp-gateway
+      port: 8977
+    secrets: inherit

@@ -1,0 +1,23 @@
+name: Deploy Finance Service to Production
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - api/SP.FinanceService/**
+      - api/SP.Common/**
+      - api/NuGet.Config
+      - .github/workflows/deploy-finance-service.yml
+      - .github/workflows/deploy-service.yml
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    uses: ./.github/workflows/deploy-service.yml
+    with:
+      display_name: Finance Service
+      service_directory: SP.FinanceService
+      image_name: sp-finance-service
+      container_name: sp-finance-service
+      port: 8399
+    secrets: inherit

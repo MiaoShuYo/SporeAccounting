@@ -1,0 +1,23 @@
+name: Deploy Notification Service to Production
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - api/SP.NotificationService/**
+      - api/SP.Common/**
+      - api/NuGet.Config
+      - .github/workflows/deploy-notification-service.yml
+      - .github/workflows/deploy-service.yml
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    uses: ./.github/workflows/deploy-service.yml
+    with:
+      display_name: Notification Service
+      service_directory: SP.NotificationService
+      image_name: sp-notification-service
+      container_name: sp-notification-service
+      port: 8401
+    secrets: inherit
