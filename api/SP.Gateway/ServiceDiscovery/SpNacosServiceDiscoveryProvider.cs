@@ -55,14 +55,3 @@ public sealed class SpNacosServiceDiscoveryProvider : IServiceDiscoveryProvider
         return services;
     }
 }
-            var hostAndPort = new ServiceHostAndPort(ins.Host, ins.Port, scheme);
-            services.Add(new Service(
-                name: serviceName,
-                hostAndPort: hostAndPort,
-                id: $"{ins.Host}:{ins.Port}",
-                version: string.Empty,
-                tags: Array.Empty<string>()));
-        }
-        return services;
-    }
-}
