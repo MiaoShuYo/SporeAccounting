@@ -8,7 +8,7 @@ namespace SP.Common.Nacos;
 /// <summary>
 /// 应用启动时自动注册到 Nacos，停止时注销。
 /// </summary>
-public sealed class NacosRegistrationHostedService : IHostedService
+public sealed class NacosRegistrationHostedService : IHostedService, IAsyncDisposable
 {
     private readonly INacosClient _nacos;
     private readonly IOptions<NacosOptions> _options;
@@ -17,6 +17,9 @@ public sealed class NacosRegistrationHostedService : IHostedService
 
     private string? _ip;
     private int _port;
+    private Dictionary<string, string>? _metadata;
+    private CancellationTokenSource? _heartbeatCts;
+    private Task? _heartbeatTask;
 
     public NacosRegistrationHostedService(
         INacosClient nacos,
@@ -51,10 +54,10 @@ public sealed class NacosRegistrationHostedService : IHostedService
             return;
         }
 
-        var metadata = new Dictionary<string, string>();
+        _metadata = new Dictionary<string, string>();
         var scheme = ResolveScheme();
         if (!string.IsNullOrWhiteSpace(scheme))
-            metadata["scheme"] = scheme;
+            _metadata["scheme"] = scheme;
 
         _logger.LogInformation("Registering to Nacos: {Service} {Ip}:{Port} ({Group}/{Cluster})",
             opts.ServiceName, _ip, _port, opts.GroupName, opts.ClusterName);
@@ -66,8 +69,14 @@ public sealed class NacosRegistrationHostedService : IHostedService
             groupName: opts.GroupName,
             clusterName: opts.ClusterName,
             weight: opts.Weight,
-            metadata: metadata,
+            metadata: _metadata,
             ct: cancellationToken);
+
+        if (opts.Ephemeral)
+        {
+            _heartbeatCts = new CancellationTokenSource();
+            _heartbeatTask = RunHeartbeatAsync(opts, _heartbeatCts.Token);
+        }
     }
 
     public async Task StopAsync(CancellationToken cancellationToken)
@@ -76,6 +85,16 @@ public sealed class NacosRegistrationHostedService : IHostedService
         if (!opts.RegisterEnabled) return;
         if (string.IsNullOrWhiteSpace(opts.ServiceName)) return;
         if (string.IsNullOrWhiteSpace(_ip) || _port <= 0) return;
+
+        if (_heartbeatCts is not null)
+        {
+            await _heartbeatCts.CancelAsync();
+            if (_heartbeatTask is not null)
+            {
+                try { await _heartbeatTask.WaitAsync(TimeSpan.FromSeconds(3), cancellationToken); }
+                catch { /* application shutdown should continue */ }
+            }
+        }
 
         try
         {
@@ -91,6 +110,38 @@ public sealed class NacosRegistrationHostedService : IHostedService
         catch (Exception ex)
         {
             _logger.LogWarning(ex, "Deregister from Nacos failed");
+        }
+    }
+
+    private async Task RunHeartbeatAsync(NacosOptions opts, CancellationToken ct)
+    {
+        var intervalMs = Math.Max(1_000, opts.HeartbeatIntervalMs);
+        using var timer = new PeriodicTimer(TimeSpan.FromMilliseconds(intervalMs));
+
+        while (!ct.IsCancellationRequested)
+        {
+            try
+            {
+                await timer.WaitForNextTickAsync(ct);
+                await _nacos.SendHeartbeatAsync(
+                    serviceName: opts.ServiceName!,
+                    ip: _ip!,
+                    port: _port,
+                    groupName: opts.GroupName,
+                    clusterName: opts.ClusterName,
+                    weight: opts.Weight,
+                    metadata: _metadata,
+                    ct: ct);
+                _logger.LogDebug("Nacos heartbeat sent for {Service}", opts.ServiceName);
+            }
+            catch (OperationCanceledException) when (ct.IsCancellationRequested)
+            {
+                break;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Nacos heartbeat failed for {Service}", opts.ServiceName);
+            }
         }
     }
 
@@ -132,5 +183,14 @@ public sealed class NacosRegistrationHostedService : IHostedService
         var first = urls.Split(';', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
             .FirstOrDefault();
         return Uri.TryCreate(first, UriKind.Absolute, out var uri) ? uri.Scheme : null;
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        if (_heartbeatCts is not null)
+        {
+            await _heartbeatCts.CancelAsync();
+            _heartbeatCts.Dispose();
+        }
     }
 }

@@ -146,6 +146,51 @@ public sealed class NacosClient : INacosClient
         resp.EnsureSuccessStatusCode();
     }
 
+    public async Task SendHeartbeatAsync(
+        string serviceName,
+        string ip,
+        int port,
+        string? groupName = null,
+        string? clusterName = null,
+        double? weight = null,
+        IDictionary<string, string>? metadata = null,
+        CancellationToken ct = default)
+    {
+        if (string.IsNullOrWhiteSpace(serviceName)) throw new ArgumentException(nameof(serviceName));
+        if (string.IsNullOrWhiteSpace(ip)) throw new ArgumentException(nameof(ip));
+        if (port <= 0) throw new ArgumentOutOfRangeException(nameof(port));
+
+        var resolvedGroup = string.IsNullOrWhiteSpace(groupName) ? _options.GroupName : groupName;
+        var resolvedCluster = string.IsNullOrWhiteSpace(clusterName) ? _options.ClusterName : clusterName;
+        var beat = JsonSerializer.Serialize(new
+        {
+            ip,
+            port,
+            serviceName,
+            cluster = resolvedCluster,
+            weight = weight ?? _options.Weight,
+            metadata = metadata ?? new Dictionary<string, string>(),
+            scheduled = true
+        });
+
+        var form = new Dictionary<string, string?>
+        {
+            ["serviceName"] = serviceName,
+            ["groupName"] = resolvedGroup,
+            ["namespaceId"] = _options.Namespace,
+            ["beat"] = beat
+        };
+        await EnsureAuthAsync(form, ct);
+
+        using var req = new HttpRequestMessage(HttpMethod.Put, "/nacos/v1/ns/instance/beat")
+        {
+            Content = new FormUrlEncodedContent(form.Where(kv => kv.Value is not null)
+                .Select(kv => new KeyValuePair<string, string>(kv.Key, kv.Value!)))
+        };
+        using var resp = await _http.SendAsync(req, ct);
+        resp.EnsureSuccessStatusCode();
+    }
+
     public async Task<string?> GetConfigAsync(
         string dataId,
         string? group = null,

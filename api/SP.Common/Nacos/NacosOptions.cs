@@ -71,6 +71,11 @@ public sealed class NacosOptions
     public int ConfigPollIntervalMs { get; set; } = 5_000;
 
     /// <summary>
+    /// 临时实例心跳间隔（毫秒）。Nacos 默认 15 秒判定不健康，因此默认每 5 秒发送一次。
+    /// </summary>
+    public int HeartbeatIntervalMs { get; set; } = 5_000;
+
+    /// <summary>
     /// 配置中心监听项（与 Listeners 配置项对齐）。
     /// </summary>
     public List<NacosListenerOptions> Listeners { get; set; } = new();

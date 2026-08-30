@@ -40,6 +40,19 @@ public interface INacosClient
         CancellationToken ct = default);
 
     /// <summary>
+    /// 为临时实例发送心跳，避免被 Nacos 标记为不健康并移除。
+    /// </summary>
+    Task SendHeartbeatAsync(
+        string serviceName,
+        string ip,
+        int port,
+        string? groupName = null,
+        string? clusterName = null,
+        double? weight = null,
+        IDictionary<string, string>? metadata = null,
+        CancellationToken ct = default);
+
+    /// <summary>
     /// 注销服务实例。
     /// </summary>
     Task DeregisterInstanceAsync(
