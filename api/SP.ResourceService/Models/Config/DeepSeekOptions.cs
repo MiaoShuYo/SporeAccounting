@@ -19,4 +19,9 @@ public class DeepSeekOptions
     /// 对话补全地址
     /// </summary>
     public string Chat { get; set; }
+
+    /// <summary>
+    /// 模型名称
+    /// </summary>
+    public string Model { get; set; }
 }

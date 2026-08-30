@@ -60,7 +60,10 @@ public class DeepSeekAssistantServiceImpl : IAssistantService
         request.AddHeader("Accept", "application/json");
         request.AddHeader("Authorization", "Bearer " + apiKey);
         // 构造请求体
-        RequestData requestData = new RequestData();
+        RequestData requestData = new RequestData
+        {
+            Model = _deepSeekOptions.Model
+        };
 
         // 新建角色
         Message systemMessage = new Message();
@@ -126,6 +129,11 @@ public class DeepSeekAssistantServiceImpl : IAssistantService
         if (string.IsNullOrWhiteSpace(deepSeekOptions.Chat))
         {
             throw new ArgumentException("DeepSeek Chat地址不能为空");
+        }
+
+        if (string.IsNullOrWhiteSpace(deepSeekOptions.Model))
+        {
+            throw new ArgumentException("DeepSeek 模型名称不能为空");
         }
     }
 }
