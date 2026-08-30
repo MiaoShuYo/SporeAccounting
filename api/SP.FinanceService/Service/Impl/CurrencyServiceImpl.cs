@@ -39,7 +39,7 @@ public class CurrencyServiceImpl : ICurrencyService
             }
 
             _logger.LogError("获取汇率失败: {StatusCode}, {ErrorMessage}",
-                response.StatusCode, response.Error?.Content);
+                response.StatusCode, response.Error?.Message);
 
             throw new RefitException($"获取汇率失败: {response.StatusCode}");
         }
