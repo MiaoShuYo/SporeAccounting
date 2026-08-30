@@ -1,0 +1,38 @@
+name: Diagnose Production Gateway
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  diagnose:
+    name: Inspect Gateway Container
+    runs-on: ubuntu-latest
+    environment: production
+    timeout-minutes: 10
+
+    steps:
+      - name: Read gateway status and logs
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USERNAME }}
+          key: ${{ secrets.SERVER_SSH_KEY }}
+          command_timeout: 5m
+          script: |
+            set -u
+
+            CONTAINER_NAME="sp-gateway"
+            docker ps -a --filter "name=^/${CONTAINER_NAME}$" \
+              --format 'table {{.Names}}\t{{.Status}}\t{{.Ports}}'
+
+            if docker inspect "$CONTAINER_NAME" >/dev/null 2>&1; then
+              docker inspect "$CONTAINER_NAME" \
+                --format 'running={{.State.Running}} status={{.State.Status}} exit={{.State.ExitCode}} restarts={{.RestartCount}} started={{.State.StartedAt}} finished={{.State.FinishedAt}}'
+              docker logs --tail 200 "$CONTAINER_NAME" 2>&1
+            else
+              echo "Gateway container does not exist" >&2
+              exit 1
+            fi
