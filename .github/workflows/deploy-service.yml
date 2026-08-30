@@ -12,7 +12,7 @@ on:
         required: true
         type: string
       image_name:
-        description: Docker Hub image name
+        description: Harbor image repository name
         required: true
         type: string
       container_name:
@@ -24,9 +24,11 @@ on:
         required: true
         type: number
     secrets:
-      DOCKER_USERNAME:
+      HARBOR_PROJECT:
         required: true
-      DOCKER_PASSWORD:
+      HARBOR_USERNAME:
+        required: true
+      HARBOR_PASSWORD:
         required: true
       SERVER_HOST:
         required: true
@@ -37,6 +39,9 @@ on:
 
 permissions:
   contents: read
+
+env:
+  HARBOR_REGISTRY: dockerhub.miaoshuhub.com
 
 jobs:
   deploy:
@@ -55,11 +60,12 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
-      - name: Log in to Docker Hub
+      - name: Log in to Harbor
         uses: docker/login-action@v3
         with:
-          username: ${{ secrets.DOCKER_USERNAME }}
-          password: ${{ secrets.DOCKER_PASSWORD }}
+          registry: ${{ env.HARBOR_REGISTRY }}
+          username: ${{ secrets.HARBOR_USERNAME }}
+          password: ${{ secrets.HARBOR_PASSWORD }}
 
       - name: Build and push Docker image
         uses: docker/build-push-action@v6
@@ -68,8 +74,8 @@ jobs:
           file: ${{ format('./api/{0}/Dockerfile', inputs.service_directory) }}
           push: true
           tags: |
-            ${{ secrets.DOCKER_USERNAME }}/${{ inputs.image_name }}:latest
-            ${{ secrets.DOCKER_USERNAME }}/${{ inputs.image_name }}:${{ github.sha }}
+            ${{ env.HARBOR_REGISTRY }}/${{ secrets.HARBOR_PROJECT }}/${{ inputs.image_name }}:latest
+            ${{ env.HARBOR_REGISTRY }}/${{ secrets.HARBOR_PROJECT }}/${{ inputs.image_name }}:${{ github.sha }}
 
       - name: Deploy to production server
         uses: appleboy/ssh-action@v1.2.0
@@ -80,7 +86,8 @@ jobs:
           script: |
             set -eu
 
-            IMAGE_REF="${{ secrets.DOCKER_USERNAME }}/${{ inputs.image_name }}:${{ github.sha }}"
+            REGISTRY="${{ env.HARBOR_REGISTRY }}"
+            IMAGE_REF="${{ env.HARBOR_REGISTRY }}/${{ secrets.HARBOR_PROJECT }}/${{ inputs.image_name }}:${{ github.sha }}"
             CONTAINER_NAME="${{ inputs.container_name }}"
             PORT="${{ inputs.port }}"
 
@@ -88,6 +95,9 @@ jobs:
             if [ -z "$HOST_IP" ]; then HOST_IP=$(ip -o route get 1.1.1.1 2>/dev/null | awk '{print $7; exit}' || true); fi
             if [ -z "$HOST_IP" ]; then HOST_IP=$(hostname -I | awk '{print $1}' || true); fi
 
+            echo "${{ secrets.HARBOR_PASSWORD }}" | docker login "$REGISTRY" \
+              --username "${{ secrets.HARBOR_USERNAME }}" \
+              --password-stdin
             docker pull "$IMAGE_REF"
             docker stop "$CONTAINER_NAME" 2>/dev/null || true
             docker rm "$CONTAINER_NAME" 2>/dev/null || true
